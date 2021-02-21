@@ -4,6 +4,7 @@ A Pydantic model class and FastAPI extension to add hypermedia links to your API
 
 ## To-do before release
 
+- Flask-Marshmallow credit
 - Documentation
 - Full readme
 - Proper unit tests
