@@ -1,9 +1,11 @@
 [tool.poetry]
 authors = ["Joel Collins <joel.collins@renalregistry.nhs.uk>"]
-description = "FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-driven API development. This module adds a new Pydantic model base-class, supporting dynamic `href` generation based on object data."
+description = "A FastAPI + Pydantic extension for simplifying hypermedia-driven API development."
+license = "MIT"
 name = "fastapi-hypermodel"
+readme = "README.md"
 repository = "https://github.com/jtc42/fastapi-hypermodel"
-version = "0.1.0-beta.2"
+version = "0.1.0"
 
 [tool.poetry.dependencies]
 fastapi = "^0.63.0"
