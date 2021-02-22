@@ -1,22 +1,43 @@
 [tool.poetry]
 authors = ["Joel Collins <joel.collins@renalregistry.nhs.uk>"]
-description = ""
+description = "FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-driven API development. This module adds a new Pydantic model base-class, supporting dynamic `href` generation based on object data."
 name = "fastapi-hypermodel"
-version = "0.1.0"
+repository = "https://github.com/jtc42/fastapi-hypermodel"
+version = "0.1.0-beta.1"
 
 [tool.poetry.dependencies]
-python = "^3.6"
 fastapi = "^0.63.0"
 pydantic = "^1.7.3"
+python = "^3.6"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+bandit = "^1.7.0"
 black = {version = "^20.8b1", allow-prereleases = true}
-uvicorn = "^0.13.4"
 isort = "^5.7.0"
+mypy = "^0.812"
 pylint = "^2.6.2"
+pytest = "^5.2"
+pytest-cov = "^2.11.1"
 requests = "^2.25.1"
+tox = "^3.22.0"
+uvicorn = "^0.13.4"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
+
+[tool.isort]
+ensure_newline_before_comments = true
+force_grid_wrap = 0
+include_trailing_comma = true
+line_length = 88
+multi_line_output = 3
+use_parentheses = true
+
+[tool.pylint.'MESSAGES CONTROL']
+# unsubscriptable-object is disabled until proper Python 3.9 support is fixed in PyLint
+disable = "unsubscriptable-object, fixme, missing-module-docstring, missing-class-docstring, too-few-public-methods, too-many-arguments"
+max-line-length = 88
+
+[tool.pylint.'MASTER']
+extension-pkg-whitelist = "pydantic" # PyLint struggles with Pydantic in GH Actions

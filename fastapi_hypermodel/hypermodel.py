@@ -1,5 +1,10 @@
+"""
+Some functionality is based heavily on Flask-Marshmallow:
+https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py
+"""
+
 import re
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI
 from pydantic import AnyUrl, BaseModel, root_validator
@@ -51,7 +56,7 @@ class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
     @root_validator
-    def _hypermodel_gen_href(cls, values):
+    def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         if hasattr(cls, "Href") and cls.Href and cls._hypermodel_bound_app:
             # Pull out hypermodel config from Href class
             field: str = getattr(cls.Href, "field", "href")
@@ -89,4 +94,15 @@ class HyperModel(BaseModel):
 
     @classmethod
     def init_app(cls, app: FastAPI):
+        """
+        Bind a FastAPI app to othe HyperModel base class.
+        This allows HyperModel to convert endpoint function names into
+        working URLs relative to the application root.
+
+        Args:
+            app (FastAPI): Application to generate URLs from
+        """
         cls._hypermodel_bound_app = app
+
+    class Href:
+        pass
