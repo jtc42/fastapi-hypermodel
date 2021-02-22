@@ -48,7 +48,7 @@ jobs:
           python-version: 3.9
 
       - name: Install and configure Poetry
-        uses: snok/install-poetry
+        uses: snok/install-poetry@v1.1.1
         with:
           version: 1.1.4
           virtualenvs-create: true
