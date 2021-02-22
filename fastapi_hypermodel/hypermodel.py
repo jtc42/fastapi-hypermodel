@@ -52,6 +52,14 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
+class MissingEndpoint(AttributeError):
+    pass
+
+
+class InvalidAttribute(AttributeError):
+    pass
+
+
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
@@ -66,7 +74,7 @@ class HyperModel(BaseModel):
                 endpoint: str = getattr(cls.Href, "endpoint", None)
                 # Make sure we have an endpoint
                 if not endpoint:
-                    raise AttributeError(
+                    raise MissingEndpoint(
                         "`endpoint` attribute must be specified in Href class"
                     )
 
@@ -77,7 +85,7 @@ class HyperModel(BaseModel):
                     if attr_name:
                         attribute_value = _get_value(values, attr_name, default=None)
                         if attribute_value is None:
-                            raise AttributeError(
+                            raise InvalidAttribute(
                                 "{attr_name!r} is not a valid "
                                 "attribute of {obj!r}".format(
                                     attr_name=attr_name, obj=values
