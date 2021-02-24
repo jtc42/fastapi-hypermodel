@@ -9,6 +9,11 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI
 from pydantic import AnyUrl, BaseModel, root_validator
 
+from typing import Sequence
+
+from starlette.datastructures import URLPath
+from starlette.routing import BaseRoute, NoMatchFound
+
 # Type alias, for convenience
 HyperRef = Optional[AnyUrl]
 
@@ -52,12 +57,26 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
-class MissingEndpoint(AttributeError):
-    pass
+def find_associated_routes(app: FastAPI, path: str) -> Sequence[BaseRoute]:
+    routes = []
+    for route in app.routes:
+        if route.path == path:
+            routes.append(route)
+    return routes
 
 
-class InvalidAttribute(AttributeError):
-    pass
+def url_path_for(app: FastAPI, name: str, **path_params: str) -> URLPath:
+    for route in app.routes:
+        try:
+            path: URLPath = route.url_path_for(name, **path_params)
+            route_path = route.path
+            matching = find_associated_routes(app, route_path)
+            methods = [r.methods for r in matching]
+            print(list(set().union(*methods)))
+            return path
+        except NoMatchFound:
+            pass
+    raise NoMatchFound()
 
 
 class HyperModel(BaseModel):
@@ -74,7 +93,7 @@ class HyperModel(BaseModel):
                 endpoint: str = getattr(cls.Href, "endpoint", None)
                 # Make sure we have an endpoint
                 if not endpoint:
-                    raise MissingEndpoint(
+                    raise AttributeError(
                         "`endpoint` attribute must be specified in Href class"
                     )
 
@@ -85,7 +104,7 @@ class HyperModel(BaseModel):
                     if attr_name:
                         attribute_value = _get_value(values, attr_name, default=None)
                         if attribute_value is None:
-                            raise InvalidAttribute(
+                            raise AttributeError(
                                 "{attr_name!r} is not a valid "
                                 "attribute of {obj!r}".format(
                                     attr_name=attr_name, obj=values
@@ -93,9 +112,8 @@ class HyperModel(BaseModel):
                             )
                         param_values[name] = attribute_value
 
-                # Dump href field into output
-                values[field] = cls._hypermodel_bound_app.url_path_for(
-                    endpoint, **param_values
+                values[field] = url_path_for(
+                    cls._hypermodel_bound_app, endpoint, **param_values
                 )
 
         return values
