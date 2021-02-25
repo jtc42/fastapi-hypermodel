@@ -13,7 +13,7 @@ FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-
 ```python
 from fastapi import FastAPI
 
-from fastapi_hypermodel import HyperModel, UrlFor
+from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
 ```
 
 `HyperModel` will be your model base-class.
