@@ -5,14 +5,32 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 
 import re
 from typing import Any, Dict, List, Optional
-
+from collections import UserDict
 from fastapi import FastAPI
 from pydantic import AnyUrl, BaseModel, root_validator
-
-# Type alias, for convenience
-HyperRef = Optional[AnyUrl]
+from pydantic.validators import dict_validator
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
+
+
+class InvalidAttribute(AttributeError):
+    pass
+
+
+class UrlFor:
+    def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
+        self.endpoint: str = endpoint
+        self.param_values: Dict[str, str] = param_values or {}
+
+    @staticmethod
+    def __get_validators__():
+        yield AnyUrl.validate
+
+
+class LinkSet(UserDict):  # pylint: disable=too-many-ancestors
+    @staticmethod
+    def __get_validators__():
+        yield dict_validator
 
 
 def _tpl(val):
@@ -52,52 +70,44 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
-class MissingEndpoint(AttributeError):
-    pass
-
-
-class InvalidAttribute(AttributeError):
-    pass
+def _resolve_param_values(param_values_template, data_object):
+    param_values = {}
+    for name, attr_tpl in param_values_template.items():
+        attr_name = _tpl(str(attr_tpl))
+        if attr_name:
+            attribute_value = _get_value(data_object, attr_name, default=None)
+            if attribute_value is None:
+                raise InvalidAttribute(
+                    "{attr_name!r} is not a valid "
+                    "attribute of {obj!r}".format(attr_name=attr_name, obj=data_object)
+                )
+            param_values[name] = attribute_value
+    return param_values
 
 
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
+    @classmethod
+    def _generate_url(cls, endpoint, param_values, values):
+        if cls._hypermodel_bound_app:
+            return cls._hypermodel_bound_app.url_path_for(
+                endpoint, **_resolve_param_values(param_values, values)
+            )
+        return None
+
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
-        if hasattr(cls, "Href") and cls.Href and cls._hypermodel_bound_app:
-            # Pull out hypermodel config from Href class
-            field: str = getattr(cls.Href, "field", "href")
-            # Don't bother building URL if it's not included in the model
-            if field in cls.__fields__:
-                path_params: Dict[str, str] = getattr(cls.Href, "values", {})
-                endpoint: str = getattr(cls.Href, "endpoint", None)
-                # Make sure we have an endpoint
-                if not endpoint:
-                    raise MissingEndpoint(
-                        "`endpoint` attribute must be specified in Href class"
-                    )
-
-                # Resolve param values
-                param_values = {}
-                for name, attr_tpl in path_params.items():
-                    attr_name = _tpl(str(attr_tpl))
-                    if attr_name:
-                        attribute_value = _get_value(values, attr_name, default=None)
-                        if attribute_value is None:
-                            raise InvalidAttribute(
-                                "{attr_name!r} is not a valid "
-                                "attribute of {obj!r}".format(
-                                    attr_name=attr_name, obj=values
-                                )
-                            )
-                        param_values[name] = attribute_value
-
-                # Dump href field into output
-                values[field] = cls._hypermodel_bound_app.url_path_for(
-                    endpoint, **param_values
+        for key, value in values.items():
+            if isinstance(value, UrlFor):
+                values[key] = cls._generate_url(
+                    value.endpoint, value.param_values, values
                 )
-
+            elif isinstance(value, LinkSet):
+                values[key] = {
+                    k: cls._generate_url(u.endpoint, u.param_values, values)
+                    for k, u in value.items()
+                }
         return values
 
     @classmethod
@@ -111,6 +121,3 @@ class HyperModel(BaseModel):
             app (FastAPI): Application to generate URLs from
         """
         cls._hypermodel_bound_app = app
-
-    class Href:
-        pass

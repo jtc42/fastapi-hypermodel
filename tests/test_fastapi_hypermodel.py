@@ -1,5 +1,4 @@
 import pytest
-from starlette.routing import NoMatchFound
 
 from fastapi_hypermodel.hypermodel import (
     _tpl,
@@ -7,9 +6,8 @@ from fastapi_hypermodel.hypermodel import (
     _get_value_for_keys,
     _get_value,
     HyperModel,
-    HyperRef,
-    MissingEndpoint,
     InvalidAttribute,
+    UrlFor,
 )
 from .app import items, people
 
@@ -81,42 +79,20 @@ def test_people(client, person_id):
     assert response.json().get("href") == url
 
 
-def test_bad_endpoint(app):
+@pytest.mark.parametrize("person_id", people.keys())
+def test_people_linkset(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    assert "href" in response.json()
+    assert response.json().get("links") == {
+        "self": f"/people/{person_id}",
+        "items": f"/people/{person_id}/items",
+    }
+
+
+def test_bad_attribute(app):
     class ItemSummary(HyperModel):
-        id: str
-        href: HyperRef
-
-        class Href:
-            endpoint = "bad_endpoint"
-            values = {"id": "<id>"}
-
-    assert ItemSummary._hypermodel_bound_app is app
-
-    with pytest.raises(NoMatchFound):
-        _ = ItemSummary(id="id0")
-
-
-def test_no_endpoint(app):
-    class ItemSummary(HyperModel):
-        id: str
-        href: HyperRef
-
-        class Href:
-            values = {"id": "<id>"}
-
-    assert ItemSummary._hypermodel_bound_app is app
-
-    with pytest.raises(MissingEndpoint):
-        _ = ItemSummary(id="id0")
-
-
-def test_abd_attribute(app):
-    class ItemSummary(HyperModel):
-        href: HyperRef
-
-        class Href:
-            endpoint = "read_item"
-            values = {"item_id": "<id>"}
+        href = UrlFor("read_item", {"item_id": "<id>"})
 
     assert ItemSummary._hypermodel_bound_app is app
 
