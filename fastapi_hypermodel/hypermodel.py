@@ -27,10 +27,7 @@ class UrlFor:
         yield AnyUrl.validate
 
 
-class LinkSet(UserDict):
-    def __init__(self, links: Dict[str, UrlFor]):
-        super().__init__(links)
-
+class LinkSet(UserDict):  # pylint: disable=too-many-ancestors
     @staticmethod
     def __get_validators__():
         yield dict_validator
@@ -97,18 +94,19 @@ class HyperModel(BaseModel):
             return cls._hypermodel_bound_app.url_path_for(
                 endpoint, **_resolve_param_values(param_values, values)
             )
-        else:
-            return None
+        return None
 
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
-        for k, v in values.items():
-            if isinstance(v, UrlFor):
-                values[k] = cls._generate_url(v.endpoint, v.param_values, values)
-            elif isinstance(v, LinkSet):
-                values[k] = {
+        for key, value in values.items():
+            if isinstance(value, UrlFor):
+                values[key] = cls._generate_url(
+                    value.endpoint, value.param_values, values
+                )
+            elif isinstance(value, LinkSet):
+                values[key] = {
                     k: cls._generate_url(u.endpoint, u.param_values, values)
-                    for k, u in v.items()
+                    for k, u in value.items()
                 }
         return values
 
@@ -123,4 +121,3 @@ class HyperModel(BaseModel):
             app (FastAPI): Application to generate URLs from
         """
         cls._hypermodel_bound_app = app
-        cls.Config.bound_app = app
