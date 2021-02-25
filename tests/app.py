@@ -2,20 +2,17 @@ from typing import List, Optional
 
 from fastapi import FastAPI
 
-from fastapi_hypermodel import HyperModel, HyperRef
+from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
 
 
 class ItemSummary(HyperModel):
     name: str
     id: str
-    href: HyperRef
 
-    class Href:
-        endpoint = "read_item"
-        values = {"item_id": "<id>"}
+    href = UrlFor("read_item", {"item_id": "<id>"})
 
 
-class Item(ItemSummary):
+class ItemDetail(ItemSummary):
     description: Optional[str] = None
     price: float
 
@@ -24,11 +21,14 @@ class Person(HyperModel):
     name: str
     id: str
     items: List[ItemSummary]
-    href: HyperRef
 
-    class Href:
-        endpoint = "read_person"
-        values = {"person_id": "<id>"}
+    href = UrlFor("read_person", {"person_id": "<id>"})
+    links = LinkSet(
+        {
+            "self": UrlFor("read_person", {"person_id": "<id>"}),
+            "items": UrlFor("read_person_items", {"person_id": "<id>"}),
+        }
+    )
 
 
 items = {
@@ -68,7 +68,7 @@ def create_app():
     def read_items():
         return list(items.values())
 
-    @app.get("/items/{item_id}", response_model=Item)
+    @app.get("/items/{item_id}", response_model=ItemDetail)
     def read_item(item_id: str):
         return items[item_id]
 
@@ -82,5 +82,9 @@ def create_app():
     @app.get("/people/{person_id}", response_model=Person)
     def read_person(person_id: str):
         return people[person_id]
+
+    @app.get("/people/{person_id}/items", response_model=List[ItemDetail])
+    def read_person_items(person_id: str):
+        return people[person_id]["items"]
 
     return app
