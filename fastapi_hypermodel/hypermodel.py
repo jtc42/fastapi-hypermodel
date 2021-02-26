@@ -4,10 +4,11 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 """
 
 import re
-from typing import Any, Dict, List, Optional
-from collections import UserDict
+from typing import Any, Dict, List, Optional, no_type_check
+
 from fastapi import FastAPI
 from pydantic import AnyUrl, BaseModel, root_validator
+from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
@@ -17,17 +18,37 @@ class InvalidAttribute(AttributeError):
     pass
 
 
-class UrlFor:
+class UrlFor(str):
+    min_length = 1
+    max_length = 2 ** 16
+
     def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
         self.endpoint: str = endpoint
         self.param_values: Dict[str, str] = param_values or {}
+        super().__init__()
+
+    @no_type_check
+    def __new__(cls, *_):
+        return str.__new__(cls)
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        update_not_none(
+            field_schema,
+            minLength=cls.min_length,
+            maxLength=cls.max_length,
+            format="uri",
+        )
 
     @staticmethod
     def __get_validators__():
         yield AnyUrl.validate
 
 
-class LinkSet(UserDict):  # pylint: disable=too-many-ancestors
+_LinkSetType = Dict[str, UrlFor]
+
+
+class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
     @staticmethod
     def __get_validators__():
         yield dict_validator
