@@ -38,7 +38,7 @@ use_parentheses = true
 
 [tool.pylint.'MESSAGES CONTROL']
 # unsubscriptable-object is disabled until proper Python 3.9 support is fixed in PyLint
-disable = "unsubscriptable-object, fixme, missing-module-docstring, missing-class-docstring, too-few-public-methods, too-many-arguments"
+disable = "line-too-long, unsubscriptable-object, fixme, missing-module-docstring, missing-class-docstring, too-few-public-methods, too-many-arguments"
 max-line-length = 88
 
 [tool.pylint.'MASTER']
