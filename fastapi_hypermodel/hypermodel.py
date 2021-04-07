@@ -4,12 +4,13 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 """
 
 import re
-from typing import Any, Dict, List, Optional, no_type_check
+from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI
 from pydantic import BaseModel, root_validator
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
+from starlette.datastructures import URLPath
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
@@ -18,7 +19,7 @@ class InvalidAttribute(AttributeError):
     pass
 
 
-class UrlFor(str):
+class UrlFor:
     min_length = 1
     max_length = 2 ** 16
 
@@ -26,10 +27,6 @@ class UrlFor(str):
         self.endpoint: str = endpoint
         self.param_values: Dict[str, str] = param_values or {}
         super().__init__()
-
-    @no_type_check
-    def __new__(cls, *_):
-        return str.__new__(cls)
 
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
@@ -51,10 +48,12 @@ class UrlFor(str):
         The UrlFor field type will only accept UrlFor instances.
         """
         # Return original object if it's already a UrlFor instance
-        if value.__class__ == cls:
+        if value.__class__ == URLPath:
             return value
         # Otherwise raise an exception
-        raise ValueError("UrlFor field must itself be a UrlFor object")
+        raise ValueError(
+            f"UrlFor field should resolve to a starlette.datastructures.URLPath instance. Instead got {value.__class__}"
+        )
 
 
 _LinkSetType = Dict[str, UrlFor]
