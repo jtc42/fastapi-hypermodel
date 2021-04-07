@@ -7,7 +7,7 @@ import re
 from typing import Any, Dict, List, Optional, no_type_check
 
 from fastapi import FastAPI
-from pydantic import AnyUrl, BaseModel, root_validator
+from pydantic import BaseModel, root_validator
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 
@@ -40,17 +40,29 @@ class UrlFor(str):
             format="uri",
         )
 
-    @staticmethod
-    def __get_validators__():
-        yield AnyUrl.validate
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: Any) -> "UrlFor":
+        """
+        Validate UrlFor object against itself.
+        The UrlFor field type will only accept UrlFor instances.
+        """
+        # Return original object if it's already a UrlFor instance
+        if value.__class__ == cls:
+            return value
+        # Otherwise raise an exception
+        raise ValueError("UrlFor field must itself be a UrlFor object")
 
 
 _LinkSetType = Dict[str, UrlFor]
 
 
 class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
-    @staticmethod
-    def __get_validators__():
+    @classmethod
+    def __get_validators__(cls):
         yield dict_validator
 
 
