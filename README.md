@@ -136,6 +136,12 @@ If we run the example application and go to our `/items` URL, we should get a re
 ]
 ```
 
+## Limitations
+
+Currently, query parameters will not resolve correctly. When generating a resource URL, ensure all parameters passed are path parameters, not query parameters.
+
+This is an upstream issue, being tracked [here](https://github.com/encode/starlette/issues/560).
+
 ## Attributions
 
 Some functionality is based on [Flask-Marshmallow](https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py) `URLFor` class.
