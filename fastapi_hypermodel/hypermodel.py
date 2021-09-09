@@ -4,6 +4,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 """
 
 import re
+import urllib
 from typing import Any, Dict, List, Optional, no_type_check
 
 from fastapi import FastAPI
@@ -112,6 +113,12 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
+def _clean_attribute_value(value: Any):
+    if isinstance(value, str):
+        return urllib.parse.quote(value)
+    return value
+
+
 def _resolve_param_values(param_values_template, data_object):
     param_values = {}
     for name, attr_tpl in param_values_template.items():
@@ -123,7 +130,7 @@ def _resolve_param_values(param_values_template, data_object):
                     "{attr_name!r} is not a valid "
                     "attribute of {obj!r}".format(attr_name=attr_name, obj=data_object)
                 )
-            param_values[name] = attribute_value
+            param_values[name] = _clean_attribute_value(attribute_value)
     return param_values
 
 
