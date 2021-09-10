@@ -1,3 +1,6 @@
+# Ignore lockfile. See https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
+poetry.lock
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
