@@ -73,10 +73,7 @@ people = {
 # Create our API routes, using our Pydantic models as respone_model
 
 
-@app.get(
-    "/items",
-    response_model=List[ItemSummary],
-)
+@app.get("/items", response_model=List[ItemSummary])
 def read_items():
     return list(items.values())
 
@@ -86,10 +83,7 @@ def read_item(item_id: str):
     return items[item_id]
 
 
-@app.get(
-    "/people",
-    response_model=List[Person],
-)
+@app.get("/people", response_model=List[Person])
 def read_people():
     return list(people.values())
 
