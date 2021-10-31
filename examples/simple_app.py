@@ -4,21 +4,27 @@ from fastapi import FastAPI
 
 from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
 
+# Create our FastAPI app
 app = FastAPI()
+# Attach our HyperModel base class to our app
 HyperModel.init_app(app)
 
 
+# Create a Pydantic model for our Item resources
 class ItemSummary(HyperModel):
     name: str
     id: str
+    # This is a dynamic link to the Item resource
     href = UrlFor("read_item", {"item_id": "<id>"})
 
 
+# Extended model for our Item resources, including extra details
 class Item(ItemSummary):
     description: Optional[str] = None
     price: float
 
 
+# Create a Pydantic model for our Person resources
 class Person(HyperModel):
     name: str
     id: str
@@ -28,6 +34,8 @@ class Person(HyperModel):
     href = UrlFor("read_person", {"person_id": "<id>"})
 
     # Link set attribute
+    # For larger APIs, this tends to be more useful as it allows you to easily
+    # generate a list of links for all the sub-resources of a resource
     links = LinkSet(
         {
             "self": UrlFor("read_person", {"person_id": "<id>"}),
@@ -36,6 +44,7 @@ class Person(HyperModel):
     )
 
 
+# Create some test data for our API to return
 items = {
     "item01": {"id": "item01", "name": "Foo", "price": 50.2},
     "item02": {
@@ -60,6 +69,8 @@ people = {
     },
     "person02": {"id": "person02", "name": "Bob", "items": [items["item03"]]},
 }
+
+# Create our API routes, using our Pydantic models as respone_model
 
 
 @app.get(
@@ -92,6 +103,8 @@ def read_person(person_id: str):
 def read_person_items(person_id: str):
     return people[person_id]["items"]
 
+
+# Run the app
 
 if __name__ == "__main__":
     import uvicorn
