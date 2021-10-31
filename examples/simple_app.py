@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI
 
-from fastapi_hypermodel import HyperModel, HyperRef, UrlFor
+from fastapi_hypermodel import HyperModel, UrlFor
 
 app = FastAPI()
 HyperModel.init_app(app)
@@ -11,7 +11,7 @@ HyperModel.init_app(app)
 class ItemSummary(HyperModel):
     name: str
     id: str
-    href: HyperRef = UrlFor("read_item", {"item_id": "<id>"})
+    href = UrlFor("read_item", {"item_id": "<id>"})
 
 
 class Item(ItemSummary):
@@ -23,7 +23,7 @@ class Person(HyperModel):
     name: str
     id: str
     items: List[ItemSummary]
-    href: HyperRef = UrlFor("read_person", {"person_id": "<id>"})
+    href = UrlFor("read_person", {"person_id": "<id>"})
 
 
 items = {
