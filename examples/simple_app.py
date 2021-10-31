@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI
 
-from fastapi_hypermodel import HyperModel, UrlFor
+from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
 
 app = FastAPI()
 HyperModel.init_app(app)
@@ -23,7 +23,17 @@ class Person(HyperModel):
     name: str
     id: str
     items: List[ItemSummary]
+
+    # Single link attribute
     href = UrlFor("read_person", {"person_id": "<id>"})
+
+    # Link set attribute
+    links = LinkSet(
+        {
+            "self": UrlFor("read_person", {"person_id": "<id>"}),
+            "items": UrlFor("read_person_items", {"person_id": "<id>"}),
+        }
+    )
 
 
 items = {
@@ -76,6 +86,11 @@ def read_people():
 @app.get("/people/{person_id}", response_model=Person)
 def read_person(person_id: str):
     return people[person_id]
+
+
+@app.get("/people/{person_id}/items", response_model=List[ItemSummary])
+def read_person_items(person_id: str):
+    return people[person_id]["items"]
 
 
 if __name__ == "__main__":
