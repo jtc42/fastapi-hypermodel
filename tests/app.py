@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from pydantic.main import BaseModel
 
 from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
+from fastapi_hypermodel.hypermodel import HALFor
 
 
 class ItemSummary(HyperModel):
@@ -24,6 +25,10 @@ class ItemUpdate(BaseModel):
     price: Optional[float]
 
 
+class ItemCreate(ItemUpdate):
+    id: str
+
+
 class Person(HyperModel):
     name: str
     id: str
@@ -36,6 +41,18 @@ class Person(HyperModel):
             "items": UrlFor("read_person_items", {"person_id": "<id>"}),
         }
     )
+
+    hal_href = HALFor("read_person", {"person_id": "<id>"})
+    hal_links = LinkSet(
+        {
+            "self": HALFor("read_person", {"person_id": "<id>"}),
+            "items": HALFor("read_person_items", {"person_id": "<id>"}),
+        }
+    )
+
+    class Config:
+        # Alias hal_links to _links as per the HAL standard
+        fields = {"hal_links": "_links"}
 
 
 items = {
@@ -97,6 +114,12 @@ def create_app():
 
     @app.get("/people/{person_id}/items", response_model=List[ItemDetail])
     def read_person_items(person_id: str):
+        return people[person_id]["items"]
+
+    @app.put("/people/{person_id}/items", response_model=List[ItemDetail])
+    def put_person_items(person_id: str, item: ItemCreate):
+        items[item.id] = item.dict()
+        people[person_id]["items"].append(item.dict())
         return people[person_id]["items"]
 
     return app

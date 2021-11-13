@@ -90,6 +90,31 @@ def test_people_linkset(client, person_id):
     }
 
 
+@pytest.mark.parametrize("person_id", people.keys())
+def test_people_hal(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    assert "hal_href" in response.json()
+    assert response.json().get("hal_href").get("href") == url
+    assert response.json().get("hal_href").get("methods") == ["GET"]
+
+
+@pytest.mark.parametrize("person_id", people.keys())
+def test_people_halset(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    assert "href" in response.json()
+    print(response.json().get("_links"))
+
+
+# @pytest.mark.parametrize("person_id", people.keys())
+# def test_people_halset(client, person_id):
+#    url = f"/people/{person_id}"
+#    response = client.get(url)
+#    assert "href" in response.json()
+#    print(response.json().get("_links"))
+
+
 def test_bad_attribute(app):
     class ItemSummary(HyperModel):
         href = UrlFor("read_item", {"item_id": "<id>"})
@@ -100,8 +125,18 @@ def test_bad_attribute(app):
         _ = ItemSummary()
 
 
+### APP TESTS, SHOULD REMOVE
+
+
 def test_update_item(client):
     url = "/items/item01"
     response = client.put(url, json={"name": "updated"})
     assert "href" in response.json()
     assert response.json().get("href") == url
+
+
+@pytest.mark.parametrize("person_id", people.keys())
+def test_create_item(client, person_id):
+    url = f"/people/{person_id}/items"
+    response = client.put(url, json={"id": "item04", "name": "Qux", "price": 20.2})
+    assert "item04" in [item.get("id") for item in response.json()]

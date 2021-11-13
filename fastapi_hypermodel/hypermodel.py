@@ -9,7 +9,7 @@ import abc
 from typing import Any, Dict, List, Optional, Type, no_type_check
 
 from fastapi import FastAPI
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, root_validator, PrivateAttr
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 from starlette.datastructures import URLPath
@@ -29,10 +29,16 @@ class AbstractHyperField(metaclass=abc.ABCMeta):
         return
 
 
-class UrlFor(str, AbstractHyperField):
-    min_length = 1
-    max_length = 2 ** 16
+class UrlType(str):
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        update_not_none(
+            field_schema,
+            **_uri_schema,
+        )
 
+
+class UrlFor(UrlType, AbstractHyperField):
     def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
         self.endpoint: str = endpoint
         self.param_values: Dict[str, str] = param_values or {}
@@ -41,13 +47,6 @@ class UrlFor(str, AbstractHyperField):
     @no_type_check
     def __new__(cls, *_):
         return str.__new__(cls)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        update_not_none(
-            field_schema,
-            **_uri_schema,
-        )
 
     @classmethod
     def __get_validators__(cls):
@@ -92,6 +91,49 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
         self, app: Optional[FastAPI], values: Dict[str, Any]
     ) -> Dict[str, str]:
         return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore
+
+
+class HALItem(BaseModel):
+    href: Optional[UrlType]
+    methods: Optional[List[str]]
+
+
+class HALFor(HALItem, AbstractHyperField):
+    _endpoint: str = PrivateAttr()
+    _param_values: Optional[Dict[str, str]] = PrivateAttr()
+
+    def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
+        self._endpoint: str = endpoint
+        self._param_values: Dict[str, str] = param_values or {}
+        super().__init__()
+
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> Optional[HALItem]:
+        if app is None:
+            return None
+        resolved_params = _resolve_param_values(self._param_values, values)
+
+        this_route = next(
+            (route for route in app.routes if route.name == self._endpoint), None
+        )
+        if not this_route:
+            raise ValueError(f"No route found for endpoint {self._endpoint}")
+        this_path = this_route.path
+
+        matching_routes = [route for route in app.routes if route.path == this_path]
+
+        hrefs = set()
+        methods = set()
+
+        for route in matching_routes:
+            hrefs.add(app.url_path_for(self._endpoint, **resolved_params))
+            methods.update(route.methods)
+
+        if len(hrefs) > 1:
+            raise ValueError(f"Multiple routes found for endpoint {self._endpoint}")
+
+        return HALItem(href=hrefs.pop(), methods=list(methods) or None)
 
 
 def _tpl(val):
@@ -145,8 +187,7 @@ def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
             attribute_value = _get_value(data_object, attr_name, default=None)
             if attribute_value is None:
                 raise InvalidAttribute(
-                    "{attr_name!r} is not a valid "
-                    "attribute of {obj!r}".format(attr_name=attr_name, obj=data_object)
+                    f"{attr_name} is not a valid attribute of {data_object}"
                 )
             param_values[name] = _clean_attribute_value(attribute_value)
     return param_values
@@ -157,7 +198,11 @@ class HyperModel(BaseModel):
 
     # List of types with __build_hypermedia__ methods that we can process
     # Currently static but could enable extensions in future
-    _hypermodel_bound_field_types: List[Type[AbstractHyperField]] = [UrlFor, LinkSet]
+    _hypermodel_bound_field_types: List[Type[AbstractHyperField]] = [
+        UrlFor,
+        LinkSet,
+        HALFor,
+    ]
 
     @classmethod
     def _generate_url(cls, endpoint, param_values, values):
