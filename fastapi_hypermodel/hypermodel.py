@@ -69,7 +69,7 @@ class UrlFor(str, AbstractHyperField):
 
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
-    ) -> str:
+    ) -> Optional[str]:
         if app is None:
             return None
         resolved_params = _resolve_param_values(self.param_values, values)
@@ -90,8 +90,8 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
 
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
-    ) -> str:
-        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}
+    ) -> Dict[str, str]:
+        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore
 
 
 def _tpl(val):
