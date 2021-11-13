@@ -138,7 +138,7 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
     ) -> Dict[str, str]:
-        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore
+        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
 
 
 def _tpl(val):
