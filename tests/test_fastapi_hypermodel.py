@@ -96,7 +96,7 @@ def test_people_hal(client, person_id):
     response = client.get(url)
     assert "hal_href" in response.json()
     assert response.json().get("hal_href").get("href") == url
-    assert response.json().get("hal_href").get("methods") == ["GET"]
+    assert response.json().get("hal_href").get("method") == "GET"
 
 
 @pytest.mark.parametrize("person_id", people.keys())

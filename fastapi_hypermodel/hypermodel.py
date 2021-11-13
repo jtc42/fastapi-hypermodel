@@ -13,6 +13,7 @@ from pydantic import BaseModel, root_validator, PrivateAttr
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 from starlette.datastructures import URLPath
+from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
@@ -105,7 +106,12 @@ class HALFor(HALItem, AbstractHyperField):
         resolved_params = _resolve_param_values(self._param_values, values)
 
         this_route = next(
-            (route for route in app.routes if route.name == self._endpoint), None
+            (
+                route
+                for route in app.routes
+                if isinstance(route, Route) and route.name == self._endpoint
+            ),
+            None,
         )
         if not this_route:
             raise ValueError(f"No route found for endpoint {self._endpoint}")
