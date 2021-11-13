@@ -104,15 +104,16 @@ def test_people_halset(client, person_id):
     url = f"/people/{person_id}"
     response = client.get(url)
     assert "href" in response.json()
-    print(response.json().get("_links"))
+    links = response.json().get("_links")
 
+    assert "items" in links
+    assert links["items"]["href"] == url + "/items"
+    assert links["items"]["methods"] == ["GET"]
 
-# @pytest.mark.parametrize("person_id", people.keys())
-# def test_people_halset(client, person_id):
-#    url = f"/people/{person_id}"
-#    response = client.get(url)
-#    assert "href" in response.json()
-#    print(response.json().get("_links"))
+    assert "addItem" in links
+    assert links["addItem"]["href"] == url + "/items"
+    assert links["addItem"]["methods"] == ["PUT"]
+    assert links["addItem"]["description"]
 
 
 def test_bad_attribute(app):

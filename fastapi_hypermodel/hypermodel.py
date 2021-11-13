@@ -96,15 +96,23 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
 class HALItem(BaseModel):
     href: Optional[UrlType]
     methods: Optional[List[str]]
+    description: Optional[str]
 
 
 class HALFor(HALItem, AbstractHyperField):
     _endpoint: str = PrivateAttr()
     _param_values: Optional[Dict[str, str]] = PrivateAttr()
+    _description: Optional[str] = PrivateAttr()
 
-    def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        endpoint: str,
+        param_values: Optional[Dict[str, str]] = None,
+        description: Optional[str] = None,
+    ):
         self._endpoint: str = endpoint
         self._param_values: Dict[str, str] = param_values or {}
+        self._description = description
         super().__init__()
 
     def __build_hypermedia__(
@@ -119,21 +127,12 @@ class HALFor(HALItem, AbstractHyperField):
         )
         if not this_route:
             raise ValueError(f"No route found for endpoint {self._endpoint}")
-        this_path = this_route.path
 
-        matching_routes = [route for route in app.routes if route.path == this_path]
-
-        hrefs = set()
-        methods = set()
-
-        for route in matching_routes:
-            hrefs.add(app.url_path_for(self._endpoint, **resolved_params))
-            methods.update(route.methods)
-
-        if len(hrefs) > 1:
-            raise ValueError(f"Multiple routes found for endpoint {self._endpoint}")
-
-        return HALItem(href=hrefs.pop(), methods=list(methods) or None)
+        return HALItem(
+            href=app.url_path_for(self._endpoint, **resolved_params),
+            methods=this_route.methods or None,
+            description=self._description,
+        )
 
 
 def _tpl(val):

@@ -47,6 +47,11 @@ class Person(HyperModel):
         {
             "self": HALFor("read_person", {"person_id": "<id>"}),
             "items": HALFor("read_person_items", {"person_id": "<id>"}),
+            "addItem": HALFor(
+                "put_person_items",
+                {"person_id": "<id>"},
+                description="Add an item to this person and the items list",
+            ),
         }
     )
 
