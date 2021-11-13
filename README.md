@@ -31,6 +31,36 @@ class ItemSummary(HyperModel):
 
 </td>
 </tr>
+<tr>
+<td>
+
+```python
+class ItemSummary(HyperModel):
+    name: str
+    id: str
+    link = HALFor(
+        "read_item", {"item_id": "<id>"}, 
+        description="Read a specific item"
+    )
+```
+
+</td>
+<td>
+
+```json
+{
+  "name": "Foo",
+  "id": "item01",
+  "link": {
+      "href": "/items/item01",
+      "method": "GET",
+      "description": "Read a specific item"
+  }
+}
+```
+
+</td>
+</tr>
 </tbody>
 </table>
 
