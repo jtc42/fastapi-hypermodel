@@ -6,7 +6,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import re
 import urllib
 import abc
-from typing import Any, Dict, List, Optional, no_type_check
+from typing import Any, Dict, List, Optional, Type, no_type_check
 
 from fastapi import FastAPI
 from pydantic import BaseModel, root_validator
@@ -24,11 +24,8 @@ class InvalidAttribute(AttributeError):
 
 
 class AbstractHyperField(metaclass=abc.ABCMeta):
-    @classmethod
     @abc.abstractmethod
-    def __build_hypermedia__(
-        cls, app: Optional[FastAPI], endpoint: str, params: Dict[str, str]
-    ):
+    def __build_hypermedia__(self, app: Optional[FastAPI], values: Dict[str, Any]):
         return
 
 
@@ -70,19 +67,19 @@ class UrlFor(str, AbstractHyperField):
             f"UrlFor field should resolve to a starlette.datastructures.URLPath instance. Instead got {value.__class__}"
         )
 
-    @classmethod
     def __build_hypermedia__(
-        cls, app: Optional[FastAPI], endpoint: str, params: Dict[str, str]
+        self, app: Optional[FastAPI], values: Dict[str, Any]
     ) -> str:
         if app is None:
             return None
-        return app.url_path_for(endpoint, **params)
+        resolved_params = _resolve_param_values(self.param_values, values)
+        return app.url_path_for(self.endpoint, **resolved_params)
 
 
 _LinkSetType = Dict[str, UrlFor]
 
 
-class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
+class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
     @classmethod
     def __get_validators__(cls):
         yield dict_validator
@@ -90,6 +87,11 @@ class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
         field_schema.update({"additionalProperties": _uri_schema})
+
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> str:
+        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}
 
 
 def _tpl(val):
@@ -153,6 +155,10 @@ def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
+    # List of types with __build_hypermedia__ methods that we can process
+    # Currently static but could enable extensions in future
+    _hypermodel_bound_field_types: List[Type[AbstractHyperField]] = [UrlFor, LinkSet]
+
     @classmethod
     def _generate_url(cls, endpoint, param_values, values):
         if cls._hypermodel_bound_app:
@@ -164,17 +170,10 @@ class HyperModel(BaseModel):
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
-            if isinstance(value, UrlFor):
+            if isinstance(value, tuple(cls._hypermodel_bound_field_types)):
                 values[key] = value.__build_hypermedia__(
-                    cls._hypermodel_bound_app,
-                    value.endpoint,
-                    _resolve_param_values(value.param_values, values),
+                    cls._hypermodel_bound_app, values
                 )
-            elif isinstance(value, LinkSet):
-                values[key] = {
-                    k: cls._generate_url(u.endpoint, u.param_values, values)
-                    for k, u in value.items()
-                }
         return values
 
     @classmethod
