@@ -77,7 +77,7 @@ class UrlFor(UrlType, AbstractHyperField):
 
 class HALItem(BaseModel):
     href: Optional[UrlType]
-    methods: Optional[List[str]]
+    method: Optional[str]
     description: Optional[str]
 
 
@@ -112,7 +112,7 @@ class HALFor(HALItem, AbstractHyperField):
 
         return HALItem(
             href=app.url_path_for(self._endpoint, **resolved_params),
-            methods=this_route.methods or None,
+            method=this_route.methods.pop() if this_route.methods else None,
             description=self._description,
         )
 

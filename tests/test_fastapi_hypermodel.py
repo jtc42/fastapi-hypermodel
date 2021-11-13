@@ -108,11 +108,11 @@ def test_people_halset(client, person_id):
 
     assert "items" in links
     assert links["items"]["href"] == url + "/items"
-    assert links["items"]["methods"] == ["GET"]
+    assert links["items"]["method"] == "GET"
 
     assert "addItem" in links
     assert links["addItem"]["href"] == url + "/items"
-    assert links["addItem"]["methods"] == ["PUT"]
+    assert links["addItem"]["method"] == "PUT"
     assert links["addItem"]["description"]
 
 
