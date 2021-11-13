@@ -75,24 +75,6 @@ class UrlFor(UrlType, AbstractHyperField):
         return app.url_path_for(self.endpoint, **resolved_params)
 
 
-_LinkSetType = Dict[str, UrlFor]
-
-
-class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
-    @classmethod
-    def __get_validators__(cls):
-        yield dict_validator
-
-    @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update({"additionalProperties": _uri_schema})
-
-    def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
-    ) -> Dict[str, str]:
-        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore
-
-
 class HALItem(BaseModel):
     href: Optional[UrlType]
     methods: Optional[List[str]]
@@ -133,6 +115,24 @@ class HALFor(HALItem, AbstractHyperField):
             methods=this_route.methods or None,
             description=self._description,
         )
+
+
+_LinkSetType = Dict[str, UrlFor]
+
+
+class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
+    @classmethod
+    def __get_validators__(cls):
+        yield dict_validator
+
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        field_schema.update({"additionalProperties": _uri_schema})
+
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> Dict[str, str]:
+        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore
 
 
 def _tpl(val):
