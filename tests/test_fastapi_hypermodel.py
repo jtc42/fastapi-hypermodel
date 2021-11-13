@@ -98,3 +98,10 @@ def test_bad_attribute(app):
 
     with pytest.raises(InvalidAttribute):
         _ = ItemSummary()
+
+
+def test_update_item(client):
+    url = "/items/item01"
+    response = client.put(url, json={"name": "updated"})
+    assert "href" in response.json()
+    assert response.json().get("href") == url

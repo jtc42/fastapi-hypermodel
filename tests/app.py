@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import FastAPI
+from pydantic.main import BaseModel
 
 from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
 
@@ -15,6 +16,12 @@ class ItemSummary(HyperModel):
 class ItemDetail(ItemSummary):
     description: Optional[str] = None
     price: float
+
+
+class ItemUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    price: Optional[float]
 
 
 class Person(HyperModel):
@@ -70,6 +77,11 @@ def create_app():
 
     @app.get("/items/{item_id}", response_model=ItemDetail)
     def read_item(item_id: str):
+        return items[item_id]
+
+    @app.put("/items/{item_id}", response_model=ItemDetail)
+    def update_item(item_id: str, item: ItemUpdate):
+        items[item_id].update(item.dict(exclude_none=True))
         return items[item_id]
 
     @app.get(
