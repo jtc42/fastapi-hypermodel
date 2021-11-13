@@ -10,11 +10,10 @@ version = "0.2.8"
 [tool.poetry.dependencies]
 fastapi = ">=0.65.2"
 pydantic = "^1.8.0"
-python = ">=3.6.1,<4.0"
+python = ">=3.6.2,<4.0"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.0"
-black = {version = "^20.8b1", allow-prereleases = true}
 isort = "^5.7.0"
 mypy = "^0.812"
 pylint = "^2.6.2"
@@ -23,6 +22,7 @@ pytest-cov = "^2.11.1"
 requests = "^2.25.1"
 tox = "^3.22.0"
 uvicorn = "^0.13.4"
+black = {version = "^21.10b0", allow-prereleases = true}
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
