@@ -5,6 +5,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 
 import re
 import urllib
+import abc
 from typing import Any, Dict, List, Optional, no_type_check
 
 from fastapi import FastAPI
@@ -15,12 +16,23 @@ from starlette.datastructures import URLPath
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2 ** 16}
+
 
 class InvalidAttribute(AttributeError):
     pass
 
 
-class UrlFor(str):
+class AbstractHyperField(metaclass=abc.ABCMeta):
+    @classmethod
+    @abc.abstractmethod
+    def __build_hypermedia__(
+        cls, app: Optional[FastAPI], endpoint: str, params: Dict[str, str]
+    ):
+        return
+
+
+class UrlFor(str, AbstractHyperField):
     min_length = 1
     max_length = 2 ** 16
 
@@ -37,9 +49,7 @@ class UrlFor(str):
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
         update_not_none(
             field_schema,
-            minLength=cls.min_length,
-            maxLength=cls.max_length,
-            format="uri",
+            **_uri_schema,
         )
 
     @classmethod
@@ -60,6 +70,14 @@ class UrlFor(str):
             f"UrlFor field should resolve to a starlette.datastructures.URLPath instance. Instead got {value.__class__}"
         )
 
+    @classmethod
+    def __build_hypermedia__(
+        cls, app: Optional[FastAPI], endpoint: str, params: Dict[str, str]
+    ) -> str:
+        if app is None:
+            return None
+        return app.url_path_for(endpoint, **params)
+
 
 _LinkSetType = Dict[str, UrlFor]
 
@@ -71,9 +89,7 @@ class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
 
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(
-            {"additionalProperties": {"type": "string", "format": "uri"}}
-        )
+        field_schema.update({"additionalProperties": _uri_schema})
 
 
 def _tpl(val):
@@ -113,13 +129,13 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
-def _clean_attribute_value(value: Any):
+def _clean_attribute_value(value: Any) -> str:
     if isinstance(value, str):
         return urllib.parse.quote(value)
     return value
 
 
-def _resolve_param_values(param_values_template, data_object):
+def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
     param_values = {}
     for name, attr_tpl in param_values_template.items():
         attr_name = _tpl(str(attr_tpl))
@@ -149,8 +165,10 @@ class HyperModel(BaseModel):
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
             if isinstance(value, UrlFor):
-                values[key] = cls._generate_url(
-                    value.endpoint, value.param_values, values
+                values[key] = value.__build_hypermedia__(
+                    cls._hypermodel_bound_app,
+                    value.endpoint,
+                    _resolve_param_values(value.param_values, values),
                 )
             elif isinstance(value, LinkSet):
                 values[key] = {
