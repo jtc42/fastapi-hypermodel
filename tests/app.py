@@ -1,8 +1,10 @@
 from typing import List, Optional
 
 from fastapi import FastAPI
+from pydantic.main import BaseModel
 
 from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
+from fastapi_hypermodel.hypermodel import HALFor
 
 
 class ItemSummary(HyperModel):
@@ -17,6 +19,16 @@ class ItemDetail(ItemSummary):
     price: float
 
 
+class ItemUpdate(BaseModel):
+    name: Optional[str]
+    description: Optional[str]
+    price: Optional[float]
+
+
+class ItemCreate(ItemUpdate):
+    id: str
+
+
 class Person(HyperModel):
     name: str
     id: str
@@ -29,6 +41,23 @@ class Person(HyperModel):
             "items": UrlFor("read_person_items", {"person_id": "<id>"}),
         }
     )
+
+    hal_href = HALFor("read_person", {"person_id": "<id>"})
+    hal_links = LinkSet(
+        {
+            "self": HALFor("read_person", {"person_id": "<id>"}),
+            "items": HALFor("read_person_items", {"person_id": "<id>"}),
+            "addItem": HALFor(
+                "put_person_items",
+                {"person_id": "<id>"},
+                description="Add an item to this person and the items list",
+            ),
+        }
+    )
+
+    class Config:
+        # Alias hal_links to _links as per the HAL standard
+        fields = {"hal_links": "_links"}
 
 
 items = {
@@ -72,6 +101,11 @@ def create_app():
     def read_item(item_id: str):
         return items[item_id]
 
+    @app.put("/items/{item_id}", response_model=ItemDetail)
+    def update_item(item_id: str, item: ItemUpdate):
+        items[item_id].update(item.dict(exclude_none=True))
+        return items[item_id]
+
     @app.get(
         "/people",
         response_model=List[Person],
@@ -85,6 +119,12 @@ def create_app():
 
     @app.get("/people/{person_id}/items", response_model=List[ItemDetail])
     def read_person_items(person_id: str):
+        return people[person_id]["items"]
+
+    @app.put("/people/{person_id}/items", response_model=List[ItemDetail])
+    def put_person_items(person_id: str, item: ItemCreate):
+        items[item.id] = item.dict()
+        people[person_id]["items"].append(item.dict())
         return people[person_id]["items"]
 
     return app

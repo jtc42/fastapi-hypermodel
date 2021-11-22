@@ -5,25 +5,41 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 
 import re
 import urllib
-from typing import Any, Dict, List, Optional, no_type_check
+import abc
+from typing import Any, Dict, List, Optional, Type, no_type_check
 
 from fastapi import FastAPI
-from pydantic import BaseModel, root_validator
+from pydantic import BaseModel, root_validator, PrivateAttr
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 from starlette.datastructures import URLPath
+from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
+
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2 ** 16}
 
 
 class InvalidAttribute(AttributeError):
     pass
 
 
-class UrlFor(str):
-    min_length = 1
-    max_length = 2 ** 16
+class AbstractHyperField(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def __build_hypermedia__(self, app: Optional[FastAPI], values: Dict[str, Any]):
+        return
 
+
+class UrlType(str):
+    @classmethod
+    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+        update_not_none(
+            field_schema,
+            **_uri_schema,
+        )
+
+
+class UrlFor(UrlType, AbstractHyperField):
     def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
         self.endpoint: str = endpoint
         self.param_values: Dict[str, str] = param_values or {}
@@ -32,15 +48,6 @@ class UrlFor(str):
     @no_type_check
     def __new__(cls, *_):
         return str.__new__(cls)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        update_not_none(
-            field_schema,
-            minLength=cls.min_length,
-            maxLength=cls.max_length,
-            format="uri",
-        )
 
     @classmethod
     def __get_validators__(cls):
@@ -60,20 +67,78 @@ class UrlFor(str):
             f"UrlFor field should resolve to a starlette.datastructures.URLPath instance. Instead got {value.__class__}"
         )
 
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> Optional[str]:
+        if app is None:
+            return None
+        resolved_params = _resolve_param_values(self.param_values, values)
+        return app.url_path_for(self.endpoint, **resolved_params)
+
+
+class HALItem(BaseModel):
+    href: Optional[UrlType]
+    method: Optional[str]
+    description: Optional[str]
+
+
+class HALFor(HALItem, AbstractHyperField):
+    _endpoint: str = PrivateAttr()
+    _param_values: Optional[Dict[str, str]] = PrivateAttr()
+    _description: Optional[str] = PrivateAttr()
+
+    def __init__(
+        self,
+        endpoint: str,
+        param_values: Optional[Dict[str, str]] = None,
+        description: Optional[str] = None,
+    ):
+        self._endpoint: str = endpoint
+        self._param_values: Dict[str, str] = param_values or {}
+        self._description = description
+        super().__init__()
+
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> Optional[HALItem]:
+        if app is None:
+            return None
+        resolved_params = _resolve_param_values(self._param_values, values)
+
+        this_route = next(
+            (
+                route
+                for route in app.routes
+                if isinstance(route, Route) and route.name == self._endpoint
+            ),
+            None,
+        )
+        if not this_route:
+            raise ValueError(f"No route found for endpoint {self._endpoint}")
+
+        return HALItem(
+            href=app.url_path_for(self._endpoint, **resolved_params),
+            method=this_route.methods.pop() if this_route.methods else None,
+            description=self._description,
+        )
+
 
 _LinkSetType = Dict[str, UrlFor]
 
 
-class LinkSet(_LinkSetType):  # pylint: disable=too-many-ancestors
+class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
     @classmethod
     def __get_validators__(cls):
         yield dict_validator
 
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(
-            {"additionalProperties": {"type": "string", "format": "uri"}}
-        )
+        field_schema.update({"additionalProperties": _uri_schema})
+
+    def __build_hypermedia__(
+        self, app: Optional[FastAPI], values: Dict[str, Any]
+    ) -> Dict[str, str]:
+        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
 
 
 def _tpl(val):
@@ -113,13 +178,13 @@ def _get_value_for_key(obj: Any, key: str, default: Any):
         return getattr(obj, key, default)
 
 
-def _clean_attribute_value(value: Any):
+def _clean_attribute_value(value: Any) -> str:
     if isinstance(value, str):
         return urllib.parse.quote(value)
     return value
 
 
-def _resolve_param_values(param_values_template, data_object):
+def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
     param_values = {}
     for name, attr_tpl in param_values_template.items():
         attr_name = _tpl(str(attr_tpl))
@@ -127,8 +192,7 @@ def _resolve_param_values(param_values_template, data_object):
             attribute_value = _get_value(data_object, attr_name, default=None)
             if attribute_value is None:
                 raise InvalidAttribute(
-                    "{attr_name!r} is not a valid "
-                    "attribute of {obj!r}".format(attr_name=attr_name, obj=data_object)
+                    f"{attr_name} is not a valid attribute of {data_object}"
                 )
             param_values[name] = _clean_attribute_value(attribute_value)
     return param_values
@@ -136,6 +200,14 @@ def _resolve_param_values(param_values_template, data_object):
 
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
+
+    # List of types with __build_hypermedia__ methods that we can process
+    # Currently static but could enable extensions in future
+    _hypermodel_bound_field_types: List[Type[AbstractHyperField]] = [
+        UrlFor,
+        LinkSet,
+        HALFor,
+    ]
 
     @classmethod
     def _generate_url(cls, endpoint, param_values, values):
@@ -148,15 +220,10 @@ class HyperModel(BaseModel):
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
-            if isinstance(value, UrlFor):
-                values[key] = cls._generate_url(
-                    value.endpoint, value.param_values, values
+            if isinstance(value, tuple(cls._hypermodel_bound_field_types)):
+                values[key] = value.__build_hypermedia__(
+                    cls._hypermodel_bound_app, values
                 )
-            elif isinstance(value, LinkSet):
-                values[key] = {
-                    k: cls._generate_url(u.endpoint, u.param_values, values)
-                    for k, u in value.items()
-                }
         return values
 
     @classmethod
