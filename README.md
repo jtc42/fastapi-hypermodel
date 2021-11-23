@@ -155,7 +155,7 @@ Same keyword arguments as FastAPI's url_path_for, except string arguments enclos
 
 ### Create a link set
 
-In some cases we want to create a map of relational links. In these cases we can create a `LinkSet` field describing each link and it's relationship to the object.
+In some cases we want to create a map of relational links. In these cases we can create a `LinkSet` field describing each link and it's relationship to the object. The `LinkSet` class is really just a spicy dictionary that tells the parent `HyperModel` to "render" each link in the link set, and includes some extra OpenAPI schema stuff.
 
 ```python
 class Person(HyperModel):
