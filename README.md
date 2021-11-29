@@ -31,6 +31,7 @@ class ItemSummary(HyperModel):
 
 </td>
 </tr>
+<tr></tr>
 <tr>
 <td>
 
