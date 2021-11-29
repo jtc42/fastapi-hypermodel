@@ -15,7 +15,9 @@ FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-
 class ItemSummary(HyperModel):
     name: str
     id: str
-    href = UrlFor("read_item", {"item_id": "<id>"})
+    href = UrlFor(
+        "read_item", {"item_id": "<id>"}
+    )
 ```
 
 </td>
@@ -41,7 +43,7 @@ class ItemSummary(HyperModel):
     id: str
     link = HALFor(
         "read_item", {"item_id": "<id>"}, 
-        description="Read a specific item"
+        description="Read an item"
     )
 ```
 
@@ -55,7 +57,7 @@ class ItemSummary(HyperModel):
   "link": {
       "href": "/items/item01",
       "method": "GET",
-      "description": "Read a specific item"
+      "description": "Read an item"
   }
 }
 ```
