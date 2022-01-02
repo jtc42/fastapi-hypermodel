@@ -1,3 +1,3 @@
-from .hypermodel import HyperModel, UrlFor, HALFor, HALItem, LinkSet
+from .hypermodel import HALFor, HALItem, HyperModel, LinkSet, UrlFor
 
 __all__ = ["HyperModel", "UrlFor", "HALFor", "HALItem", "LinkSet"]

@@ -3,13 +3,13 @@ Some functionality is based heavily on Flask-Marshmallow:
 https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py
 """
 
+import abc
 import re
 import urllib
-import abc
 from typing import Any, Dict, List, Optional, Type, no_type_check
 
 from fastapi import FastAPI
-from pydantic import BaseModel, root_validator, PrivateAttr
+from pydantic import BaseModel, PrivateAttr, root_validator
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 from starlette.datastructures import URLPath
