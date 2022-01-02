@@ -118,7 +118,7 @@ class HALFor(HALItem, AbstractHyperField):
 
         return HALItem(
             href=app.url_path_for(self._endpoint, **resolved_params),
-            method=this_route.methods.pop() if this_route.methods else None,
+            method=next(iter(this_route.methods), None) if this_route.methods else None,
             description=self._description,
         )
 
