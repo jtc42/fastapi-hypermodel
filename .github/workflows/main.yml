@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ["3.6", "3.7", "3.8", "3.9"]
+        python: ["3.6", "3.7", "3.8", "3.9", "3.10"]
 
     steps:
       - uses: actions/checkout@v1
@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ matrix.python }}
 
       - name: Install and configure Poetry
-        uses: snok/install-poetry@v1.1.1
+        uses: snok/install-poetry@v1
 
       - name: Install Dependencies
         run: poetry install
@@ -46,7 +46,7 @@ jobs:
           python-version: 3.9
 
       - name: Install and configure Poetry
-        uses: snok/install-poetry@v1.1.1
+        uses: snok/install-poetry@v1
 
       - name: Set Poetry config
         env:
