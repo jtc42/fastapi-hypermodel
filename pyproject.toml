@@ -17,12 +17,12 @@ bandit = "^1.7.0"
 isort = "^5.7.0"
 mypy = "^0.812"
 pylint = "^2.6.2"
-pytest = "^5.2"
-pytest-cov = "^2.11.1"
+pytest = "^7.0"
 requests = "^2.25.1"
 tox = "^3.22.0"
 uvicorn = "^0.13.4"
 black = {version = "^21.10b0", allow-prereleases = true}
+pytest-cov = "^3.0.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
