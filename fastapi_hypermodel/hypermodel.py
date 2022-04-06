@@ -6,7 +6,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import abc
 import re
 import urllib
-from typing import Any, Dict, List, Optional, Type, no_type_check
+from typing import Any, Dict, List, Optional, Type, Union, no_type_check
 
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr, root_validator
@@ -123,7 +123,7 @@ class HALFor(HALItem, AbstractHyperField):
         )
 
 
-_LinkSetType = Dict[str, UrlFor]
+_LinkSetType = Dict[str, Union[UrlFor, "_LinkSetType"]]
 
 
 class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
