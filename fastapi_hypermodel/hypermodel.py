@@ -6,7 +6,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import abc
 import re
 import urllib
-from typing import Any, Dict, List, Optional, Type, no_type_check
+from typing import Any, Dict, List, Optional, no_type_check
 
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr, root_validator
@@ -17,7 +17,7 @@ from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
-_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2 ** 16}
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
 
 
 class InvalidAttribute(AttributeError):
