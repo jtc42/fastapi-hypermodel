@@ -201,14 +201,6 @@ def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
-    # List of types with __build_hypermedia__ methods that we can process
-    # Currently static but could enable extensions in future
-    _hypermodel_bound_field_types: List[Type[AbstractHyperField]] = [
-        UrlFor,
-        LinkSet,
-        HALFor,
-    ]
-
     @classmethod
     def _generate_url(cls, endpoint, param_values, values):
         if cls._hypermodel_bound_app:
@@ -220,7 +212,7 @@ class HyperModel(BaseModel):
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
-            if isinstance(value, tuple(cls._hypermodel_bound_field_types)):
+            if isinstance(value, AbstractHyperField):
                 values[key] = value.__build_hypermedia__(
                     cls._hypermodel_bound_app, values
                 )
