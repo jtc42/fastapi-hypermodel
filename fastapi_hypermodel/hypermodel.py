@@ -72,7 +72,7 @@ class UrlFor(UrlType, AbstractHyperField):
     ) -> Optional[str]:
         if app is None:
             return None
-        resolved_params = _resolve_param_values(self.param_values, values)
+        resolved_params = resolve_param_values(self.param_values, values)
         return app.url_path_for(self.endpoint, **resolved_params)
 
 
@@ -103,7 +103,7 @@ class HALFor(HALItem, AbstractHyperField):
     ) -> Optional[HALItem]:
         if app is None:
             return None
-        resolved_params = _resolve_param_values(self._param_values, values)
+        resolved_params = resolve_param_values(self._param_values, values)
 
         this_route = next(
             (
@@ -184,7 +184,7 @@ def _clean_attribute_value(value: Any) -> str:
     return value
 
 
-def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
+def resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
     param_values = {}
     for name, attr_tpl in param_values_template.items():
         attr_name = _tpl(str(attr_tpl))
@@ -205,7 +205,7 @@ class HyperModel(BaseModel):
     def _generate_url(cls, endpoint, param_values, values):
         if cls._hypermodel_bound_app:
             return cls._hypermodel_bound_app.url_path_for(
-                endpoint, **_resolve_param_values(param_values, values)
+                endpoint, **resolve_param_values(param_values, values)
             )
         return None
 
