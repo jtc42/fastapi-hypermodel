@@ -80,7 +80,7 @@ class UrlFor(UrlType, AbstractHyperField):
             return None
         if self.condition is not None and not self.condition(values):
             return None
-        resolved_params = _resolve_param_values(self.param_values, values)
+        resolved_params = resolve_param_values(self.param_values, values)
         return app.url_path_for(self.endpoint, **resolved_params)
 
 
@@ -117,7 +117,7 @@ class HALFor(HALItem, AbstractHyperField):
         if self._condition is not None and not self._condition(values):
             return None
 
-        resolved_params = _resolve_param_values(self._param_values, values)
+        resolved_params = resolve_param_values(self._param_values, values)
 
         this_route = next(
             (
@@ -199,17 +199,34 @@ def _clean_attribute_value(value: Any) -> str:
     return value
 
 
-def _resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
+def resolve_param_values(
+    param_values_template: Optional[Dict[str, str]], data_object: Dict[str, Any]
+) -> Dict[str, str]:
+    """
+    Converts a dictionary of URL parameter substitution templates and a dictionary of real data values
+    into a dictionary of recursively-populated URL parameter values.
+
+    E.g. when passed the template {'person_id': '<id>'} and the data {'name': 'Bob', 'id': 'person02'},
+    the function will return {'person_id': 'person02'}
+
+    Args:
+        param_values_template (Dict[str, str]): Dictionary of URL parameter substitution templates
+        data_object (Dict[str, Any]): Dictionary containing name-to-value mapping of all fields
+
+    Returns:
+        Dict[str, str]: Populated dictionary of URL parameters
+    """
     param_values = {}
-    for name, attr_tpl in param_values_template.items():
-        attr_name = _tpl(str(attr_tpl))
-        if attr_name:
-            attribute_value = _get_value(data_object, attr_name, default=None)
-            if attribute_value is None:
-                raise InvalidAttribute(
-                    f"{attr_name} is not a valid attribute of {data_object}"
-                )
-            param_values[name] = _clean_attribute_value(attribute_value)
+    if param_values_template:
+        for name, attr_tpl in param_values_template.items():
+            attr_name = _tpl(str(attr_tpl))
+            if attr_name:
+                attribute_value = _get_value(data_object, attr_name, default=None)
+                if attribute_value is None:
+                    raise InvalidAttribute(
+                        f"{attr_name} is not a valid attribute of {data_object}"
+                    )
+                param_values[name] = _clean_attribute_value(attribute_value)
     return param_values
 
 
@@ -220,7 +237,7 @@ class HyperModel(BaseModel):
     def _generate_url(cls, endpoint, param_values, values):
         if cls._hypermodel_bound_app:
             return cls._hypermodel_bound_app.url_path_for(
-                endpoint, **_resolve_param_values(param_values, values)
+                endpoint, **resolve_param_values(param_values, values)
             )
         return None
 

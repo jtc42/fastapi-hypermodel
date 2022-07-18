@@ -23,6 +23,7 @@ requests = "^2.25.1"
 tox = "^3.22.0"
 uvicorn = "^0.17.6"
 black = "^22.3.0"
+mkdocs-material = "^8.3.9"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
