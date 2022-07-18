@@ -6,7 +6,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import abc
 import re
 import urllib
-from typing import Any, Dict, List, Optional, no_type_check
+from typing import Any, Callable, Dict, List, Optional, no_type_check
 
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr, root_validator
@@ -17,7 +17,7 @@ from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
-_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2 ** 16}
 
 
 class InvalidAttribute(AttributeError):
@@ -40,13 +40,19 @@ class UrlType(str):
 
 
 class UrlFor(UrlType, AbstractHyperField):
-    def __init__(self, endpoint: str, param_values: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        endpoint: str,
+        param_values: Optional[Dict[str, str]] = None,
+        condition: Optional[Callable[[Dict[str, Any]], bool]] = None,
+    ):
         self.endpoint: str = endpoint
         self.param_values: Dict[str, str] = param_values or {}
+        self.condition: Optional[Callable[[Dict[str, Any]], bool]] = condition
         super().__init__()
 
     @no_type_check
-    def __new__(cls, *_):
+    def __new__(cls, *_, **__):
         return str.__new__(cls)
 
     @classmethod
@@ -72,6 +78,8 @@ class UrlFor(UrlType, AbstractHyperField):
     ) -> Optional[str]:
         if app is None:
             return None
+        if self.condition is not None and not self.condition(values):
+            return None
         resolved_params = resolve_param_values(self.param_values, values)
         return app.url_path_for(self.endpoint, **resolved_params)
 
@@ -86,16 +94,19 @@ class HALFor(HALItem, AbstractHyperField):
     _endpoint: str = PrivateAttr()
     _param_values: Optional[Dict[str, str]] = PrivateAttr()
     _description: Optional[str] = PrivateAttr()
+    _condition: Optional[Callable[[Dict[str, Any]], bool]] = PrivateAttr()
 
     def __init__(
         self,
         endpoint: str,
         param_values: Optional[Dict[str, str]] = None,
         description: Optional[str] = None,
+        condition: Optional[Callable[[Dict[str, Any]], bool]] = None,
     ):
         self._endpoint: str = endpoint
         self._param_values: Dict[str, str] = param_values or {}
         self._description = description
+        self._condition = condition
         super().__init__()
 
     def __build_hypermedia__(
@@ -103,6 +114,9 @@ class HALFor(HALItem, AbstractHyperField):
     ) -> Optional[HALItem]:
         if app is None:
             return None
+        if self._condition is not None and not self._condition(values):
+            return None
+
         resolved_params = resolve_param_values(self._param_values, values)
 
         this_route = next(
@@ -138,7 +152,8 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
     ) -> Dict[str, str]:
-        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
+        links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
+        return {k: u for k, u in links.items() if u is not None}
 
 
 def _tpl(val):

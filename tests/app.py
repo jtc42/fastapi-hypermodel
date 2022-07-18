@@ -32,6 +32,7 @@ class ItemCreate(ItemUpdate):
 class Person(HyperModel):
     name: str
     id: str
+    is_locked: bool
     items: List[ItemSummary]
 
     href = UrlFor("read_person", {"person_id": "<id>"})
@@ -39,6 +40,11 @@ class Person(HyperModel):
         {
             "self": UrlFor("read_person", {"person_id": "<id>"}),
             "items": UrlFor("read_person_items", {"person_id": "<id>"}),
+            "addItem": UrlFor(
+                "put_person_items",
+                {"person_id": "<id>"},
+                condition=lambda values: not values["is_locked"],
+            ),
         }
     )
 
@@ -51,6 +57,7 @@ class Person(HyperModel):
                 "put_person_items",
                 {"person_id": "<id>"},
                 description="Add an item to this person and the items list",
+                condition=lambda values: not values["is_locked"],
             ),
         }
     )
@@ -80,9 +87,15 @@ people = {
     "person01": {
         "id": "person01",
         "name": "Alice",
+        "is_locked": False,
         "items": [items["item01"], items["item02"]],
     },
-    "person02": {"id": "person02", "name": "Bob", "items": [items["item03"]]},
+    "person02": {
+        "id": "person02",
+        "name": "Bob",
+        "is_locked": True,
+        "items": [items["item03"]],
+    },
 }
 
 
