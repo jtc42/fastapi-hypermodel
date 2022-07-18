@@ -6,6 +6,7 @@ repo_name: jtc42/fastapi-hypermodel
 repo_url: https://github.com/jtc42/fastapi-hypermodel
 
 markdown_extensions:
+  - admonition
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
