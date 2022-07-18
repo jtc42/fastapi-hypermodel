@@ -84,10 +84,28 @@ def test_people_linkset(client, person_id):
     url = f"/people/{person_id}"
     response = client.get(url)
     assert "href" in response.json()
-    assert response.json().get("links") == {
-        "self": f"/people/{person_id}",
-        "items": f"/people/{person_id}/items",
-    }
+    links = response.json().get("links")
+    assert "self" in links
+    assert links["self"] == f"/people/{person_id}"
+    assert "items" in links
+    assert links["items"] == f"/people/{person_id}/items"
+
+
+@pytest.mark.parametrize("person_id", ["person01"])
+def test_people_linkset_condition_met(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    links = response.json().get("links")
+    assert "addItem" in links
+    assert links["addItem"] == f"/people/{person_id}/items"
+
+
+@pytest.mark.parametrize("person_id", ["person02"])
+def test_people_linkset_condition_unmet(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    links = response.json().get("links")
+    assert "AddItem" not in links
 
 
 @pytest.mark.parametrize("person_id", people.keys())
@@ -110,10 +128,27 @@ def test_people_halset(client, person_id):
     assert links["items"]["href"] == url + "/items"
     assert links["items"]["method"] == "GET"
 
+
+@pytest.mark.parametrize("person_id", ["person01"])
+def test_people_halset_condition_met(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    links = response.json().get("_links")
+
     assert "addItem" in links
     assert links["addItem"]["href"] == url + "/items"
     assert links["addItem"]["method"] == "PUT"
     assert links["addItem"]["description"]
+
+
+@pytest.mark.parametrize("person_id", ["person02"])
+def test_people_halset_condition_unmet(client, person_id):
+    url = f"/people/{person_id}"
+    response = client.get(url)
+    assert "href" in response.json()
+    links = response.json().get("_links")
+
+    assert "addItem" not in links
 
 
 def test_bad_attribute(app):
