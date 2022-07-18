@@ -17,7 +17,7 @@ from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
-_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2 ** 16}
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
 
 
 class InvalidAttribute(AttributeError):
@@ -200,7 +200,7 @@ def _clean_attribute_value(value: Any) -> str:
 
 
 def resolve_param_values(
-    param_values_template: Dict[str, str], data_object: Dict[str, Any]
+    param_values_template: Optional[Dict[str, str]], data_object: Dict[str, Any]
 ) -> Dict[str, str]:
     """
     Converts a dictionary of URL parameter substitution templates and a dictionary of real data values
@@ -217,15 +217,16 @@ def resolve_param_values(
         Dict[str, str]: Populated dictionary of URL parameters
     """
     param_values = {}
-    for name, attr_tpl in param_values_template.items():
-        attr_name = _tpl(str(attr_tpl))
-        if attr_name:
-            attribute_value = _get_value(data_object, attr_name, default=None)
-            if attribute_value is None:
-                raise InvalidAttribute(
-                    f"{attr_name} is not a valid attribute of {data_object}"
-                )
-            param_values[name] = _clean_attribute_value(attribute_value)
+    if param_values_template:
+        for name, attr_tpl in param_values_template.items():
+            attr_name = _tpl(str(attr_tpl))
+            if attr_name:
+                attribute_value = _get_value(data_object, attr_name, default=None)
+                if attribute_value is None:
+                    raise InvalidAttribute(
+                        f"{attr_name} is not a valid attribute of {data_object}"
+                    )
+                param_values[name] = _clean_attribute_value(attribute_value)
     return param_values
 
 

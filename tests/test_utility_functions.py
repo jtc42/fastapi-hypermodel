@@ -9,13 +9,10 @@ def test_resolve_param_values_flat():
 
 
 def test_resolve_param_values_deep():
-    assert (
-        resolve_param_values(
-            {"person_id": "<identifiers.ids.id>"},
-            {"name": "Bob", "identifiers": {"ids": {"id": "person02"}}},
-        )
-        == {"person_id": "person02"}
-    )
+    assert resolve_param_values(
+        {"person_id": "<identifiers.ids.id>"},
+        {"name": "Bob", "identifiers": {"ids": {"id": "person02"}}},
+    ) == {"person_id": "person02"}
 
 
 def test_resolve_param_values_none():
