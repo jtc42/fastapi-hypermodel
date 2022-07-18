@@ -199,7 +199,23 @@ def _clean_attribute_value(value: Any) -> str:
     return value
 
 
-def resolve_param_values(param_values_template, data_object) -> Dict[str, str]:
+def resolve_param_values(
+    param_values_template: Dict[str, str], data_object: Dict[str, Any]
+) -> Dict[str, str]:
+    """
+    Converts a dictionary of URL parameter substitution templates and a dictionary of real data values
+    into a dictionary of recursively-populated URL parameter values.
+
+    E.g. when passed the template {'person_id': '<id>'} and the data {'name': 'Bob', 'id': 'person02'},
+    the function will return {'person_id': 'person02'}
+
+    Args:
+        param_values_template (Dict[str, str]): Dictionary of URL parameter substitution templates
+        data_object (Dict[str, Any]): Dictionary containing name-to-value mapping of all fields
+
+    Returns:
+        Dict[str, str]: Populated dictionary of URL parameters
+    """
     param_values = {}
     for name, attr_tpl in param_values_template.items():
         attr_name = _tpl(str(attr_tpl))
