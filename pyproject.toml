@@ -12,18 +12,19 @@ fastapi = ">=0.65.2"
 pydantic = "^1.8.0"
 python = ">=3.7,<4.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
+black = "^22.3.0"
+httpx = "^0.23.1"
 isort = "^5.7.0"
-mypy = "^0.812"
+mkdocs-material = "^8.3.9"
+mypy = "^0.991"
 pylint = "^2.6.2"
 pytest = "^7.0"
 pytest-cov = "^3.0.0"
 requests = "^2.25.1"
 tox = "^3.22.0"
 uvicorn = "^0.17.6"
-black = "^22.3.0"
-mkdocs-material = "^8.3.9"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
