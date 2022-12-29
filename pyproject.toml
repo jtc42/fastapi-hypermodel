@@ -21,7 +21,7 @@ pytest = "^7.0"
 pytest-cov = "^3.0.0"
 requests = "^2.25.1"
 tox = "^3.22.0"
-uvicorn = "^0.17.6"
+uvicorn = "^0.20.0"
 black = "^22.3.0"
 mkdocs-material = "^8.3.9"
 
