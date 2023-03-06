@@ -23,7 +23,7 @@ pylint = "^2.6.2"
 pytest = "^7.0"
 pytest-cov = "^3.0.0"
 requests = "^2.25.1"
-tox = "^3.22.0"
+tox = ">=3.22,<5.0"
 uvicorn = "^0.17.6"
 
 [build-system]
