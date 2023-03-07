@@ -6,7 +6,7 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import abc
 import re
 import urllib
-from typing import Any, Callable, Dict, List, Optional, no_type_check
+from typing import Any, Callable, Dict, List, Optional, Union, no_type_check
 
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr, root_validator
@@ -42,11 +42,11 @@ class UrlType(str):
 class UrlFor(UrlType, AbstractHyperField):
     def __init__(
         self,
-        endpoint: str,
+        endpoint: Union[Callable, str],
         param_values: Optional[Dict[str, str]] = None,
         condition: Optional[Callable[[Dict[str, Any]], bool]] = None,
     ):
-        self.endpoint: str = endpoint
+        self.endpoint: str = endpoint.__name__ if callable(endpoint) else endpoint
         self.param_values: Dict[str, str] = param_values or {}
         self.condition: Optional[Callable[[Dict[str, Any]], bool]] = condition
         super().__init__()
@@ -98,12 +98,12 @@ class HALFor(HALItem, AbstractHyperField):
 
     def __init__(
         self,
-        endpoint: str,
+        endpoint: Union[Callable, str],
         param_values: Optional[Dict[str, str]] = None,
         description: Optional[str] = None,
         condition: Optional[Callable[[Dict[str, Any]], bool]] = None,
     ):
-        self._endpoint: str = endpoint
+        self._endpoint: str = endpoint.__name__ if callable(endpoint) else endpoint
         self._param_values: Dict[str, str] = param_values or {}
         self._description = description
         self._condition = condition
@@ -253,7 +253,7 @@ class HyperModel(BaseModel):
     @classmethod
     def init_app(cls, app: FastAPI):
         """
-        Bind a FastAPI app to othe HyperModel base class.
+        Bind a FastAPI app to other HyperModel base class.
         This allows HyperModel to convert endpoint function names into
         working URLs relative to the application root.
 

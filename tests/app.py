@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import FastAPI
 from pydantic.main import BaseModel
 
-from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
+from fastapi_hypermodel import HyperModel, LinkSet, UrlFor
 from fastapi_hypermodel.hypermodel import HALFor
 
 
@@ -99,45 +99,49 @@ people = {
 }
 
 
-def create_app():
-    app = FastAPI()
-    HyperModel.init_app(app)
+test_app = FastAPI()
+HyperModel.init_app(test_app)
 
-    @app.get(
-        "/items",
-        response_model=List[ItemSummary],
-    )
-    def read_items():
-        return list(items.values())
 
-    @app.get("/items/{item_id}", response_model=ItemDetail)
-    def read_item(item_id: str):
-        return items[item_id]
+@test_app.get(
+    "/items",
+    response_model=List[ItemSummary],
+)
+def read_items():
+    return list(items.values())
 
-    @app.put("/items/{item_id}", response_model=ItemDetail)
-    def update_item(item_id: str, item: ItemUpdate):
-        items[item_id].update(item.dict(exclude_none=True))
-        return items[item_id]
 
-    @app.get(
-        "/people",
-        response_model=List[Person],
-    )
-    def read_people():
-        return list(people.values())
+@test_app.get("/items/{item_id}", response_model=ItemDetail)
+def read_item(item_id: str):
+    return items[item_id]
 
-    @app.get("/people/{person_id}", response_model=Person)
-    def read_person(person_id: str):
-        return people[person_id]
 
-    @app.get("/people/{person_id}/items", response_model=List[ItemDetail])
-    def read_person_items(person_id: str):
-        return people[person_id]["items"]
+@test_app.put("/items/{item_id}", response_model=ItemDetail)
+def update_item(item_id: str, item: ItemUpdate):
+    items[item_id].update(item.dict(exclude_none=True))
+    return items[item_id]
 
-    @app.put("/people/{person_id}/items", response_model=List[ItemDetail])
-    def put_person_items(person_id: str, item: ItemCreate):
-        items[item.id] = item.dict()
-        people[person_id]["items"].append(item.dict())
-        return people[person_id]["items"]
 
-    return app
+@test_app.get(
+    "/people",
+    response_model=List[Person],
+)
+def read_people():
+    return list(people.values())
+
+
+@test_app.get("/people/{person_id}", response_model=Person)
+def read_person(person_id: str):
+    return people[person_id]
+
+
+@test_app.get("/people/{person_id}/items", response_model=List[ItemDetail])
+def read_person_items(person_id: str):
+    return people[person_id]["items"]
+
+
+@test_app.put("/people/{person_id}/items", response_model=List[ItemDetail])
+def put_person_items(person_id: str, item: ItemCreate):
+    items[item.id] = item.dict()
+    people[person_id]["items"].append(item.dict())
+    return people[person_id]["items"]

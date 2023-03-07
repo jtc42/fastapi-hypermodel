@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from fastapi import FastAPI
 
-from fastapi_hypermodel import HyperModel, UrlFor, LinkSet
+from fastapi_hypermodel import HyperModel, LinkSet, UrlFor
 
 # Create our FastAPI app
 app = FastAPI()
