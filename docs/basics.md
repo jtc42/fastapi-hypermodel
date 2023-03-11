@@ -79,6 +79,8 @@ The `UrlFor` class takes two arguments:
 
 Name of your FastAPI endpoint function you want to link to. In our example, we want our item summary to link to the corresponding item detail page, which maps to our `read_item` function.
 
+Alternatively, rather than providing the endpoint name, you can provide a reference to the endpoint function itself, for example `UrlFor(read_item, {"item_id": "<id>"})`. This can help with larger projects where function names may be refactored.
+
 ### `values` (optional depending on endpoint)
 
 Same keyword arguments as FastAPI's url_path_for, except string arguments enclosed in < > will be interpreted as attributes to pull from the object. For example, here we need to pass an `item_id` argument as required by our endpoint function, and we want to populate that with our item object's `id` attribute.
