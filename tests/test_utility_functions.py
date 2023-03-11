@@ -1,5 +1,6 @@
 import pytest
-from fastapi_hypermodel.hypermodel import resolve_param_values, InvalidAttribute
+
+from fastapi_hypermodel.hypermodel import InvalidAttribute, resolve_param_values
 
 
 def test_resolve_param_values_flat():

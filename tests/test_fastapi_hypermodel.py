@@ -1,15 +1,16 @@
 import pytest
 
 from fastapi_hypermodel.hypermodel import (
-    _tpl,
-    _get_value_for_key,
-    _get_value_for_keys,
-    _get_value,
     HyperModel,
     InvalidAttribute,
     UrlFor,
+    _get_value,
+    _get_value_for_key,
+    _get_value_for_keys,
+    _tpl,
 )
-from .app import items, people
+
+from .app import items, people, read_item
 
 
 @pytest.mark.parametrize(
@@ -151,9 +152,16 @@ def test_people_halset_condition_unmet(client, person_id):
     assert "addItem" not in links
 
 
-def test_bad_attribute(app):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param("read_item", id="Use of a string endpoint"),
+        pytest.param(read_item, id="Use of a Callable endpoint"),
+    ],
+)
+def test_bad_attribute(app, endpoint):
     class ItemSummary(HyperModel):
-        href = UrlFor("read_item", {"item_id": "<id>"})
+        href = UrlFor(endpoint, {"item_id": "<id>"})
 
     assert ItemSummary._hypermodel_bound_app is app
 
