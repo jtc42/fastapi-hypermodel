@@ -233,14 +233,6 @@ def resolve_param_values(
 class HyperModel(BaseModel):
     _hypermodel_bound_app: Optional[FastAPI] = None
 
-    @classmethod
-    def _generate_url(cls, endpoint, param_values, values):
-        if cls._hypermodel_bound_app:
-            return cls._hypermodel_bound_app.url_path_for(
-                endpoint, **resolve_param_values(param_values, values)
-            )
-        return None
-
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
