@@ -64,7 +64,7 @@ class UrlFor(UrlType):
 At this point, our custom type will behave as a normal Pydantic type, but won't do any hypermedia substitutions.
 For this, we must add our "magic" `__build_hypermedia__` method.
 
-```python hl_lines="32-38"
+```python hl_lines="32-37"
 from fastapi_hypermodel.hypermodel import UrlType, resolve_param_values
 from starlette.datastructures import URLPath
 
@@ -97,12 +97,11 @@ class UrlFor(UrlType, AbstractHyperField):
         )
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
+        self, routes: Dict[str, Route], values: Dict[str, Any]
     ) -> Optional[str]:
-        if app is None:
-            return None
+        route = routes[self.endpoint]
         resolved_params = resolve_param_values(self.param_values, values)
-        return app.url_path_for(self.endpoint, **resolved_params)
+        return route.url_path_for(self.endpoint, **resolved_params)
 ```
 
 Here we see that, as expected, our method accepts a `FastAPI` instance, and our dict of parent field values. We pass these field values, along with the URL parameter to field mappings, to a `resolve_param_values` function. This function takes our URL parameter to field mappings, and substitutes in the *actual* values from the parent. 
@@ -128,9 +127,9 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
         field_schema.update({"additionalProperties": _uri_schema})
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
+        self, routes: Dict[str, Route], values: Dict[str, Any]
     ) -> Dict[str, str]:
-        return {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
+        return {k: u.__build_hypermedia__(routes, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
 ```
 
 This class behaves link a standard dictionary, with `str` keys and any other `AbstractHyperField` as values. This allows, for example, nesting `LinkSet` instances for rich, deep hypermedia, as well as allowing different hypermedia types (such as `HALFor` links). 

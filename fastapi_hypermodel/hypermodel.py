@@ -6,14 +6,24 @@ https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshma
 import abc
 import re
 import urllib
-from typing import Any, Callable, Dict, List, Optional, Union, no_type_check
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Union,
+    no_type_check,
+)
 
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr, root_validator
 from pydantic.utils import update_not_none
 from pydantic.validators import dict_validator
 from starlette.datastructures import URLPath
-from starlette.routing import Route
+from starlette.routing import BaseRoute, Host, Mount, Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
@@ -26,7 +36,7 @@ class InvalidAttribute(AttributeError):
 
 class AbstractHyperField(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def __build_hypermedia__(self, app: Optional[FastAPI], values: Dict[str, Any]):
+    def __build_hypermedia__(self, routes: Dict[str, Route], values: Dict[str, Any]):
         return
 
 
@@ -74,14 +84,17 @@ class UrlFor(UrlType, AbstractHyperField):
         )
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
+        self, routes: Dict[str, Route], values: Dict[str, Any]
     ) -> Optional[str]:
-        if app is None:
-            return None
         if self.condition is not None and not self.condition(values):
             return None
+
+        route = routes.get(self.endpoint, None)
+        if route is None:
+            raise ValueError(f"No route found for endpoint {self.endpoint}")
+
         resolved_params = resolve_param_values(self.param_values, values)
-        return app.url_path_for(self.endpoint, **resolved_params)
+        return route.url_path_for(self.endpoint, **resolved_params)
 
 
 class HALItem(BaseModel):
@@ -110,29 +123,20 @@ class HALFor(HALItem, AbstractHyperField):
         super().__init__()
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
+        self, routes: Dict[str, Route], values: Dict[str, Any]
     ) -> Optional[HALItem]:
-        if app is None:
-            return None
         if self._condition is not None and not self._condition(values):
             return None
 
         resolved_params = resolve_param_values(self._param_values, values)
 
-        this_route = next(
-            (
-                route
-                for route in app.routes
-                if isinstance(route, Route) and route.name == self._endpoint
-            ),
-            None,
-        )
-        if not this_route:
+        route = routes.get(self._endpoint, None)
+        if route is None:
             raise ValueError(f"No route found for endpoint {self._endpoint}")
 
         return HALItem(
-            href=app.url_path_for(self._endpoint, **resolved_params),
-            method=next(iter(this_route.methods), None) if this_route.methods else None,
+            href=route.url_path_for(self._endpoint, **resolved_params),
+            method=next(iter(route.methods), None) if route.methods else None,
             description=self._description,
         )
 
@@ -150,9 +154,9 @@ class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-anc
         field_schema.update({"additionalProperties": _uri_schema})
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Dict[str, Any]
+        self, routes: Dict[str, Route], values: Dict[str, Any]
     ) -> Dict[str, str]:
-        links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
+        links = {k: u.__build_hypermedia__(routes, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
         return {k: u for k, u in links.items() if u is not None}
 
 
@@ -231,14 +235,20 @@ def resolve_param_values(
 
 
 class HyperModel(BaseModel):
-    _hypermodel_bound_app: Optional[FastAPI] = None
+    _hypermodel_bound_routes: Optional[Dict[str, Route]] = None
 
     @root_validator
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
+        if (
+            cls._hypermodel_bound_routes is None
+            and getattr(cls, "__hypermodel_bound_app", None) is not None
+        ):
+            app = getattr(cls, "__hypermodel_bound_app")
+            cls._hypermodel_bound_routes = dict(cls.get_all_routes(app.routes))
         for key, value in values.items():
             if isinstance(value, AbstractHyperField):
                 values[key] = value.__build_hypermedia__(
-                    cls._hypermodel_bound_app, values
+                    cls._hypermodel_bound_routes, values
                 )
         return values
 
@@ -252,4 +262,20 @@ class HyperModel(BaseModel):
         Args:
             app (FastAPI): Application to generate URLs from
         """
-        cls._hypermodel_bound_app = app
+        setattr(cls, "__hypermodel_bound_app", app)
+
+    @staticmethod
+    def get_all_routes(app_routes: List[BaseRoute]) -> Iterable[Tuple[str, Route]]:
+        """
+        Helper to retrieve all routes from app.routes.
+
+        Args:
+            app_routes (List[BaseRoute]): List of routes from a FastAPI app.
+        """
+        for route in app_routes:
+            if isinstance(route, (Host, Mount)):
+                # Host and Mount have a `routes` property, so we have
+                # to iterate on each one of them recursively.
+                yield from HyperModel.get_all_routes(route.routes)
+            elif isinstance(route, Route):
+                yield route.name, route

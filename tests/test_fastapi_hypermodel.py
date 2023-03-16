@@ -159,14 +159,22 @@ def test_people_halset_condition_unmet(client, person_id):
         pytest.param(read_item, id="Use of a Callable endpoint"),
     ],
 )
-def test_bad_attribute(app, endpoint):
+def test_bad_attribute(endpoint):
     class ItemSummary(HyperModel):
         href = UrlFor(endpoint, {"item_id": "<id>"})
 
-    assert ItemSummary._hypermodel_bound_app is app
-
     with pytest.raises(InvalidAttribute):
         _ = ItemSummary()
+
+
+def test_app_routes(app):
+    """
+    Check that all routes defined in the FastAPI app are in the HyperModel object.
+    """
+    assert HyperModel()  # Force computing routes
+    assert {route.name for route in app.routes} == set(
+        HyperModel._hypermodel_bound_routes
+    )
 
 
 ### APP TESTS, SHOULD REMOVE

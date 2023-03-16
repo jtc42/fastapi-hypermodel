@@ -3,8 +3,7 @@ from typing import List, Optional
 from fastapi import FastAPI
 from pydantic.main import BaseModel
 
-from fastapi_hypermodel import HyperModel, LinkSet, UrlFor
-from fastapi_hypermodel.hypermodel import HALFor
+from fastapi_hypermodel import HALFor, HyperModel, LinkSet, UrlFor
 
 
 class ItemSummary(HyperModel):
@@ -122,10 +121,7 @@ def update_item(item_id: str, item: ItemUpdate):
     return items[item_id]
 
 
-@test_app.get(
-    "/people",
-    response_model=List[Person],
-)
+@test_app.get("/people", response_model=List[Person])
 def read_people():
     return list(people.values())
 

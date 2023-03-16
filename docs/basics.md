@@ -83,7 +83,7 @@ Alternatively, rather than providing the endpoint name, you can provide a refere
 
 ### `values` (optional depending on endpoint)
 
-Same keyword arguments as FastAPI's url_path_for, except string arguments enclosed in < > will be interpreted as attributes to pull from the object. For example, here we need to pass an `item_id` argument as required by our endpoint function, and we want to populate that with our item object's `id` attribute.
+Same keyword arguments as FastAPI's `url_path_for()`, except string arguments enclosed in < > will be interpreted as attributes to pull from the object. For example, here we need to pass an `item_id` argument as required by our endpoint function, and we want to populate that with our item object's `id` attribute.
 
 ## Create a link set
 

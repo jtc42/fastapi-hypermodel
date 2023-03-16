@@ -70,7 +70,7 @@ people = {
     "person02": {"id": "person02", "name": "Bob", "items": [items["item03"]]},
 }
 
-# Create our API routes, using our Pydantic models as respone_model
+# Create our API routes, using our Pydantic models as response_model
 
 
 @app.get("/items", response_model=List[ItemSummary])
