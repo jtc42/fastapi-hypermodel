@@ -90,9 +90,6 @@ class UrlFor(UrlType, AbstractHyperField):
             return None
 
         route = routes.get(self.endpoint, None)
-        if route is None:
-            raise ValueError(f"No route found for endpoint {self.endpoint}")
-
         resolved_params = resolve_param_values(self.param_values, values)
         return route.url_path_for(self.endpoint, **resolved_params)
 
@@ -131,8 +128,6 @@ class HALFor(HALItem, AbstractHyperField):
         resolved_params = resolve_param_values(self._param_values, values)
 
         route = routes.get(self._endpoint, None)
-        if route is None:
-            raise ValueError(f"No route found for endpoint {self._endpoint}")
 
         return HALItem(
             href=route.url_path_for(self._endpoint, **resolved_params),
