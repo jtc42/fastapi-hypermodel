@@ -85,7 +85,7 @@ class UrlFor(UrlType, AbstractHyperField):
 
 
 class HALItem(BaseModel):
-    href: Optional[UrlType]
+    href: Optional[Union[UrlType, URLPath]]
     method: Optional[str]
     description: Optional[str]
 
@@ -107,7 +107,7 @@ class HALFor(HALItem, AbstractHyperField):
         self._param_values: Dict[str, str] = param_values or {}
         self._description = description
         self._condition = condition
-        super().__init__()
+        super().__init__()  # type: ignore
 
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
