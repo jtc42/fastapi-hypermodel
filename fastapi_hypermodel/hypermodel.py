@@ -9,9 +9,16 @@ import urllib
 from typing import Any, Callable, Dict, List, Optional, Union, no_type_check
 
 from fastapi import FastAPI
-from pydantic import BaseModel, PrivateAttr, root_validator
+from pydantic import (
+    BaseModel,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    PrivateAttr,
+    model_validator,
+)
+from pydantic.json_schema import JsonSchemaValue
 from pydantic.utils import update_not_none
-from pydantic.validators import dict_validator
+from pydantic_core import CoreSchema, core_schema
 from starlette.datastructures import URLPath
 from starlette.routing import Route
 
@@ -85,9 +92,9 @@ class UrlFor(UrlType, AbstractHyperField):
 
 
 class HALItem(BaseModel):
-    href: Optional[Union[UrlType, URLPath]]
-    method: Optional[str]
-    description: Optional[str]
+    href: Optional[Union[UrlType, URLPath]] = None
+    method: Optional[str] = None
+    description: Optional[str] = None
 
 
 class HALFor(HALItem, AbstractHyperField):
@@ -142,12 +149,22 @@ _LinkSetType = Dict[str, AbstractHyperField]
 
 class LinkSet(_LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
     @classmethod
-    def __get_validators__(cls):
-        yield dict_validator
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        return core_schema.dict_schema(
+            keys_schema=core_schema.str_schema(), values_schema=core_schema.str_schema()
+        )
 
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update({"additionalProperties": _uri_schema})
+    def __get_pydantic_json_schema__(
+        cls, core_schema_obj: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        json_schema = handler(core_schema_obj)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema['additionalProperties'] = _uri_schema
+
+        return json_schema
 
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
@@ -241,7 +258,7 @@ class HyperModel(BaseModel):
             )
         return None
 
-    @root_validator
+    @model_validator(mode='before')
     def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
         for key, value in values.items():
             if isinstance(value, AbstractHyperField):
