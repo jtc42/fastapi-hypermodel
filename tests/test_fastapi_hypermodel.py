@@ -68,6 +68,7 @@ def test_get_value():
 def test_items(client, item_id):
     url = f"/items/{item_id}"
     response = client.get(url)
+    print(response.json())
     assert "href" in response.json()
     assert response.json().get("href") == url
 

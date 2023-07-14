@@ -1,10 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, ClassVar
 
 from fastapi import FastAPI
+from pydantic import ConfigDict
 from pydantic.main import BaseModel
 
 from fastapi_hypermodel import HyperModel, LinkSet, UrlFor
-from fastapi_hypermodel.hypermodel import HALFor
+from fastapi_hypermodel.hypermodel import HALFor, HALType, LinkSetType, UrlType
 
 
 class ItemSummary(HyperModel):
@@ -30,13 +31,15 @@ class ItemCreate(ItemUpdate):
 
 
 class Person(HyperModel):
+    model_config = ConfigDict(str_max_length=10)
+
     name: str
     id: str
     is_locked: bool
     items: List[ItemSummary]
 
-    href = UrlFor("read_person", {"person_id": "<id>"})
-    links = LinkSet(
+    href: UrlFor = UrlFor("read_person", {"person_id": "<id>"})
+    links: LinkSet = LinkSet(
         {
             "self": UrlFor("read_person", {"person_id": "<id>"}),
             "items": UrlFor("read_person_items", {"person_id": "<id>"}),
@@ -48,8 +51,8 @@ class Person(HyperModel):
         }
     )
 
-    hal_href = HALFor("read_person", {"person_id": "<id>"})
-    hal_links = LinkSet(
+    hal_href: HALFor = HALFor("read_person", {"person_id": "<id>"})
+    hal_links: LinkSet = LinkSet(
         {
             "self": HALFor("read_person", {"person_id": "<id>"}),
             "items": HALFor("read_person_items", {"person_id": "<id>"}),
@@ -61,11 +64,6 @@ class Person(HyperModel):
             ),
         }
     )
-
-    class Config:
-        # Alias hal_links to _links as per the HAL standard
-        fields = {"hal_links": "_links"}
-
 
 items = {
     "item01": {"id": "item01", "name": "Foo", "price": 50.2},
