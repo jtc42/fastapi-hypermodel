@@ -23,6 +23,7 @@ from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
 
 class InvalidAttribute(AttributeError):
     pass
@@ -74,8 +75,11 @@ class UrlFor(UrlType, AbstractHyperField):
         return str.__new__(cls)
 
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls, source_type: Any, handler: GetCoreSchemaHandler
+    ) -> CoreSchema:
+        str_schema = core_schema.str_schema(min_length=1, max_length=2**16)
+        return core_schema.no_info_after_validator_function(cls.validate, str_schema)
 
     @classmethod
     def validate(cls, value: Any) -> "UrlFor":
@@ -269,14 +273,19 @@ class HyperModel(BaseModel):
             )
         return None
 
-    @model_validator(mode='before')
-    def _hypermodel_gen_href(cls, values):  # pylint: disable=no-self-argument
-        for key, value in values.items():
+    @model_validator(mode='after')
+    def _hypermodel_gen_href(self) -> 'HyperModel':
+        values = dict()
+
+        for key, value in self:
             if isinstance(value, AbstractHyperField):
                 values[key] = value.__build_hypermedia__(
-                    cls._hypermodel_bound_app, values
+                    __class__._hypermodel_bound_app, self
                 )
-        return values
+            else:
+                values[key] = value
+
+        return __class__.model_construct(**values)
 
     @classmethod
     def init_app(cls, app: FastAPI):

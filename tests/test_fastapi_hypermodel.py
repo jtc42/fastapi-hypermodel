@@ -162,7 +162,7 @@ def test_people_halset_condition_unmet(client, person_id):
 )
 def test_bad_attribute(app, endpoint):
     class ItemSummary(HyperModel):
-        href = UrlFor(endpoint, {"item_id": "<id>"})
+        href: UrlFor = UrlFor(endpoint, {"item_id": "<id>"})
 
     assert ItemSummary._hypermodel_bound_app is app
 

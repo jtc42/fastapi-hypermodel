@@ -1,18 +1,18 @@
 from typing import List, Optional, ClassVar
 
 from fastapi import FastAPI
-from pydantic import ConfigDict
+from pydantic import ConfigDict, Field
 from pydantic.main import BaseModel
 
 from fastapi_hypermodel import HyperModel, LinkSet, UrlFor
-from fastapi_hypermodel.hypermodel import HALFor, HALType, LinkSetType, UrlType
+from fastapi_hypermodel.hypermodel import HALFor
 
 
 class ItemSummary(HyperModel):
     name: str
     id: str
 
-    href = UrlFor("read_item", {"item_id": "<id>"})
+    href: UrlFor = UrlFor("read_item", {"item_id": "<id>"})
 
 
 class ItemDetail(ItemSummary):
@@ -21,9 +21,9 @@ class ItemDetail(ItemSummary):
 
 
 class ItemUpdate(BaseModel):
-    name: Optional[str]
-    description: Optional[str]
-    price: Optional[float]
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
 
 
 class ItemCreate(ItemUpdate):
@@ -46,13 +46,13 @@ class Person(HyperModel):
             "addItem": UrlFor(
                 "put_person_items",
                 {"person_id": "<id>"},
-                condition=lambda values: not values["is_locked"],
+                condition=lambda values: not vars(values)["is_locked"],
             ),
         }
     )
 
     hal_href: HALFor = HALFor("read_person", {"person_id": "<id>"})
-    hal_links: LinkSet = LinkSet(
+    hal_links: LinkSet = Field(default=LinkSet(
         {
             "self": HALFor("read_person", {"person_id": "<id>"}),
             "items": HALFor("read_person_items", {"person_id": "<id>"}),
@@ -60,10 +60,10 @@ class Person(HyperModel):
                 "put_person_items",
                 {"person_id": "<id>"},
                 description="Add an item to this person and the items list",
-                condition=lambda values: not values["is_locked"],
+                condition=lambda values: not vars(values)["is_locked"],
             ),
         }
-    )
+    ), alias="_links")
 
 items = {
     "item01": {"id": "item01", "name": "Foo", "price": 50.2},
@@ -116,7 +116,7 @@ def read_item(item_id: str):
 
 @test_app.put("/items/{item_id}", response_model=ItemDetail)
 def update_item(item_id: str, item: ItemUpdate):
-    items[item_id].update(item.dict(exclude_none=True))
+    items[item_id].update(item.model_dump(exclude_none=True))
     return items[item_id]
 
 
@@ -140,6 +140,6 @@ def read_person_items(person_id: str):
 
 @test_app.put("/people/{person_id}/items", response_model=List[ItemDetail])
 def put_person_items(person_id: str, item: ItemCreate):
-    items[item.id] = item.dict()
-    people[person_id]["items"].append(item.dict())
+    items[item.id] = item.model_dump()
+    people[person_id]["items"].append(item.model_dump())
     return people[person_id]["items"]
