@@ -280,12 +280,12 @@ class HyperModel(BaseModel):
         for key, value in self:
             if isinstance(value, AbstractHyperField):
                 new_values[key] = value.__build_hypermedia__(
-                    self.__class__._hypermodel_bound_app, vars(self)
+                    self._hypermodel_bound_app, vars(self)
                 )
             else:
                 new_values[key] = value
 
-        return self.__class__.model_construct(**new_values)
+        return self.model_construct(**new_values)
 
     @classmethod
     def init_app(cls, app: FastAPI):
