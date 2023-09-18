@@ -46,7 +46,7 @@ class Person(HyperModel):
             "addItem": UrlFor(
                 "put_person_items",
                 {"person_id": "<id>"},
-                condition=lambda values: not vars(values)["is_locked"],
+                condition=lambda values: not values["is_locked"],
             ),
         }
     )
@@ -60,7 +60,7 @@ class Person(HyperModel):
                 "put_person_items",
                 {"person_id": "<id>"},
                 description="Add an item to this person and the items list",
-                condition=lambda values: not vars(values)["is_locked"],
+                condition=lambda values: not values["is_locked"],
             ),
         }
     ), alias="_links")
@@ -141,5 +141,5 @@ def read_person_items(person_id: str):
 @test_app.put("/people/{person_id}/items", response_model=List[ItemDetail])
 def put_person_items(person_id: str, item: ItemCreate):
     items[item.id] = item.model_dump()
-    people[person_id]["items"].append(item.model_dump())
+    people[person_id]["items"].append(item.model_dump()) # type: ignore
     return people[person_id]["items"]

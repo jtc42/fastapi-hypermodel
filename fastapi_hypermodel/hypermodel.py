@@ -153,7 +153,7 @@ class HALFor(HALType, AbstractHyperField):
             raise ValueError(f"No route found for endpoint {self._endpoint}")
 
         return HALType(
-            href=app.url_path_for(self._endpoint, **resolved_params),
+            href=UrlType(app.url_path_for(self._endpoint, **resolved_params)),
             method=next(iter(this_route.methods), None) if this_route.methods else None,
             description=self._description,
         )
@@ -275,17 +275,17 @@ class HyperModel(BaseModel):
 
     @model_validator(mode='after')
     def _hypermodel_gen_href(self) -> 'HyperModel':
-        values = dict()
+        new_values: dict[str, Any] = dict()
 
         for key, value in self:
             if isinstance(value, AbstractHyperField):
-                values[key] = value.__build_hypermedia__(
-                    __class__._hypermodel_bound_app, self
+                new_values[key] = value.__build_hypermedia__(
+                    self.__class__._hypermodel_bound_app, vars(self)
                 )
             else:
-                values[key] = value
+                new_values[key] = value
 
-        return __class__.model_construct(**values)
+        return self.__class__.model_construct(**new_values)
 
     @classmethod
     def init_app(cls, app: FastAPI):
