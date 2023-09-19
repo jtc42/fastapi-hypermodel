@@ -1,5 +1,6 @@
 _uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
 
+
 def _is_subset(d1: dict, d2: dict):
     return all(d1.get(k) == d2.get(k) for k in d2)
 

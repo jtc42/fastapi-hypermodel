@@ -52,18 +52,22 @@ class Person(HyperModel):
     )
 
     hal_href: HALFor = HALFor("read_person", {"person_id": "<id>"})
-    hal_links: LinkSet = Field(default=LinkSet(
-        {
-            "self": HALFor("read_person", {"person_id": "<id>"}),
-            "items": HALFor("read_person_items", {"person_id": "<id>"}),
-            "addItem": HALFor(
-                "put_person_items",
-                {"person_id": "<id>"},
-                description="Add an item to this person and the items list",
-                condition=lambda values: not values["is_locked"],
-            ),
-        }
-    ), alias="_links")
+    hal_links: LinkSet = Field(
+        default=LinkSet(
+            {
+                "self": HALFor("read_person", {"person_id": "<id>"}),
+                "items": HALFor("read_person_items", {"person_id": "<id>"}),
+                "addItem": HALFor(
+                    "put_person_items",
+                    {"person_id": "<id>"},
+                    description="Add an item to this person and the items list",
+                    condition=lambda values: not values["is_locked"],
+                ),
+            }
+        ),
+        alias="_links",
+    )
+
 
 items = {
     "item01": {"id": "item01", "name": "Foo", "price": 50.2},
@@ -141,5 +145,5 @@ def read_person_items(person_id: str):
 @test_app.put("/people/{person_id}/items", response_model=List[ItemDetail])
 def put_person_items(person_id: str, item: ItemCreate):
     items[item.id] = item.model_dump()
-    people[person_id]["items"].append(item.model_dump()) # type: ignore
+    people[person_id]["items"].append(item.model_dump())  # type: ignore
     return people[person_id]["items"]

@@ -17,13 +17,14 @@ from pydantic import (
     model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import CoreSchema, core_schema
+from pydantic_core import CoreSchema, core_schema as pydantic_core_schema
 from starlette.datastructures import URLPath
 from starlette.routing import Route
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
 _uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
+
 
 class InvalidAttribute(AttributeError):
     pass
@@ -34,7 +35,8 @@ class AbstractHyperField(metaclass=abc.ABCMeta):
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        return core_schema.any_schema()
+        # pylint: disable=unused-argument
+        return pydantic_core_schema.any_schema()
 
     @abc.abstractmethod
     def __build_hypermedia__(self, app: Optional[FastAPI], values: Dict[str, Any]):
@@ -46,7 +48,8 @@ class UrlType(str):
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        return core_schema.str_schema(min_length=1, max_length=2**16)
+        # pylint: disable=unused-argument
+        return pydantic_core_schema.str_schema(min_length=1, max_length=2**16)
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -57,6 +60,7 @@ class UrlType(str):
         json_schema.update({"format": "uri"})
 
         return json_schema
+
 
 class UrlFor(UrlType, AbstractHyperField):
     def __init__(
@@ -78,8 +82,10 @@ class UrlFor(UrlType, AbstractHyperField):
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        str_schema = core_schema.str_schema(min_length=1, max_length=2**16)
-        return core_schema.no_info_after_validator_function(cls.validate, str_schema)
+        str_schema = pydantic_core_schema.str_schema(min_length=1, max_length=2**16)
+        return pydantic_core_schema.no_info_after_validator_function(
+            cls.validate, str_schema
+        )
 
     @classmethod
     def validate(cls, value: Any) -> "UrlFor":
@@ -167,8 +173,9 @@ class LinkSet(LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ance
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
-        return core_schema.dict_schema(
-            keys_schema=core_schema.str_schema(), values_schema=core_schema.str_schema()
+        return pydantic_core_schema.dict_schema(
+            keys_schema=pydantic_core_schema.str_schema(),
+            values_schema=pydantic_core_schema.str_schema(),
         )
 
     @classmethod
@@ -177,7 +184,7 @@ class LinkSet(LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ance
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema_obj)
         json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema['additionalProperties'] = _uri_schema
+        json_schema["additionalProperties"] = _uri_schema
 
         return json_schema
 
@@ -273,9 +280,9 @@ class HyperModel(BaseModel):
             )
         return None
 
-    @model_validator(mode='after')
-    def _hypermodel_gen_href(self) -> 'HyperModel':
-        new_values: dict[str, Any] = dict()
+    @model_validator(mode="after")
+    def _hypermodel_gen_href(self) -> "HyperModel":
+        new_values: dict[str, Any] = {}
 
         for key, value in self:
             if isinstance(value, AbstractHyperField):
