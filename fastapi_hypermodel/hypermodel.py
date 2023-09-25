@@ -282,7 +282,7 @@ class HyperModel(BaseModel):
 
     @model_validator(mode="after")
     def _hypermodel_gen_href(self) -> "HyperModel":
-        new_values: dict[str, Any] = {}
+        new_values: Dict[str, Any] = {}
 
         for key, value in self:
             if isinstance(value, AbstractHyperField):
