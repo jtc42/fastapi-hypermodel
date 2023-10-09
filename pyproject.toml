@@ -15,7 +15,7 @@ python = ">=3.8,<4.0"
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
 black = ">=22.3,<24.0"
-httpx = ">=0.23.1,<0.25.0"
+httpx = ">=0.23.1,<0.26.0"
 isort = "^5.7.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 mypy = ">=0.991,<1.5"
