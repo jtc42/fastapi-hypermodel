@@ -24,7 +24,7 @@ pytest = "^7.0"
 pytest-cov = ">=3,<5"
 requests = "^2.25.1"
 tox = "^4.4"
-uvicorn = ">=0.17.6,<0.23.0"
+uvicorn = ">=0.17.6,<0.24.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
