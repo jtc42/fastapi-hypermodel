@@ -100,4 +100,6 @@ This is an upstream issue, being tracked [here](https://github.com/encode/starle
 
 ## Attributions
 
+Huge thanks to [@christoe](https://github.com/christoe) for building support for Pydantic 2.
+
 Some functionality is based on [Flask-Marshmallow](https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py) `URLFor` class.
