@@ -19,7 +19,7 @@
 
 ---
 
-FastAPI-HyperModel is a FastAPI + Pydantic v1 extension for simplifying hypermedia-driven API development. 
+FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-driven API development. 
 
 This module adds a new Pydantic model base-class, supporting dynamic `href` generation based on object data.
 
