@@ -5,26 +5,26 @@ license = "MIT"
 name = "fastapi-hypermodel"
 readme = "README.md"
 repository = "https://github.com/jtc42/fastapi-hypermodel"
-version = "0.5.0"
+version = "2.0.0"
 
 [tool.poetry.dependencies]
 fastapi = ">=0.65.2"
-pydantic = "^1.8"
+pydantic = ">=2.0,<3.0"
 python = ">=3.8,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
 black = ">=22.3,<24.0"
-httpx = ">=0.23.1,<0.25.0"
+httpx = ">=0.23.1,<0.26.0"
 isort = "^5.7.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
-mypy = ">=0.991,<1.5"
 pylint = ">=2.6.2,<4.0.0"
+mypy = ">=0.991,<1.6"
 pytest = "^7.0"
 pytest-cov = ">=3,<5"
 requests = "^2.25.1"
 tox = "^4.4"
-uvicorn = ">=0.17.6,<0.23.0"
+uvicorn = ">=0.17.6,<0.24.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"

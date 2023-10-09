@@ -15,7 +15,7 @@ class ItemSummary(HyperModel):
     name: str
     id: str
     # This is a dynamic link to the Item resource
-    href = UrlFor("read_item", {"item_id": "<id>"})
+    href: UrlFor = UrlFor("read_item", {"item_id": "<id>"})
 
 
 # Extended model for our Item resources, including extra details
@@ -31,12 +31,12 @@ class Person(HyperModel):
     items: List[ItemSummary]
 
     # Single link attribute
-    href = UrlFor("read_person", {"person_id": "<id>"})
+    href: UrlFor = UrlFor("read_person", {"person_id": "<id>"})
 
     # Link set attribute
     # For larger APIs, this tends to be more useful as it allows you to easily
     # generate a list of links for all the sub-resources of a resource
-    links = LinkSet(
+    links: LinkSet = LinkSet(
         {
             "self": UrlFor("read_person", {"person_id": "<id>"}),
             "items": UrlFor("read_person_items", {"person_id": "<id>"}),
