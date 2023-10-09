@@ -1,4 +1,4 @@
-from fastapi_hypermodel.hypermodel import _uri_schema
+_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
 
 
 def _is_subset(d1: dict, d2: dict):
