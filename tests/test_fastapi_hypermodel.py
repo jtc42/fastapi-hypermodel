@@ -68,7 +68,6 @@ def test_get_value():
 def test_items(client, item_id):
     url = f"/items/{item_id}"
     response = client.get(url)
-    print(response.json())
     assert "href" in response.json()
     assert response.json().get("href") == url
 
@@ -164,7 +163,7 @@ def test_bad_attribute(app, endpoint):
     class ItemSummary(HyperModel):
         href: UrlFor = UrlFor(endpoint, {"item_id": "<id>"})
 
-    assert ItemSummary._hypermodel_bound_app is app
+    assert ItemSummary._hypermodel_bound_app is app  # noqa: SLF001
 
     with pytest.raises(InvalidAttribute):
         _ = ItemSummary()

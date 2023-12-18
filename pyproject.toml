@@ -37,14 +37,9 @@ requires = ["poetry-core>=1.0.0"]
 [tool.ruff]
 fix = true
 preview = true
-extend-ignore = [
-    "E501",   # FIXME
-    "TRY003", # FIXME
+ignore = [
     "A003",   # FIXME
-    "EM102",  # FIXME
-    "ISC001", # FIXME
-    "T201",   # FIXME
-    "SLF001", # FIXME
+    "ISC001",
 ]
 
 [tool.ruff.lint]
@@ -62,7 +57,7 @@ extend-select = [
     "PIE", # flake8-pie
     "RSE", # flake8-return
     "SIM", # flake8-simplify
-    # "ANN",  # flake8-annotations
+    # "ANN",  # flake8-annotations  # FIXME: enable along with strict mypy
     "ARG",  # flake8-unused-arguments
     "G",    # flake8-logging-format
     "ISC",  # flake8-implicit-str-concat
@@ -155,6 +150,7 @@ disable = [
     "fixme",
     "missing-module-docstring",
     "missing-class-docstring",
+    "missing-param-doc",
     "too-few-public-methods",
     "too-many-arguments",
     "consider-using-assignment-expr", # Disabled until walrus operator is widely used
@@ -176,7 +172,7 @@ max-line-length = 88
 extension-pkg-whitelist = "pydantic" # PyLint struggles with Pydantic in GH Actions
 
 [tool.pylint.refactoring]
-max-nested-blocks = 4
+max-nested-blocks = 3
 never-returning-functions = ["sys.exit", "argparse.parse_error"]
 
 [tool.pylint.exceptions]
