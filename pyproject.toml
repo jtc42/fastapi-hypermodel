@@ -30,6 +30,13 @@ uvicorn = ">=0.17.6,<0.25.0"
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
 
+#########################
+# MyPy
+#########################
+
+[tool.mypy]
+strict = true
+
 #########################################
 # Ruff
 #########################################
@@ -39,7 +46,7 @@ fix = true
 preview = true
 ignore = [
     "A003",   # FIXME
-    "ISC001",
+    "ISC001", # Disable for compatibility with ruff-format
 ]
 
 [tool.ruff.lint]
