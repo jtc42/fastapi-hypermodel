@@ -21,6 +21,8 @@ from pydantic_core import CoreSchema, core_schema as pydantic_core_schema
 from starlette.datastructures import URLPath
 from starlette.routing import Route
 
+from typing_extensions import Self
+
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")
 
 _uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
@@ -88,7 +90,7 @@ class UrlFor(UrlType, AbstractHyperField):
         )
 
     @classmethod
-    def validate(cls, value: Any) -> "UrlFor":
+    def validate(cls, value: Any) -> Self:
         """
         Validate UrlFor object against itself.
         The UrlFor field type will only accept UrlFor instances.
@@ -168,7 +170,7 @@ class HALFor(HALType, AbstractHyperField):
 LinkSetType = Dict[str, AbstractHyperField]
 
 
-class LinkSet(LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ancestors
+class LinkSet(LinkSetType, AbstractHyperField):
     @classmethod
     def __get_pydantic_core_schema__(
         cls, source_type: Any, handler: GetCoreSchemaHandler
@@ -191,7 +193,7 @@ class LinkSet(LinkSetType, AbstractHyperField):  # pylint: disable=too-many-ance
     def __build_hypermedia__(
         self, app: Optional[FastAPI], values: Dict[str, Any]
     ) -> Dict[str, str]:
-        links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}  # type: ignore  # pylint: disable=no-member
+        links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}
         return {k: u for k, u in links.items() if u is not None}
 
 
@@ -208,7 +210,7 @@ def _get_value(obj: Any, key: str, default: Optional[Any] = None):
     If a dot-delimited ``key`` is passed and any attribute in the
     path is `None`, return `None`.
     """
-    if "." in key:
+    if "." in key:  # pylint: disable=magic-value-comparison
         return _get_value_for_keys(obj, key.split("."), default)
     return _get_value_for_key(obj, key, default)
 
@@ -281,7 +283,7 @@ class HyperModel(BaseModel):
         return None
 
     @model_validator(mode="after")
-    def _hypermodel_gen_href(self) -> "HyperModel":
+    def _hypermodel_gen_href(self) -> Self:
         new_values: Dict[str, Any] = {}
 
         for key, value in self:

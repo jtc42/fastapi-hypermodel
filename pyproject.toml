@@ -10,6 +10,7 @@ version = "2.0.0"
 [tool.poetry.dependencies]
 fastapi = ">=0.65.2"
 pydantic = ">=2.0,<3.0"
+typing_extensions = ">=4.0.0"
 python = ">=3.8,<4.0"
 
 [tool.poetry.group.dev.dependencies]
@@ -38,10 +39,110 @@ line_length = 88
 multi_line_output = 3
 use_parentheses = true
 
+#########################################
+# PyLint
+#########################################
+
+[tool.pylint.main]
+fail-on = ["I"]
+fail-under = 10
+jobs = 8
+limit-inference-results = 1000
+py-version = "3.8"
+load-plugins = [
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.code_style",
+    "pylint.extensions.comparison_placement",
+    "pylint.extensions.consider_refactoring_into_while_condition",
+    "pylint.extensions.docparams",
+    "pylint.extensions.dunder",
+    "pylint.extensions.eq_without_hash",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.magic_value",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.no_self_use",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.private_import",
+    "pylint.extensions.redefined_loop_name",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.set_membership",
+    "pylint.extensions.typing",
+    "pylint.extensions.while_used",
+]
+
+[tool.pylint.dunder]
+good-dunder-names = [
+    "__get_pydantic_core_schema__",
+    "__get_pydantic_json_schema__",
+    "__build_hypermedia__",
+]
+
+[tool.pylint.design]
+max-args = 7
+max-attributes = 7
+max-bool-expr = 5
+max-branches = 12
+max-complexity = 10
+max-locals = 15
+max-parents = 7
+max-public-methods = 20
+max-returns = 6
+max-statements = 50
+
+[tool.pylint.format]
+indent-after-paren = 4
+indent-string = "    "
+max-line-length = 120
+max-module-lines = 400
+
 [tool.pylint.'MESSAGES CONTROL']
-# unsubscriptable-object is disabled until proper Python 3.9 support is fixed in PyLint
-disable = "line-too-long, unsubscriptable-object, fixme, missing-module-docstring, missing-class-docstring, too-few-public-methods, too-many-arguments"
+disable = [
+    "line-too-long",
+    "unsubscriptable-object",         # Disabled until proper Python 3.9 support is fixed in PyLint
+    "fixme",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "consider-using-assignment-expr", # Disabled until walrus operator is widely used
+    "unused-variable",                # Too many false positives
+]
+enable = [
+    "bad-inline-option",
+    "file-ignored",
+    "useless-suppression",
+    "deprecated-pragma",
+    "use-symbolic-message-instead",
+    "deprecated-pragma",
+    "file-ignored",
+]
+
 max-line-length = 88
 
 [tool.pylint.'MASTER']
 extension-pkg-whitelist = "pydantic" # PyLint struggles with Pydantic in GH Actions
+
+[tool.pylint.refactoring]
+max-nested-blocks = 4
+never-returning-functions = ["sys.exit", "argparse.parse_error"]
+
+[tool.pylint.exceptions]
+overgeneral-exceptions = ["'builtins.Exception'"]
+
+[tool.pylint.string_constant]
+check-quote-consistency = true
+
+[tool.pylint.string]
+check-str-concat-over-line-jumps = true
+
+[tool.pylint.similarities]
+ignore-comments = true
+ignore-docstrings = true
+ignore-signatures = true
+min-similarity-lines = 4
+
+[tool.pylint.variables]
+allow-global-unused-variables = false
+callbacks = ["cb_", "_cb"]
+dummy-variables-rgx = "(_+[a-zA-Z0-9]*?$)|dummy"
+ignored-argument-names = "_.*"
