@@ -36,12 +36,10 @@ class Person(HyperModel):
     # Link set attribute
     # For larger APIs, this tends to be more useful as it allows you to easily
     # generate a list of links for all the sub-resources of a resource
-    links: LinkSet = LinkSet(
-        {
-            "self": UrlFor("read_person", {"person_id": "<id>"}),
-            "items": UrlFor("read_person_items", {"person_id": "<id>"}),
-        }
-    )
+    links: LinkSet = LinkSet({
+        "self": UrlFor("read_person", {"person_id": "<id>"}),
+        "items": UrlFor("read_person_items", {"person_id": "<id>"}),
+    })
 
 
 # Create some test data for our API to return

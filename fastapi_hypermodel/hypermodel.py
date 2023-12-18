@@ -17,10 +17,10 @@ from pydantic import (
     model_validator,
 )
 from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import CoreSchema, core_schema as pydantic_core_schema
+from pydantic_core import CoreSchema
+from pydantic_core import core_schema as pydantic_core_schema
 from starlette.datastructures import URLPath
 from starlette.routing import Route
-
 from typing_extensions import Self
 
 _tpl_pattern = re.compile(r"\s*<\s*(\S*)\s*>\s*")

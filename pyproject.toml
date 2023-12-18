@@ -15,15 +15,14 @@ python = ">=3.8,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
-black = ">=22.3,<24.0"
 httpx = ">=0.23.1,<0.26.0"
-isort = "^5.7.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 pylint = ">=2.6.2,<4.0.0"
 mypy = ">=0.991,<1.8"
 pytest = "^7.0"
 pytest-cov = ">=3,<5"
 requests = "^2.25.1"
+ruff = "^0.1.8"
 tox = "^4.4"
 uvicorn = ">=0.17.6,<0.25.0"
 
@@ -31,13 +30,67 @@ uvicorn = ">=0.17.6,<0.25.0"
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
 
-[tool.isort]
-ensure_newline_before_comments = true
-force_grid_wrap = 0
-include_trailing_comma = true
-line_length = 88
-multi_line_output = 3
-use_parentheses = true
+#########################################
+# Ruff
+#########################################
+
+[tool.ruff]
+fix = true
+preview = true
+extend-ignore = [
+    "E501",   # FIXME
+    "TRY003", # FIXME
+    "A003",   # FIXME
+    "EM102",  # FIXME
+    "ISC001", # FIXME
+    "T201",   # FIXME
+    "SLF001", # FIXME
+]
+
+[tool.ruff.lint]
+extend-select = [
+    #   "D",   # pydocstyle
+    # "FBT",   # flake8-boolean-trap
+    # "COM",   # flake8-commas
+    "E",   # pycodestyle
+    "UP",  # pyupgrade
+    "BLE", # flake8-blind-except
+    "B",   # flake8-bugbear
+    "A",   # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "ICN", # flake8-import-conventions
+    "PIE", # flake8-pie
+    "RSE", # flake8-return
+    "SIM", # flake8-simplify
+    # "ANN",  # flake8-annotations
+    "ARG",  # flake8-unused-arguments
+    "G",    # flake8-logging-format
+    "ISC",  # flake8-implicit-str-concat
+    "T20",  # flake8-print
+    "EM",   # flake8-errmsg
+    "SLF",  # flake8-self
+    "PT",   # flake8-pytest-style
+    "RET",  # flake8-return
+    "TID",  # flake8-tidy-imports
+    "PTH",  # flake8-use-pathlib
+    "LOG",  # flake8-logging
+    "TD",   # flake8-todos
+    "FIX",  # flake8-fixme
+    "TRY",  # tryceratops
+    "I",    # isort
+    "ERA",  # erradicate
+    "PERF", # Perflint
+    "FURB", # refurb
+    "RUF",  # ruff
+]
+
+[tool.ruff.format]
+# Set Ruff to imitate Black
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 
 #########################################
 # PyLint

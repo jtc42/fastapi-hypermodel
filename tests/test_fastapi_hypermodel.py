@@ -23,7 +23,7 @@ def test_tpl(template):
 
 
 def test_get_value_for_key():
-    class Object(object):
+    class Object:
         pass
 
     o = Object()
@@ -39,7 +39,7 @@ def test_get_value_for_key_dict():
 
 
 def test_get_value_for_keys():
-    class Object(object):
+    class Object:
         pass
 
     o = Object()
@@ -54,7 +54,7 @@ def test_get_value_for_keys():
 
 
 def test_get_value():
-    class Object(object):
+    class Object:
         pass
 
     o = Object()
@@ -170,7 +170,7 @@ def test_bad_attribute(app, endpoint):
         _ = ItemSummary()
 
 
-### APP TESTS, SHOULD REMOVE
+# APP TESTS, SHOULD REMOVE
 
 
 def test_update_item(client):

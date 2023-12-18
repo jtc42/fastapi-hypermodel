@@ -1,4 +1,4 @@
-from typing import List, Optional, ClassVar
+from typing import List, Optional
 
 from fastapi import FastAPI
 from pydantic import ConfigDict, Field
@@ -39,32 +39,28 @@ class Person(HyperModel):
     items: List[ItemSummary]
 
     href: UrlFor = UrlFor("read_person", {"person_id": "<id>"})
-    links: LinkSet = LinkSet(
-        {
-            "self": UrlFor("read_person", {"person_id": "<id>"}),
-            "items": UrlFor("read_person_items", {"person_id": "<id>"}),
-            "addItem": UrlFor(
-                "put_person_items",
-                {"person_id": "<id>"},
-                condition=lambda values: not values["is_locked"],
-            ),
-        }
-    )
+    links: LinkSet = LinkSet({
+        "self": UrlFor("read_person", {"person_id": "<id>"}),
+        "items": UrlFor("read_person_items", {"person_id": "<id>"}),
+        "addItem": UrlFor(
+            "put_person_items",
+            {"person_id": "<id>"},
+            condition=lambda values: not values["is_locked"],
+        ),
+    })
 
     hal_href: HALFor = HALFor("read_person", {"person_id": "<id>"})
     hal_links: LinkSet = Field(
-        default=LinkSet(
-            {
-                "self": HALFor("read_person", {"person_id": "<id>"}),
-                "items": HALFor("read_person_items", {"person_id": "<id>"}),
-                "addItem": HALFor(
-                    "put_person_items",
-                    {"person_id": "<id>"},
-                    description="Add an item to this person and the items list",
-                    condition=lambda values: not values["is_locked"],
-                ),
-            }
-        ),
+        default=LinkSet({
+            "self": HALFor("read_person", {"person_id": "<id>"}),
+            "items": HALFor("read_person_items", {"person_id": "<id>"}),
+            "addItem": HALFor(
+                "put_person_items",
+                {"person_id": "<id>"},
+                description="Add an item to this person and the items list",
+                condition=lambda values: not values["is_locked"],
+            ),
+        }),
         alias="_links",
     )
 
