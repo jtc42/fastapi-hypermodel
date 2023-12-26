@@ -14,6 +14,7 @@ from typing import (
     Mapping,
     Optional,
     Protocol,
+    Type,
     Union,
     no_type_check,
     runtime_checkable,
@@ -45,15 +46,12 @@ class InvalidAttribute(AttributeError):
 
 class AbstractHyperField(metaclass=abc.ABCMeta):
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        # pylint: disable=unused-argument
+    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
         return pydantic_core_schema.any_schema()
 
     @abc.abstractmethod
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Mapping[str, Any]
+        self: Self, app: Optional[FastAPI], values: Mapping[str, object]
     ) -> Optional[Any]:
         return None
 
@@ -61,14 +59,14 @@ class AbstractHyperField(metaclass=abc.ABCMeta):
 class UrlType(str):
     @classmethod
     def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
+        cls: Type[Self], source_type: Any, handler: GetCoreSchemaHandler
     ) -> CoreSchema:
         # pylint: disable=unused-argument
         return pydantic_core_schema.str_schema(min_length=1, max_length=2**16)
 
     @classmethod
     def __get_pydantic_json_schema__(
-        cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler
+        cls: Type[Self], core_schema: CoreSchema, handler: GetJsonSchemaHandler
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
@@ -84,31 +82,29 @@ class HasName(Protocol):
 
 class UrlFor(UrlType, AbstractHyperField):
     def __init__(
-        self,
+        self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Dict[str, str]] = None,
-        condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-    ):
+        condition: Optional[Callable[[Mapping[str, object]], bool]] = None,
+    ) -> None:
         self.endpoint = endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
         self.param_values: Dict[str, str] = param_values or {}
         self.condition = condition
         super().__init__()
 
     @no_type_check
-    def __new__(cls, *_, **__):
+    def __new__(cls: Type[Self], *_: Any, **__: Any) -> Self:
         return str.__new__(cls)
 
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
+    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
         str_schema = pydantic_core_schema.str_schema(min_length=1, max_length=2**16)
         return pydantic_core_schema.no_info_after_validator_function(
             cls.validate, str_schema
         )
 
     @classmethod
-    def validate(cls, value: Union[URLPath, Any]) -> URLPath:
+    def validate(cls: Type[Self], value: Union[URLPath, BaseModel]) -> URLPath:
         """
         Validate UrlFor object against itself.
         The UrlFor field type will only accept UrlFor instances.
@@ -121,7 +117,7 @@ class UrlFor(UrlType, AbstractHyperField):
         raise ValueError(error_message)
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Mapping[str, Any]
+        self: Self, app: Optional[FastAPI], values: Mapping[str, object]
     ) -> Optional[Any]:
         if app is None:
             return None
@@ -141,15 +137,15 @@ class HALFor(HALType, AbstractHyperField):
     _endpoint: str = PrivateAttr()
     _param_values: Optional[Mapping[str, str]] = PrivateAttr()
     _description: Optional[str] = PrivateAttr()
-    _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
+    _condition: Optional[Callable[[Mapping[str, object]], bool]] = PrivateAttr()
 
     def __init__(
-        self,
+        self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Dict[str, str]] = None,
         description: Optional[str] = None,
-        condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-    ):
+        condition: Optional[Callable[[Mapping[str, object]], bool]] = None,
+    ) -> None:
         super().__init__()
         self._endpoint: str = (
             endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
@@ -159,7 +155,7 @@ class HALFor(HALType, AbstractHyperField):
         self._condition = condition
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Mapping[str, Any]
+        self: Self, app: Optional[FastAPI], values: Mapping[str, object]
     ) -> Optional[Any]:
         if app is None:
             return None
@@ -192,9 +188,7 @@ LinkSetType = Dict[str, AbstractHyperField]
 
 class LinkSet(LinkSetType, AbstractHyperField):
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls, source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
+    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
         return pydantic_core_schema.dict_schema(
             keys_schema=pydantic_core_schema.str_schema(),
             values_schema=pydantic_core_schema.str_schema(),
@@ -202,7 +196,7 @@ class LinkSet(LinkSetType, AbstractHyperField):
 
     @classmethod
     def __get_pydantic_json_schema__(
-        cls, core_schema_obj: CoreSchema, handler: GetJsonSchemaHandler
+        cls: Type[Self], core_schema_obj: CoreSchema, handler: GetJsonSchemaHandler
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema_obj)
         json_schema = handler.resolve_ref_schema(json_schema)
@@ -211,7 +205,7 @@ class LinkSet(LinkSetType, AbstractHyperField):
         return json_schema
 
     def __build_hypermedia__(
-        self, app: Optional[FastAPI], values: Mapping[str, Any]
+        self: Self, app: Optional[FastAPI], values: Mapping[str, object]
     ) -> Optional[Any]:
         links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}
         return {k: u for k, u in links.items() if u is not None}
@@ -261,7 +255,8 @@ def _clean_attribute_value(value: Any) -> Union[str, Any]:
 
 
 def resolve_param_values(
-    param_values_template: Optional[Mapping[str, str]], data_object: Mapping[str, Any]
+    param_values_template: Optional[Mapping[str, str]],
+    data_object: Mapping[str, object],
 ) -> Dict[str, str]:
     """
     Converts a dictionary of URL parameter substitution templates and a
@@ -304,7 +299,7 @@ class HyperModel(BaseModel):
 
     @classmethod
     def _generate_url(
-        cls, endpoint: Any, param_values: Any, values: Any
+        cls: Type[Self], endpoint: Any, param_values: Any, values: Any
     ) -> Optional[str]:
         if not cls._hypermodel_bound_app:
             return None
@@ -314,7 +309,7 @@ class HyperModel(BaseModel):
         )
 
     @model_validator(mode="after")
-    def _hypermodel_gen_href(self) -> Self:
+    def _hypermodel_gen_href(self: Self) -> Self:
         new_values: Dict[str, Any] = {}
 
         for key, value in self:
@@ -328,7 +323,7 @@ class HyperModel(BaseModel):
         return self.model_construct(**new_values)
 
     @classmethod
-    def init_app(cls, app: FastAPI) -> None:
+    def init_app(cls: Type[Self], app: FastAPI) -> None:
         """
         Bind a FastAPI app to other HyperModel base class.
         This allows HyperModel to convert endpoint function names into
