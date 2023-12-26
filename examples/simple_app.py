@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from fastapi import FastAPI
 
@@ -72,27 +72,27 @@ people = {
 
 
 @app.get("/items", response_model=List[ItemSummary])
-def read_items():
+def read_items() -> Any:
     return list(items.values())
 
 
 @app.get("/items/{item_id}", response_model=Item)
-def read_item(item_id: str):
+def read_item(item_id: str) -> Any:
     return items[item_id]
 
 
 @app.get("/people", response_model=List[Person])
-def read_people():
+def read_people() -> Any:
     return list(people.values())
 
 
 @app.get("/people/{person_id}", response_model=Person)
-def read_person(person_id: str):
+def read_person(person_id: str) -> Any:
     return people[person_id]
 
 
 @app.get("/people/{person_id}/items", response_model=List[ItemSummary])
-def read_person_items(person_id: str):
+def read_person_items(person_id: str) -> Any:
     return people[person_id]["items"]
 
 

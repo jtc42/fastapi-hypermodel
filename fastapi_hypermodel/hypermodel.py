@@ -9,6 +9,7 @@ import urllib
 from typing import (
     Any,
     Callable,
+    ClassVar,
     Dict,
     List,
     Mapping,
@@ -295,7 +296,7 @@ def resolve_param_values(
 
 
 class HyperModel(BaseModel):
-    _hypermodel_bound_app: Optional[FastAPI] = None
+    _hypermodel_bound_app: ClassVar[Optional[FastAPI]] = None
 
     @classmethod
     def _generate_url(
