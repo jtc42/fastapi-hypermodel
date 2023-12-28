@@ -4,9 +4,7 @@ from typing import (
     Dict,
     Mapping,
     Optional,
-    Sequence,
     Union,
-    cast,
 )
 
 from fastapi import FastAPI
@@ -77,15 +75,10 @@ class HALFor(HALType, AbstractHyperField):
         if not self._template:
             href = UrlType(app.url_path_for(self._endpoint, **resolved_params))
         else:
-            routes = cast(Sequence[Route], app.router.routes)
-            template_uri = next(
-                (route.path for route in routes if route.name == self._endpoint),
-                None,
-            )
-            href = UrlType(template_uri)
+            href = UrlType(this_route.path)
 
         return HALType(
-            href=href,
+            href=UrlType(href),
             method=next(iter(this_route.methods), None) if this_route.methods else None,
             description=self._description,
             templated=self._template,

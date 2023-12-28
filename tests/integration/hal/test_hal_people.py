@@ -121,7 +121,12 @@ def existing_item() -> Any:
     return {"id_": "item04"}
 
 
-def test_add_item_to_person(
+@pytest.fixture()
+def non_existing_item() -> Any:
+    return {"id_": "item05"}
+
+
+def test_add_item_to_unlocked_person(
     hal_client: TestClient,
     find_uri_template: str,
     unlocked_person: Person,
@@ -142,6 +147,22 @@ def test_add_item_to_person(
     assert lenght_before + 1 == lenght_after
 
     assert after_items[-1].get("id_") == existing_item.get("id_")
+
+
+def test_add_item_to_unlocked_person_nonexisting_item(
+    hal_client: TestClient,
+    find_uri_template: str,
+    unlocked_person: Person,
+    non_existing_item: Any,
+) -> None:
+    find_uri = unlocked_person.parse_uri(find_uri_template)
+    before = hal_client.get(find_uri).json()
+    add_item_uri = get_hal_link_href(before, "add_item")
+
+    assert add_item_uri
+
+    after_items = hal_client.put(add_item_uri, json=non_existing_item).json()
+    assert not after_items
 
 
 def test_add_item_to_locked_person(

@@ -4,9 +4,7 @@ from typing import (
     Dict,
     Mapping,
     Optional,
-    Sequence,
     Union,
-    cast,
 )
 
 from fastapi import FastAPI
@@ -68,9 +66,17 @@ class UrlFor(UrlForType, AbstractHyperField):
             uri_for = app.url_path_for(self._endpoint, **resolved_params)
             return UrlForType(hypermedia=UrlType(uri_for))
 
-        routes = cast(Sequence[Route], app.router.routes)
-        uri = next(
-            (route.path for route in routes if route.name == self._endpoint),
+        this_route = next(
+            (
+                route
+                for route in app.routes
+                if isinstance(route, Route) and route.name == self._endpoint
+            ),
             None,
         )
-        return UrlForType(hypermedia=UrlType(uri))
+
+        if not this_route:
+            error_message = f"No route found for endpoint {self._endpoint}"
+            raise ValueError(error_message)
+
+        return UrlForType(hypermedia=UrlType(this_route.path))
