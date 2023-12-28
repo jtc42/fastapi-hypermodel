@@ -113,9 +113,3 @@ def put_person_items(id_: str, item: ItemCreate) -> Any:
     base_person_items = base_person.get("items", [])
     base_person_items.append(complete_item)
     return base_person_items
-
-
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="127.0.0.1", port=8000)
