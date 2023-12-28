@@ -38,17 +38,11 @@ def _get_value(obj: Any, key: str, default: Optional[Any] = None) -> Any:
 
 
 def _get_value_for_keys(obj: Any, keys: List[str], default: Any) -> Any:
-    if not keys:
-        return None
-
     first, *rest = keys
     value = _get_value_for_key(obj, first, default)
 
     if not rest:
         return value
-
-    if value is None:
-        return None
 
     return _get_value_for_keys(value, rest, default)
 
@@ -66,7 +60,7 @@ def _clean_attribute_value(value: Any) -> Union[str, Any]:
 
 def resolve_param_values(
     param_values_template: Optional[Mapping[str, Any]],
-    data_object: Mapping[str, Any],
+    data_object: Any,
 ) -> Dict[str, Any]:
     """
     Converts a dictionary of URL parameter substitution templates and a

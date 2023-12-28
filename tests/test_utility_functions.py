@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict, Optional
 from fastapi import FastAPI
 import pytest
 
@@ -15,7 +15,12 @@ from fastapi_hypermodel import (
 
 @dataclass
 class MockClass:
-    name: str
+    name: Optional[str]
+
+
+@dataclass
+class MockContainer:
+    mock: MockClass
 
 
 @pytest.fixture()
@@ -23,8 +28,18 @@ def hal_response() -> Any:
     return {"_links": {"self": {"href": "/self"}}}
 
 
-def test_resolve_param_values_flat() -> None:
-    actual = resolve_param_values({"id_": "<id_>"}, {"name": "Bob", "id_": "person02"})
+@pytest.fixture()
+def params() -> Dict[str, str]:
+    return {"name": "Bob", "id_": "person02"}
+
+
+@pytest.fixture()
+def sample_object() -> Dict[str, str]:
+    return {"name": "Bob"}
+
+
+def test_resolve_param_values_flat(params: Dict[str, str]) -> None:
+    actual = resolve_param_values({"id_": "<id_>"}, params)
     expected = {"id_": "person02"}
     assert actual == expected
 
@@ -32,8 +47,10 @@ def test_resolve_param_values_flat() -> None:
 @pytest.mark.parametrize(
     "template", ["<id_>", " <id_>", "<id_> ", "< id_>", "<id_  >", "< id_ >"]
 )
-def test_resolve_param_values_different_templates(template: str):
-    actual = resolve_param_values({"id_": template}, {"name": "Bob", "id_": "person02"})
+def test_resolve_param_values_different_templates(
+    template: str, params: Dict[str, str]
+):
+    actual = resolve_param_values({"id_": template}, params)
     expected = {"id_": "person02"}
     assert actual == expected
 
@@ -46,8 +63,27 @@ def test_resolve_param_values_url_escape() -> None:
     assert actual == expected
 
 
-def test_extract_value_by_name() -> None:
-    value = extract_value_by_name({"name": "Bob"}, "name")
+def test_resolve_param_values_empty_attribute(params: Dict[str, str]) -> None:
+    actual = resolve_param_values({"id_": "<>"}, params)
+    expected = {}
+    assert actual == expected
+
+
+def test_resolve_param_values_nested_objects() -> None:
+    sample_object = MockContainer(MockClass("test"))
+    actual = resolve_param_values({"id_": "<mock.name>"}, sample_object)
+    expected = {"id_": "test"}
+    assert actual == expected
+
+
+def test_resolve_param_values_empty_params(params: Dict[str, str]) -> None:
+    actual = resolve_param_values({}, params)
+    expected = {}
+    assert actual == expected
+
+
+def test_extract_value_by_name(sample_object: Dict[str, str]) -> None:
+    value = extract_value_by_name(sample_object, "name")
     assert value == "Bob"
 
 
@@ -62,9 +98,9 @@ def test_extract_value_by_name_with_object() -> None:
     assert value == "Bob"
 
 
-def test_extract_value_by_name_missing() -> None:
+def test_extract_value_by_name_missing(sample_object: Dict[str, str]) -> None:
     with pytest.raises(InvalidAttribute, match="is not a valid attribute of"):
-        extract_value_by_name({"name": "Bob"}, "id_")
+        extract_value_by_name(sample_object, "id_")
 
 
 def test_extract_value_by_name_invalid() -> None:
