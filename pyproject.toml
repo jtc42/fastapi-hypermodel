@@ -172,13 +172,12 @@ disable = [
     "fixme",
     "missing-module-docstring",
     "missing-class-docstring",
+    "missing-function-docstring",
     "missing-param-doc",
     "too-few-public-methods",
     "too-many-arguments",
     "consider-using-assignment-expr", # Disabled until walrus operator is widely used
     "unused-variable",                # Too many false positives
-    "missing-function-docstring",
-    "duplicate-code",
 ]
 enable = [
     "bad-inline-option",

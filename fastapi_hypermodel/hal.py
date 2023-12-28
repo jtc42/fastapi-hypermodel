@@ -12,11 +12,10 @@ from pydantic import (
     BaseModel,
     PrivateAttr,
 )
-from starlette.routing import Route
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, UrlType
-from fastapi_hypermodel.utils import resolve_param_values
+from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
 class HALType(BaseModel):
@@ -55,31 +54,23 @@ class HALFor(HALType, AbstractHyperField):
     ) -> Optional[Any]:
         if app is None:
             return None
+
         if self._condition is not None and not self._condition(values):
             return None
 
-        resolved_params = resolve_param_values(self._param_values, values)
+        params = resolve_param_values(self._param_values, values)
 
-        this_route = next(
-            (
-                route
-                for route in app.routes
-                if isinstance(route, Route) and route.name == self._endpoint
-            ),
-            None,
-        )
-        if not this_route:
-            error_message = f"No route found for endpoint {self._endpoint}"
-            raise ValueError(error_message)
+        route = get_route_from_app(app, self._endpoint)
+        method = next(iter(route.methods), None) if route.methods else None
 
         if not self._template:
-            href = UrlType(app.url_path_for(self._endpoint, **resolved_params))
+            uri_path = UrlType(app.url_path_for(self._endpoint, **params))
         else:
-            href = UrlType(this_route.path)
+            uri_path = UrlType(route.path)
 
         return HALType(
-            href=UrlType(href),
-            method=next(iter(this_route.methods), None) if this_route.methods else None,
+            href=uri_path,
+            method=method,
             description=self._description,
             templated=self._template,
         )

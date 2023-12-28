@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
+from fastapi import FastAPI
 import pytest
 
 from fastapi_hypermodel import (
@@ -8,6 +9,7 @@ from fastapi_hypermodel import (
     extract_value_by_name,
     get_hal_link_href,
     InvalidAttribute,
+    get_route_from_app,
 )
 
 
@@ -95,3 +97,28 @@ def test_parse_uri() -> None:
     expected = f"/items/{mock_model.id_}"
 
     assert actual == expected
+
+
+test_app = FastAPI()
+
+
+@test_app.get("/mock_read/{id_}")
+def mock_read_with_path():
+    pass
+
+
+@pytest.fixture()
+def app() -> FastAPI:
+    HyperModel.init_app(test_app)
+    return test_app
+
+
+def test_get_route_from_app(app: FastAPI):
+    route = get_route_from_app(app, "mock_read_with_path")
+
+    assert route.path == "/mock_read/{id_}"
+
+
+def test_get_route_from_app_non_existing(app: FastAPI):
+    with pytest.raises(ValueError):
+        get_route_from_app(app, "mock_read")

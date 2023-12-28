@@ -11,6 +11,7 @@ from .utils import (
     InvalidAttribute,
     extract_value_by_name,
     get_hal_link_href,
+    get_route_from_app,
     resolve_param_values,
 )
 
@@ -27,4 +28,5 @@ __all__ = [
     "AbstractHyperField",
     "get_hal_link_href",
     "extract_value_by_name",
+    "get_route_from_app",
 ]

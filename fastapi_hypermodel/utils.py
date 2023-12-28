@@ -9,6 +9,9 @@ from typing import (
     Union,
 )
 
+from starlette.applications import Starlette
+from starlette.routing import Route
+
 
 class InvalidAttribute(AttributeError):
     pass
@@ -113,3 +116,14 @@ def extract_value_by_name(
 
 def get_hal_link_href(response: Any, link_name: str) -> Union[str, Any]:
     return response.get("_links", {}).get(link_name, {}).get("href", "")
+
+
+def get_route_from_app(app: Starlette, endpoint_function: str) -> Route:
+    for route in app.routes:
+        if isinstance(route, Route) and route.name == endpoint_function:
+            break
+    else:
+        error_message = f"No route found for endpoint {endpoint_function}"
+        raise ValueError(error_message)
+
+    return route

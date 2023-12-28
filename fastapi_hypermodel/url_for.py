@@ -13,11 +13,10 @@ from pydantic import (
     PrivateAttr,
     model_serializer,
 )
-from starlette.routing import Route
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, UrlType
-from fastapi_hypermodel.utils import resolve_param_values
+from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
 class UrlForType(BaseModel):
@@ -66,17 +65,7 @@ class UrlFor(UrlForType, AbstractHyperField):
             uri_for = app.url_path_for(self._endpoint, **resolved_params)
             return UrlForType(hypermedia=UrlType(uri_for))
 
-        this_route = next(
-            (
-                route
-                for route in app.routes
-                if isinstance(route, Route) and route.name == self._endpoint
-            ),
-            None,
-        )
+        route = get_route_from_app(app, self._endpoint)
+        href = UrlType(route.path)
 
-        if not this_route:
-            error_message = f"No route found for endpoint {self._endpoint}"
-            raise ValueError(error_message)
-
-        return UrlForType(hypermedia=UrlType(this_route.path))
+        return UrlForType(hypermedia=href)
