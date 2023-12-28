@@ -1,4 +1,4 @@
-import abc
+from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
     Any,
@@ -25,20 +25,14 @@ from typing_extensions import Self
 
 from fastapi_hypermodel.utils import extract_value_by_name
 
-_uri_schema = {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
-
 
 @runtime_checkable
 class HasName(Protocol):
     __name__: str
 
 
-class AbstractHyperField(metaclass=abc.ABCMeta):
-    @classmethod
-    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
-        return pydantic_core_schema.any_schema()
-
-    @abc.abstractmethod
+class AbstractHyperField(ABC):
+    @abstractmethod
     def __build_hypermedia__(
         self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
     ) -> Optional[Any]:
@@ -62,34 +56,6 @@ class UrlType(str):
         json_schema.update({"format": "uri"})
 
         return json_schema
-
-
-LinkSetType = Dict[str, AbstractHyperField]
-
-
-class LinkSet(LinkSetType, AbstractHyperField):
-    @classmethod
-    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
-        return pydantic_core_schema.dict_schema(
-            keys_schema=pydantic_core_schema.str_schema(),
-            values_schema=pydantic_core_schema.str_schema(),
-        )
-
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls: Type[Self], core_schema_obj: CoreSchema, handler: GetJsonSchemaHandler
-    ) -> JsonSchemaValue:
-        json_schema = handler(core_schema_obj)
-        json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema["additionalProperties"] = _uri_schema
-
-        return json_schema
-
-    def __build_hypermedia__(
-        self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
-    ) -> Optional[Any]:
-        links = {k: u.__build_hypermedia__(app, values) for k, u in self.items()}
-        return {k: u for k, u in links.items() if u is not None}
 
 
 class HyperModel(BaseModel):
@@ -126,7 +92,8 @@ class HyperModel(BaseModel):
 
         for _, field, *_ in Formatter().parse(uri_template):
             if not field:
-                continue
+                error_message = "Empty Fields Cannot be Processed"
+                raise ValueError(error_message)
 
             parameters[field] = extract_value_by_name(self, field)
 

@@ -69,6 +69,14 @@ def test_parse_uri_missing():
     with pytest.raises(InvalidAttribute):
         mock.parse_uri(uri_template)
 
+def test_parse_uri_empty_field():
+    uri_template = "/model/{}"
+
+    mock = MockSimpleClass(id_="test")
+
+    with pytest.raises(ValueError):
+        mock.parse_uri(uri_template)
+
 
 def test_build_hypermedia(app: FastAPI):
     mock = MockHypermedia()

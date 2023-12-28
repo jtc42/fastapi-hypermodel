@@ -3,9 +3,9 @@ from .hypermodel import (
     AbstractHyperField,
     HasName,
     HyperModel,
-    LinkSet,
     UrlType,
 )
+from .linkset import LinkSet, LinkSetType
 from .url_for import UrlFor
 from .utils import (
     InvalidAttribute,
@@ -23,6 +23,7 @@ __all__ = [
     "HALFor",
     "HALType",
     "LinkSet",
+    "LinkSetType",
     "UrlType",
     "resolve_param_values",
     "AbstractHyperField",
