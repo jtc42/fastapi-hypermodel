@@ -135,20 +135,6 @@ def test_parse_uri() -> None:
     assert actual == expected
 
 
-app_ = FastAPI()
-
-
-@app_.get("/mock_read/{id_}")
-def mock_read_with_path():
-    pass
-
-
-@pytest.fixture()
-def app() -> FastAPI:
-    HyperModel.init_app(app_)
-    return app_
-
-
 def test_get_route_from_app(app: FastAPI):
     route = get_route_from_app(app, "mock_read_with_path")
 

@@ -7,18 +7,11 @@ from fastapi_hypermodel import (
     HALFor,
 )
 
-app_ = FastAPI()
 
+class MockClass(HyperModel):
+    id_: str
 
-@app_.get("/mock_read/{id_}")
-def mock_read_with_path():
-    pass
-
-
-@pytest.fixture()
-def app() -> FastAPI:
-    HyperModel.init_app(app_)
-    return app_
+    href: HALFor = HALFor("mock_read_with_path", {"id_": "<id_>"})
 
 
 @pytest.fixture()
@@ -53,12 +46,6 @@ def hal_for_properties() -> Any:
 @pytest.fixture()
 def hal_for_schema(hal_for_properties: Dict[str, Any]) -> Any:
     return {"type": "object", "properties": hal_for_properties, "title": "HALFor"}
-
-
-class MockClass(HyperModel):
-    id_: str
-
-    href: HALFor = HALFor("mock_read_with_path", {"id_": "<id_>"})
 
 
 def test_hal_for(app: FastAPI):

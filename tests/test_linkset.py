@@ -1,7 +1,6 @@
 from typing import Any, Mapping, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
-import pytest
 
 from fastapi_hypermodel import (
     HyperModel,
@@ -10,15 +9,6 @@ from fastapi_hypermodel import (
 )
 
 from typing_extensions import Self
-
-
-app_ = FastAPI()
-
-
-@pytest.fixture()
-def app() -> FastAPI:
-    HyperModel.init_app(app_)
-    return app_
 
 
 class MockHypermediaType(BaseModel):

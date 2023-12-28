@@ -1,12 +1,11 @@
 from typing import Any, Dict, Mapping, Optional
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from pydantic import BaseModel
 import pytest
 
 from typing_extensions import Self
 
-from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute, UrlType, URL_TYPE_SCHEMA
+from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute, UrlType
 
 
 class MockHypermediaType(BaseModel):
@@ -32,17 +31,6 @@ class MockClassWithURL(HyperModel):
 
 class MockSimpleClass(HyperModel):
     id_: str
-
-
-@pytest.fixture()
-def unregistered_app() -> FastAPI:
-    return FastAPI()
-
-
-@pytest.fixture()
-def app() -> TestClient:
-    app = FastAPI()
-    return TestClient(app=app)
 
 
 def test_app_registration(unregistered_app: FastAPI) -> None:
@@ -94,11 +82,6 @@ def test_hypermodel_validator():
 
     assert mock.test_field == MockHypermediaType(href="test")
     assert mock.model_dump() == {"test_field": {"href": "test"}}
-
-
-@pytest.fixture()
-def url_type_schema() -> Any:
-    return URL_TYPE_SCHEMA
 
 
 @pytest.mark.usefixtures("app")

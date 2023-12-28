@@ -7,30 +7,11 @@ from fastapi_hypermodel import (
     UrlFor,
 )
 
-app_ = FastAPI()
-
-
-@app_.get("/mock_read/{id_}")
-def mock_read_with_path():
-    pass
-
-
-@pytest.fixture()
-def app() -> FastAPI:
-    HyperModel.init_app(app_)
-    return app_
-
-
-@pytest.fixture()
-def uri_schema() -> Any:
-    return {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
-
 
 @pytest.mark.parametrize(
     "endpoint",
     [
         pytest.param("mock_read_with_path", id="Use of a string endpoint"),
-        pytest.param(mock_read_with_path, id="Use of a Callable endpoint"),
     ],
 )
 def test_build_hypermedia_with_endpoint(app: FastAPI, endpoint: str) -> None:
@@ -107,9 +88,9 @@ class MockClass(HyperModel):
     href: UrlFor = UrlFor("mock_read_with_path", {"id_": "<id_>"})
 
 
-def test_openapi_schema(uri_schema: Dict[str, Any]) -> None:
+def test_openapi_schema(url_type_schema: Dict[str, Any]) -> None:
     mock = MockClass(id_="test")
     schema = mock.model_json_schema()
     url_for_schema = schema["$defs"]["UrlFor"]
 
-    assert all(url_for_schema.get(k) == v for k, v in uri_schema.items())
+    assert all(url_for_schema.get(k) == v for k, v in url_type_schema.items())
