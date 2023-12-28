@@ -14,7 +14,8 @@ from pydantic import (
 )
 from typing_extensions import Self
 
-from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, UrlType
+from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName
+from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 

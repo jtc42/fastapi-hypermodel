@@ -1,13 +1,12 @@
 from .hal import HALFor, HALType
 from .hypermodel import (
-    URL_TYPE_SCHEMA,
     AbstractHyperField,
     HasName,
     HyperModel,
-    UrlType,
 )
 from .linkset import LinkSet, LinkSetType
 from .url_for import UrlFor
+from .url_type import URL_TYPE_SCHEMA, UrlType
 from .utils import (
     InvalidAttribute,
     extract_value_by_name,

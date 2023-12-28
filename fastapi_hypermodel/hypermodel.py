@@ -12,16 +12,12 @@ from typing import (
     runtime_checkable,
 )
 
+import pydantic_core
 from fastapi import FastAPI
 from pydantic import (
     BaseModel,
-    GetCoreSchemaHandler,
-    GetJsonSchemaHandler,
     model_validator,
 )
-from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import CoreSchema
-from pydantic_core import core_schema as pydantic_core_schema
 from typing_extensions import Self
 
 from fastapi_hypermodel.utils import extract_value_by_name
@@ -34,8 +30,10 @@ class HasName(Protocol):
 
 class AbstractHyperField(ABC):
     @classmethod
-    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
-        return pydantic_core_schema.any_schema()
+    def __get_pydantic_core_schema__(
+        cls: Type[Self], *_: Any
+    ) -> pydantic_core.CoreSchema:
+        return pydantic_core.core_schema.any_schema()
 
     @classmethod
     def __schema_subclasses__(
@@ -49,8 +47,8 @@ class AbstractHyperField(ABC):
             if not issubclass(subclass, BaseModel):
                 continue
 
-            core_schema = subclass.model_json_schema()
-            subclasses_schemas.append(core_schema)
+            schema = subclass.model_json_schema()
+            subclasses_schemas.append(schema)
 
         return subclasses_schemas
 
@@ -59,33 +57,6 @@ class AbstractHyperField(ABC):
         self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
     ) -> Optional[Any]:
         return None
-
-
-URL_TYPE_SCHEMA = {
-    "type": "string",
-    "format": "uri",
-    "minLength": 1,
-    "maxLength": 2**16,
-}
-
-
-class UrlType(str):
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls: Type[Self], source_type: Any, handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        # pylint: disable=unused-argument
-        return pydantic_core_schema.str_schema(min_length=1, max_length=2**16)
-
-    @classmethod
-    def __get_pydantic_json_schema__(
-        cls: Type[Self], core_schema: CoreSchema, handler: GetJsonSchemaHandler
-    ) -> JsonSchemaValue:
-        json_schema = handler(core_schema)
-        json_schema = handler.resolve_ref_schema(json_schema)
-        json_schema.update({"format": "uri"})
-
-        return json_schema
 
 
 class HyperModel(BaseModel):

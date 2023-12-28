@@ -23,6 +23,12 @@ from fastapi_hypermodel.hypermodel import AbstractHyperField
 class LinkSetType(BaseModel):
     mapping: Mapping[str, AbstractHyperField] = Field(default_factory=dict)
 
+    @model_serializer
+    def serialize(self: Self) -> Mapping[str, AbstractHyperField]:
+        return self if isinstance(self, Mapping) else self.mapping
+
+
+class LinkSet(LinkSetType, AbstractHyperField):
     def __init__(
         self: Self,
         mapping: Optional[Dict[str, AbstractHyperField]] = None,
@@ -31,12 +37,6 @@ class LinkSetType(BaseModel):
         mapping = mapping or {}
         super().__init__(mapping=mapping, **kwargs)
 
-    @model_serializer
-    def serialize(self: Self) -> Mapping[str, AbstractHyperField]:
-        return self if isinstance(self, Mapping) else self.mapping
-
-
-class LinkSet(LinkSetType, AbstractHyperField):
     @classmethod
     def __get_pydantic_json_schema__(
         cls: Type[Self], __core_schema: CoreSchema, handler: GetJsonSchemaHandler

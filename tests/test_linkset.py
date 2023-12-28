@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -16,20 +16,12 @@ class MockHypermediaType(BaseModel):
 
 
 class MockHypermedia(MockHypermediaType, AbstractHyperField):
-    def __build_hypermedia__(
-        self: Self,
-        app: Optional[FastAPI],
-        values: Mapping[str, Any],
-    ) -> Optional[Any]:
+    def __build_hypermedia__(self: Self, *_: Any) -> Optional[Any]:
         return MockHypermediaType(href="test")
 
 
 class MockHypermediaEmpty(AbstractHyperField):
-    def __build_hypermedia__(
-        self: Self,
-        app: Optional[FastAPI],
-        values: Mapping[str, Any],
-    ) -> Optional[Any]:
+    def __build_hypermedia__(self: Self, *_: Any) -> Optional[Any]:
         return None
 
 

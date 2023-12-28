@@ -1,11 +1,11 @@
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pytest
 
 from typing_extensions import Self
 
-from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute, UrlType
+from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute
 
 
 class MockHypermediaType(BaseModel):
@@ -13,20 +13,12 @@ class MockHypermediaType(BaseModel):
 
 
 class MockHypermedia(MockHypermediaType, AbstractHyperField):
-    def __build_hypermedia__(
-        self: Self,
-        app: Optional[FastAPI],
-        values: Mapping[str, Any],
-    ) -> Optional[Any]:
+    def __build_hypermedia__(self: Self, *_: Any) -> Optional[Any]:
         return MockHypermediaType(href="test")
 
 
 class MockClass(HyperModel):
     test_field: MockHypermedia = MockHypermedia()
-
-
-class MockClassWithURL(HyperModel):
-    test_field: UrlType = UrlType()
 
 
 class MockSimpleClass(HyperModel):
@@ -82,12 +74,3 @@ def test_hypermodel_validator():
 
     assert mock.test_field == MockHypermediaType(href="test")
     assert mock.model_dump() == {"test_field": {"href": "test"}}
-
-
-@pytest.mark.usefixtures("app")
-def test_openapi_schema(url_type_schema: Dict[str, Any]) -> None:
-    mock = MockClassWithURL()
-    schema = mock.model_json_schema()
-    url_type_schema = schema["properties"]["test_field"]
-
-    assert all(url_type_schema.get(k) == v for k, v in url_type_schema.items())
