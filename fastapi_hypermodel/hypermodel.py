@@ -4,6 +4,7 @@ from typing import (
     Any,
     ClassVar,
     Dict,
+    List,
     Mapping,
     Optional,
     Protocol,
@@ -36,11 +37,36 @@ class AbstractHyperField(ABC):
     def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
         return pydantic_core_schema.any_schema()
 
+    @classmethod
+    def __schema_subclasses__(
+        cls: Type[Self], caller_class: Optional[Type[Self]] = None
+    ) -> List[Dict[str, Any]]:
+        subclasses_schemas: List[Dict[str, Any]] = []
+        for subclass in cls.__subclasses__():
+            if caller_class and issubclass(subclass, caller_class):
+                continue
+
+            if not issubclass(subclass, BaseModel):
+                continue
+
+            core_schema = subclass.model_json_schema()
+            subclasses_schemas.append(core_schema)
+
+        return subclasses_schemas
+
     @abstractmethod
     def __build_hypermedia__(
         self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
     ) -> Optional[Any]:
         return None
+
+
+URL_TYPE_SCHEMA = {
+    "type": "string",
+    "format": "uri",
+    "minLength": 1,
+    "maxLength": 2**16,
+}
 
 
 class UrlType(str):

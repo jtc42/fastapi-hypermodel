@@ -7,18 +7,18 @@ from fastapi_hypermodel import (
     UrlFor,
 )
 
-test_app = FastAPI()
+app_ = FastAPI()
 
 
-@test_app.get("/mock_read/{id_}")
+@app_.get("/mock_read/{id_}")
 def mock_read_with_path():
     pass
 
 
 @pytest.fixture()
 def app() -> FastAPI:
-    HyperModel.init_app(test_app)
-    return test_app
+    HyperModel.init_app(app_)
+    return app_
 
 
 @pytest.fixture()
@@ -110,6 +110,6 @@ class MockClass(HyperModel):
 def test_openapi_schema(uri_schema: Dict[str, Any]) -> None:
     mock = MockClass(id_="test")
     schema = mock.model_json_schema()
-    url_for_schema = schema["$defs"]["UrlFor"]["properties"]["hypermedia"]["anyOf"][0]
+    url_for_schema = schema["$defs"]["UrlFor"]
 
     assert all(url_for_schema.get(k) == v for k, v in uri_schema.items())

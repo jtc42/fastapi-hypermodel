@@ -1,5 +1,6 @@
 from .hal import HALFor, HALType
 from .hypermodel import (
+    URL_TYPE_SCHEMA,
     AbstractHyperField,
     HasName,
     HyperModel,
@@ -30,4 +31,5 @@ __all__ = [
     "get_hal_link_href",
     "extract_value_by_name",
     "get_route_from_app",
+    "URL_TYPE_SCHEMA",
 ]

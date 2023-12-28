@@ -4,18 +4,27 @@ from typing import (
     Dict,
     Mapping,
     Optional,
+    Type,
     Union,
 )
 
 from fastapi import FastAPI
 from pydantic import (
     BaseModel,
+    GetJsonSchemaHandler,
     PrivateAttr,
     model_serializer,
 )
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema
 from typing_extensions import Self
 
-from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, UrlType
+from fastapi_hypermodel.hypermodel import (
+    URL_TYPE_SCHEMA,
+    AbstractHyperField,
+    HasName,
+    UrlType,
+)
 from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
@@ -45,9 +54,23 @@ class UrlFor(UrlForType, AbstractHyperField):
         self._endpoint = (
             endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
         )
-        self._param_values: Dict[str, Any] = param_values or {}
+        self._param_values = param_values or {}
         self._condition = condition
         self._template = template
+
+    @classmethod
+    def __get_pydantic_json_schema__(
+        cls: Type[Self], __core_schema: CoreSchema, handler: GetJsonSchemaHandler
+    ) -> JsonSchemaValue:
+        json_schema = handler(__core_schema)
+        json_schema = handler.resolve_ref_schema(json_schema)
+        json_schema.update(URL_TYPE_SCHEMA)
+
+        nested_properties_value = "properties"
+        if nested_properties_value in json_schema:
+            del json_schema[nested_properties_value]
+
+        return json_schema
 
     def __build_hypermedia__(
         self: Self,
@@ -57,7 +80,7 @@ class UrlFor(UrlForType, AbstractHyperField):
         if app is None:
             return self
 
-        if self._condition is not None and not self._condition(values):
+        if self._condition and not self._condition(values):
             return self
 
         if not self._template:

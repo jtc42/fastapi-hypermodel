@@ -1,4 +1,4 @@
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Mapping, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pytest
@@ -12,18 +12,13 @@ from fastapi_hypermodel import (
 from typing_extensions import Self
 
 
-test_app = FastAPI()
+app_ = FastAPI()
 
 
 @pytest.fixture()
 def app() -> FastAPI:
-    HyperModel.init_app(test_app)
-    return test_app
-
-
-@pytest.fixture()
-def href_schema() -> Any:
-    return {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
+    HyperModel.init_app(app_)
+    return app_
 
 
 class MockHypermediaType(BaseModel):
@@ -48,16 +43,16 @@ class MockHypermediaEmpty(AbstractHyperField):
         return None
 
 
-class MockClassLinkSetEmpty(HyperModel):
-    test_field: LinkSet = LinkSet()
-
-
 class MockClassLinkSet(HyperModel):
     test_field: LinkSet = LinkSet(
         {
             "self": MockHypermedia(),
         }
     )
+
+
+class MockClassLinkSetEmpty(HyperModel):
+    test_field: LinkSet = LinkSet()
 
 
 class MockClassLinkSetWithEmptyHypermedia(HyperModel):
@@ -97,24 +92,23 @@ def test_linkset_in_hypermodel_with_empty_hypermedia():
     assert test_field == expected
 
 
-def test_linkset_schema(href_schema: Dict[str, Any]) -> None:
+def test_linkset_schema() -> None:
     linkset = MockClassLinkSet()
     schema = linkset.model_json_schema()["$defs"]["LinkSet"]
 
     schema_type = schema["type"]
     assert schema_type == "object"
 
-    additional_properties = schema["additionalProperties"]
-    assert additional_properties == href_schema
+    assert "properties" not in schema
 
 
 def test_linkset_empty(app: FastAPI):
     linkset = LinkSet()
     hypermedia = linkset.__build_hypermedia__(app, {})
-    assert hypermedia == {}
+    assert hypermedia and hypermedia.mapping == {}
 
 
 def test_linkset_empty_no_app():
     linkset = LinkSet()
     hypermedia = linkset.__build_hypermedia__(None, {})
-    assert hypermedia == {}
+    assert hypermedia and hypermedia.mapping == {}

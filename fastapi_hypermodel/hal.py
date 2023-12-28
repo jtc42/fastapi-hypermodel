@@ -51,19 +51,18 @@ class HALFor(HALType, AbstractHyperField):
 
     def __build_hypermedia__(
         self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
-    ) -> Optional[Any]:
+    ) -> HALType:
         if app is None:
-            return None
+            return self
 
-        if self._condition is not None and not self._condition(values):
-            return None
-
-        params = resolve_param_values(self._param_values, values)
+        if self._condition and not self._condition(values):
+            return self
 
         route = get_route_from_app(app, self._endpoint)
         method = next(iter(route.methods), None) if route.methods else None
 
         if not self._template:
+            params = resolve_param_values(self._param_values, values)
             uri_path = UrlType(app.url_path_for(self._endpoint, **params))
         else:
             uri_path = UrlType(route.path)

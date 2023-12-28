@@ -18,6 +18,7 @@ bandit = "^1.7.0"
 httpx = ">=0.23.1,<0.26.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 pylint = ">=2.6.2,<4.0.0"
+pylint_pydantic = "^0.3.2"
 mypy = ">=0.991,<1.8"
 pytest = "^7.0"
 pytest-cov = ">=3,<5"
@@ -138,6 +139,7 @@ load-plugins = [
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
     "pylint.extensions.while_used",
+    "pylint_pydantic",
 ]
 
 [tool.pylint.dunder]
@@ -145,6 +147,7 @@ good-dunder-names = [
     "__get_pydantic_core_schema__",
     "__get_pydantic_json_schema__",
     "__build_hypermedia__",
+    "__schema_subclasses__",
 ]
 
 [tool.pylint.design]
@@ -192,7 +195,7 @@ enable = [
 max-line-length = 88
 
 [tool.pylint.'MASTER']
-extension-pkg-whitelist = "pydantic" # PyLint struggles with Pydantic in GH Actions
+extension-pkg-allow-list = "pydantic"
 
 [tool.pylint.refactoring]
 max-nested-blocks = 3
