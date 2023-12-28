@@ -32,6 +32,10 @@ class HasName(Protocol):
 
 
 class AbstractHyperField(ABC):
+    @classmethod
+    def __get_pydantic_core_schema__(cls: Type[Self], *_: Any) -> CoreSchema:
+        return pydantic_core_schema.any_schema()
+
     @abstractmethod
     def __build_hypermedia__(
         self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
