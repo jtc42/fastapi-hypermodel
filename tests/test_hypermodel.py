@@ -69,6 +69,7 @@ def test_parse_uri_missing():
     with pytest.raises(InvalidAttribute):
         mock.parse_uri(uri_template)
 
+
 def test_parse_uri_empty_field():
     uri_template = "/model/{}"
 
