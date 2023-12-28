@@ -100,6 +100,7 @@ def test_linkset_schema() -> None:
     assert schema_type == "object"
 
     assert "properties" not in schema
+    assert "additionalProperties" in schema
 
 
 def test_linkset_empty(app: FastAPI):

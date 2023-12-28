@@ -22,8 +22,37 @@ def app() -> FastAPI:
 
 
 @pytest.fixture()
-def href_schema() -> Any:
-    return {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
+def hal_for_properties() -> Any:
+    return {
+        "href": {
+            "anyOf": [
+                {"format": "uri", "maxLength": 65536, "minLength": 1, "type": "string"},
+                {"type": "null"},
+            ],
+            "default": None,
+            "title": "Href",
+        },
+        "method": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Method",
+        },
+        "description": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Description",
+        },
+        "templated": {
+            "anyOf": [{"type": "boolean"}, {"type": "null"}],
+            "default": None,
+            "title": "Templated",
+        },
+    }
+
+
+@pytest.fixture()
+def hal_for_schema(hal_for_properties: Dict[str, Any]) -> Any:
+    return {"type": "object", "properties": hal_for_properties, "title": "HALFor"}
 
 
 class MockClass(HyperModel):
@@ -80,9 +109,9 @@ def test_build_hypermedia_not_passing_condition(app: FastAPI):
 
 
 @pytest.mark.usefixtures("app")
-def test_openapi_schema(href_schema: Dict[str, Any]) -> None:
+def test_openapi_schema(hal_for_schema: Dict[str, Any]) -> None:
     mock = MockClass(id_="test")
     schema = mock.model_json_schema()
-    hal_for_schema = schema["$defs"]["HALFor"]["properties"]["href"]["anyOf"][0]
+    hal_for_definition = schema["$defs"]["HALFor"]
 
-    assert all(hal_for_schema.get(k) == v for k, v in href_schema.items())
+    assert all(hal_for_definition.get(k) == v for k, v in hal_for_schema.items())

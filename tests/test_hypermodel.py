@@ -6,7 +6,7 @@ import pytest
 
 from typing_extensions import Self
 
-from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute, UrlType
+from fastapi_hypermodel import HyperModel, AbstractHyperField, InvalidAttribute, UrlType, URL_TYPE_SCHEMA
 
 
 class MockHypermediaType(BaseModel):
@@ -98,7 +98,7 @@ def test_hypermodel_validator():
 
 @pytest.fixture()
 def url_type_schema() -> Any:
-    return {"type": "string", "format": "uri", "minLength": 1, "maxLength": 2**16}
+    return URL_TYPE_SCHEMA
 
 
 @pytest.mark.usefixtures("app")
