@@ -7,11 +7,11 @@ from typing import (
     Union,
 )
 
-from fastapi import FastAPI
 from pydantic import (
     BaseModel,
     PrivateAttr,
 )
+from starlette.applications import Starlette
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName
@@ -19,14 +19,14 @@ from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
-class HALType(BaseModel):
+class HALForType(BaseModel):
     href: Optional[UrlType] = None
     method: Optional[str] = None
     description: Optional[str] = None
     templated: Optional[bool] = None
 
 
-class HALFor(HALType, AbstractHyperField):
+class HALFor(HALForType, AbstractHyperField[HALForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Dict[str, str] = PrivateAttr()
     _description: Optional[str] = PrivateAttr()
@@ -42,22 +42,22 @@ class HALFor(HALType, AbstractHyperField):
         template: Optional[bool] = None,
     ) -> None:
         super().__init__()
-        self._endpoint: str = (
+        self._endpoint = (
             endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
         )
-        self._param_values: Dict[str, str] = param_values or {}
+        self._param_values = param_values or {}
         self._description = description
         self._condition = condition
         self._template = template
 
     def __build_hypermedia__(
-        self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
-    ) -> HALType:
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> HALForType:
         if app is None:
-            return self
+            return HALForType()
 
         if self._condition and not self._condition(values):
-            return self
+            return HALForType()
 
         route = get_route_from_app(app, self._endpoint)
         method = next(iter(route.methods), None) if route.methods else None
@@ -68,7 +68,7 @@ class HALFor(HALType, AbstractHyperField):
         else:
             uri_path = UrlType(route.path)
 
-        return HALType(
+        return HALForType(
             href=uri_path,
             method=method,
             description=self._description,

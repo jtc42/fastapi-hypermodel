@@ -8,7 +8,6 @@ from typing import (
     Union,
 )
 
-from fastapi import FastAPI
 from pydantic import (
     BaseModel,
     GetJsonSchemaHandler,
@@ -17,6 +16,7 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from starlette.applications import Starlette
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import (
@@ -35,7 +35,7 @@ class UrlForType(BaseModel):
         return self.hypermedia or UrlType()
 
 
-class UrlFor(UrlForType, AbstractHyperField):
+class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Dict[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
@@ -73,14 +73,14 @@ class UrlFor(UrlForType, AbstractHyperField):
 
     def __build_hypermedia__(
         self: Self,
-        app: Optional[FastAPI],
+        app: Optional[Starlette],
         values: Mapping[str, Any],
     ) -> UrlForType:
         if app is None:
-            return self
+            return UrlForType()
 
         if self._condition and not self._condition(values):
-            return self
+            return UrlForType()
 
         if not self._template:
             resolved_params = resolve_param_values(self._param_values, values)

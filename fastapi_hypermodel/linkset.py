@@ -6,36 +6,38 @@ from typing import (
     Type,
 )
 
-from fastapi import FastAPI
 from pydantic import (
     BaseModel,
     Field,
     GetJsonSchemaHandler,
+    PrivateAttr,
     model_serializer,
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
+from starlette.applications import Starlette
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField
 
 
 class LinkSetType(BaseModel):
-    mapping: Mapping[str, AbstractHyperField] = Field(default_factory=dict)
+    mapping: Mapping[str, AbstractHyperField[Any]] = Field(default_factory=dict)
 
     @model_serializer
-    def serialize(self: Self) -> Mapping[str, AbstractHyperField]:
+    def serialize(self: Self) -> Mapping[str, AbstractHyperField[Any]]:
         return self if isinstance(self, Mapping) else self.mapping
 
 
-class LinkSet(LinkSetType, AbstractHyperField):
+class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
+    _mapping: Mapping[str, AbstractHyperField[Any]] = PrivateAttr(default_factory=dict)
+
     def __init__(
         self: Self,
-        mapping: Optional[Dict[str, AbstractHyperField]] = None,
-        **kwargs: Any,
+        mapping: Optional[Mapping[str, AbstractHyperField[Any]]] = None,
     ) -> None:
-        mapping = mapping or {}
-        super().__init__(mapping=mapping, **kwargs)
+        super().__init__()
+        self._mapping = mapping or {}
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -55,11 +57,11 @@ class LinkSet(LinkSetType, AbstractHyperField):
         return json_schema
 
     def __build_hypermedia__(
-        self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> LinkSetType:
-        links: Dict[str, AbstractHyperField] = {}
+        links: Dict[str, AbstractHyperField[Any]] = {}
 
-        for key, value in self.mapping.items():
+        for key, value in self._mapping.items():
             hypermedia = value.__build_hypermedia__(app, values)
 
             if not hypermedia:

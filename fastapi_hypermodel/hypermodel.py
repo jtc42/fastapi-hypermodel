@@ -4,20 +4,22 @@ from typing import (
     Any,
     ClassVar,
     Dict,
+    Generic,
     List,
     Mapping,
     Optional,
     Protocol,
     Type,
+    TypeVar,
     runtime_checkable,
 )
 
 import pydantic_core
-from fastapi import FastAPI
 from pydantic import (
     BaseModel,
     model_validator,
 )
+from starlette.applications import Starlette
 from typing_extensions import Self
 
 from fastapi_hypermodel.utils import extract_value_by_name
@@ -28,7 +30,10 @@ class HasName(Protocol):
     __name__: str
 
 
-class AbstractHyperField(ABC):
+T = TypeVar("T", bound=BaseModel)
+
+
+class AbstractHyperField(ABC, Generic[T]):
     @classmethod
     def __get_pydantic_core_schema__(
         cls: Type[Self], *_: Any
@@ -54,13 +59,13 @@ class AbstractHyperField(ABC):
 
     @abstractmethod
     def __build_hypermedia__(
-        self: Self, app: Optional[FastAPI], values: Mapping[str, Any]
-    ) -> Optional[Any]:
-        return None
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> T:
+        raise NotImplementedError
 
 
 class HyperModel(BaseModel):
-    _hypermodel_bound_app: ClassVar[Optional[FastAPI]] = None
+    _hypermodel_bound_app: ClassVar[Optional[Starlette]] = None
 
     @model_validator(mode="after")
     def _build_hypermedia(self: Self) -> Self:
@@ -77,7 +82,7 @@ class HyperModel(BaseModel):
         return self
 
     @classmethod
-    def init_app(cls: Type[Self], app: FastAPI) -> None:
+    def init_app(cls: Type[Self], app: Starlette) -> None:
         """
         Bind a FastAPI app to other HyperModel base class.
         This allows HyperModel to convert endpoint function names into
