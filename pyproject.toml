@@ -10,19 +10,19 @@ version = "2.0.0"
 [tool.poetry.dependencies]
 fastapi = ">=0.65.2"
 pydantic = ">=2.0,<3.0"
+typing_extensions = ">=4.0.0"
 python = ">=3.8,<4.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
-black = ">=22.3,<24.0"
 httpx = ">=0.23.1,<0.27.0"
-isort = "^5.7.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 pylint = ">=2.6.2,<4.0.0"
 mypy = ">=0.991,<1.9"
 pytest = "^7.0"
 pytest-cov = ">=3,<5"
 requests = "^2.25.1"
+ruff = "^0.1.8"
 tox = "^4.4"
 uvicorn = ">=0.17.6,<0.26.0"
 
@@ -30,18 +30,177 @@ uvicorn = ">=0.17.6,<0.26.0"
 build-backend = "poetry.core.masonry.api"
 requires = ["poetry-core>=1.0.0"]
 
-[tool.isort]
-ensure_newline_before_comments = true
-force_grid_wrap = 0
-include_trailing_comma = true
-line_length = 88
-multi_line_output = 3
-use_parentheses = true
+#########################
+# MyPy
+#########################
+
+[tool.mypy]
+strict = true
+
+#########################################
+# Ruff
+#########################################
+
+[tool.ruff]
+fix = true
+preview = true
+ignore = [
+    "A003",   # FIXME
+    "ANN401", # Ignore Anys
+    "ISC001", # Disable for compatibility with ruff-format
+]
+extend-exclude = ["tests"]
+
+[tool.ruff.lint]
+extend-select = [
+    # "D",     # pydocstyle
+    # "FBT",   # flake8-boolean-trap
+    # "COM",   # flake8-commas
+    "E",    # pycodestyle
+    "UP",   # pyupgrade
+    "BLE",  # flake8-blind-except
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "C4",   # flake8-comprehensions
+    "ICN",  # flake8-import-conventions
+    "PIE",  # flake8-pie
+    "RSE",  # flake8-return
+    "SIM",  # flake8-simplify
+    "ANN",  # flake8-annotations
+    "ARG",  # flake8-unused-arguments
+    "G",    # flake8-logging-format
+    "ISC",  # flake8-implicit-str-concat
+    "T20",  # flake8-print
+    "EM",   # flake8-errmsg
+    "SLF",  # flake8-self
+    "PT",   # flake8-pytest-style
+    "RET",  # flake8-return
+    "TID",  # flake8-tidy-imports
+    "PTH",  # flake8-use-pathlib
+    "LOG",  # flake8-logging
+    "TD",   # flake8-todos
+    "FIX",  # flake8-fixme
+    "TRY",  # tryceratops
+    "I",    # isort
+    "ERA",  # erradicate
+    "PERF", # Perflint
+    "FURB", # refurb
+    "RUF",  # ruff
+]
+
+[tool.ruff.format]
+# Set Ruff to imitate Black
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+
+#########################################
+# PyLint
+#########################################
+
+[tool.pylint.main]
+fail-on = ["I"]
+fail-under = 10
+jobs = 8
+limit-inference-results = 1000
+py-version = "3.8"
+load-plugins = [
+    "pylint.extensions.bad_builtin",
+    "pylint.extensions.code_style",
+    "pylint.extensions.comparison_placement",
+    "pylint.extensions.consider_refactoring_into_while_condition",
+    "pylint.extensions.docparams",
+    "pylint.extensions.dunder",
+    "pylint.extensions.eq_without_hash",
+    "pylint.extensions.for_any_all",
+    "pylint.extensions.magic_value",
+    "pylint.extensions.mccabe",
+    "pylint.extensions.no_self_use",
+    "pylint.extensions.overlapping_exceptions",
+    "pylint.extensions.private_import",
+    "pylint.extensions.redefined_loop_name",
+    "pylint.extensions.redefined_variable_type",
+    "pylint.extensions.set_membership",
+    "pylint.extensions.typing",
+    "pylint.extensions.while_used",
+]
+
+[tool.pylint.dunder]
+good-dunder-names = [
+    "__get_pydantic_core_schema__",
+    "__get_pydantic_json_schema__",
+    "__build_hypermedia__",
+]
+
+[tool.pylint.design]
+max-args = 7
+max-attributes = 7
+max-bool-expr = 5
+max-branches = 12
+max-complexity = 10
+max-locals = 15
+max-parents = 7
+max-public-methods = 20
+max-returns = 6
+max-statements = 50
+
+[tool.pylint.format]
+indent-after-paren = 4
+indent-string = "    "
+max-line-length = 120
+max-module-lines = 400
 
 [tool.pylint.'MESSAGES CONTROL']
-# unsubscriptable-object is disabled until proper Python 3.9 support is fixed in PyLint
-disable = "line-too-long, unsubscriptable-object, fixme, missing-module-docstring, missing-class-docstring, too-few-public-methods, too-many-arguments"
+disable = [
+    "line-too-long",
+    "unsubscriptable-object",         # Disabled until proper Python 3.9 support is fixed in PyLint
+    "fixme",
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-param-doc",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "consider-using-assignment-expr", # Disabled until walrus operator is widely used
+    "unused-variable",                # Too many false positives
+]
+enable = [
+    "bad-inline-option",
+    "file-ignored",
+    "useless-suppression",
+    "deprecated-pragma",
+    "use-symbolic-message-instead",
+    "deprecated-pragma",
+    "file-ignored",
+]
+
 max-line-length = 88
 
 [tool.pylint.'MASTER']
 extension-pkg-whitelist = "pydantic" # PyLint struggles with Pydantic in GH Actions
+
+[tool.pylint.refactoring]
+max-nested-blocks = 3
+never-returning-functions = ["sys.exit", "argparse.parse_error"]
+
+[tool.pylint.exceptions]
+overgeneral-exceptions = ["'builtins.Exception'"]
+
+[tool.pylint.string_constant]
+check-quote-consistency = true
+
+[tool.pylint.string]
+check-str-concat-over-line-jumps = true
+
+[tool.pylint.similarities]
+ignore-comments = true
+ignore-docstrings = true
+ignore-signatures = true
+min-similarity-lines = 4
+
+[tool.pylint.variables]
+allow-global-unused-variables = false
+callbacks = ["cb_", "_cb"]
+dummy-variables-rgx = "(_+[a-zA-Z0-9]*?$)|dummy"
+ignored-argument-names = "_.*"
