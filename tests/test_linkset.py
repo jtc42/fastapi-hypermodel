@@ -25,12 +25,12 @@ class MockHypermedia(MockHypermediaType, AbstractHyperField[MockHypermediaType])
         super().__init__()
         self._href = href
 
-    def __build_hypermedia__(self: Self, *_: Any) -> MockHypermediaType:
+    def __call__(self: Self, *_: Any) -> MockHypermediaType:
         return MockHypermediaType(href=self._href)
 
 
 class MockHypermediaEmpty(AbstractHyperField[MockHypermediaType]):
-    def __build_hypermedia__(self: Self, *_: Any) -> MockHypermediaType:
+    def __call__(self: Self, *_: Any) -> MockHypermediaType:
         return MockHypermediaType()
 
 
@@ -96,11 +96,11 @@ def test_linkset_schema() -> None:
 
 def test_linkset_empty(app: FastAPI):
     linkset = LinkSet()
-    hypermedia = linkset.__build_hypermedia__(app, {})
+    hypermedia = linkset(app, {})
     assert hypermedia and hypermedia.mapping == {}
 
 
 def test_linkset_empty_no_app():
     linkset = LinkSet()
-    hypermedia = linkset.__build_hypermedia__(None, {})
+    hypermedia = linkset(None, {})
     assert hypermedia and hypermedia.mapping == {}

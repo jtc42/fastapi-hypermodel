@@ -198,14 +198,14 @@ def test_hal_for(app: FastAPI):
     mock = MockClass(id_="test")
 
     hal_for = HALFor("mock_read_with_path", {"id_": "<id_>"})
-    hal_for.__build_hypermedia__(app, vars(mock))
+    hal_for(app, vars(mock))
 
 
 def test_hal_for_no_app():
     mock = MockClass(id_="test")
 
     hal_for = HALFor("mock_read_with_path", {"id_": "<id_>"})
-    hypermedia = hal_for.__build_hypermedia__(None, vars(mock))
+    hypermedia = hal_for(None, vars(mock))
 
     assert hypermedia.href == ""
 
@@ -217,7 +217,7 @@ def test_build_hypermedia_passing_condition(app: FastAPI):
         {"id_": "<id_>"},
         condition=lambda values: values["locked"],
     )
-    uri = hal_for.__build_hypermedia__(app, {"id_": sample_id, "locked": True})
+    uri = hal_for(app, {"id_": sample_id, "locked": True})
     assert uri.href == f"/mock_read/{sample_id}"
 
 
@@ -226,7 +226,7 @@ def test_build_hypermedia_template(app: FastAPI):
         "mock_read_with_path",
         template=True,
     )
-    uri = hal_for.__build_hypermedia__(app, {})
+    uri = hal_for(app, {})
     assert uri.href == "/mock_read/{id_}"
 
 
@@ -237,7 +237,7 @@ def test_build_hypermedia_not_passing_condition(app: FastAPI):
         {"id_": "<id_>"},
         condition=lambda values: values["locked"],
     )
-    uri = hal_for.__build_hypermedia__(app, {"id_": sample_id, "locked": False})
+    uri = hal_for(app, {"id_": sample_id, "locked": False})
     assert uri.href == ""
 
 

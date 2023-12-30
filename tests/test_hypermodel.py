@@ -22,7 +22,7 @@ class MockHypermedia(MockHypermediaType, AbstractHyperField[MockHypermediaType])
         super().__init__()
         self._href = href
 
-    def __build_hypermedia__(self: Self, *_: Any) -> MockHypermediaType:
+    def __call__(self: Self, *_: Any) -> MockHypermediaType:
         return MockHypermediaType(href=self._href)
 
 
@@ -39,11 +39,11 @@ class MockSimpleClass(HyperModel):
 
 
 def test_app_registration(unregistered_app: FastAPI) -> None:
-    assert MockSimpleClass._hypermodel_bound_app != unregistered_app  # noqa: SLF001
+    assert MockSimpleClass._app != unregistered_app  # noqa: SLF001
 
     HyperModel.init_app(unregistered_app)
 
-    assert MockSimpleClass._hypermodel_bound_app is unregistered_app  # noqa: SLF001
+    assert MockSimpleClass._app is unregistered_app  # noqa: SLF001
 
 
 def test_parse_uri():
@@ -75,7 +75,7 @@ def test_parse_uri_empty_field():
 def test_build_hypermedia(app: FastAPI):
     mock = MockHypermedia("test")
 
-    rendered_url = mock.__build_hypermedia__(app, {})
+    rendered_url = mock(app, {})
     assert rendered_url
 
     uri = rendered_url.model_dump()

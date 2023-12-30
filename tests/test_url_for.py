@@ -17,13 +17,13 @@ from fastapi_hypermodel import (
 def test_build_hypermedia_with_endpoint(app: FastAPI, endpoint: str) -> None:
     sample_id = "test"
     url_for = UrlFor(endpoint, {"id_": "<id_>"})
-    uri = url_for.__build_hypermedia__(app, {"id_": sample_id})
+    uri = url_for(app, {"id_": sample_id})
     assert uri.hypermedia == f"/mock_read/{sample_id}"
 
 
 def test_build_hypermedia_no_app():
     url_for = UrlFor("mock_read_with_path", {"id_": "<id_>"})
-    uri = url_for.__build_hypermedia__(None, {})
+    uri = url_for(None, {})
     assert uri.hypermedia is None
 
 
@@ -35,7 +35,7 @@ def test_build_hypermedia_passing_condition(app: FastAPI):
         {"id_": "<id_>"},
         condition=lambda values: values["locked"],
     )
-    uri = url_for.__build_hypermedia__(app, {"id_": sample_id, "locked": locked})
+    uri = url_for(app, {"id_": sample_id, "locked": locked})
     assert uri.hypermedia == f"/mock_read/{sample_id}"
 
 
@@ -47,7 +47,7 @@ def test_build_hypermedia_not_passing_condition(app: FastAPI):
         {"id_": "<id_>"},
         condition=lambda values: values["locked"],
     )
-    uri = url_for.__build_hypermedia__(app, {"id_": sample_id, "locked": locked})
+    uri = url_for(app, {"id_": sample_id, "locked": locked})
     assert uri.hypermedia is None
 
 
@@ -56,7 +56,7 @@ def test_build_hypermedia_template(app: FastAPI):
         "mock_read_with_path",
         template=True,
     )
-    uri = url_for.__build_hypermedia__(app, {})
+    uri = url_for(app, {})
     assert uri.hypermedia == "/mock_read/{id_}"
 
 
@@ -65,7 +65,7 @@ def test_json_serialization(app: FastAPI):
         "mock_read_with_path",
         template=True,
     )
-    rendered_url = url_for.__build_hypermedia__(app, {})
+    rendered_url = url_for(app, {})
     assert rendered_url
 
     uri = rendered_url.model_dump()

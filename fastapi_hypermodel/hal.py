@@ -82,7 +82,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         self._profile = profile
         self._deprecation = deprecation
 
-    def __build_hypermedia__(
+    def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> HALForType:
         if app is None:

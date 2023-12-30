@@ -71,7 +71,7 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
 
         return json_schema
 
-    def __build_hypermedia__(
+    def __call__(
         self: Self,
         app: Optional[Starlette],
         values: Mapping[str, Any],

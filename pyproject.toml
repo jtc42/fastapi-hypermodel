@@ -146,7 +146,6 @@ load-plugins = [
 good-dunder-names = [
     "__get_pydantic_core_schema__",
     "__get_pydantic_json_schema__",
-    "__build_hypermedia__",
     "__schema_subclasses__",
 ]
 

@@ -56,13 +56,13 @@ class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
 
         return json_schema
 
-    def __build_hypermedia__(
+    def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> LinkSetType:
         links: Dict[str, AbstractHyperField[Any]] = {}
 
-        for key, value in self._mapping.items():
-            hypermedia = value.__build_hypermedia__(app, values)
+        for key, hyperfield in self._mapping.items():
+            hypermedia = hyperfield(app, values)
 
             if not hypermedia:
                 continue
