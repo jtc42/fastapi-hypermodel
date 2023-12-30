@@ -16,12 +16,17 @@ class MockClass(HyperModel):
 def hal_for_properties() -> Any:
     return {
         "href": {
-            "anyOf": [
-                {"format": "uri", "maxLength": 65536, "minLength": 1, "type": "string"},
-                {"type": "null"},
-            ],
-            "default": None,
+            "default": "",
+            "format": "uri",
+            "maxLength": 65536,
+            "minLength": 1,
             "title": "Href",
+            "type": "string",
+        },
+        "templated": {
+            "anyOf": [{"type": "boolean"}, {"type": "null"}],
+            "default": None,
+            "title": "Templated",
         },
         "method": {
             "anyOf": [{"type": "string"}, {"type": "null"}],
@@ -33,10 +38,35 @@ def hal_for_properties() -> Any:
             "default": None,
             "title": "Description",
         },
-        "templated": {
-            "anyOf": [{"type": "boolean"}, {"type": "null"}],
+        "title": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
             "default": None,
-            "title": "Templated",
+            "title": "Title",
+        },
+        "name": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Name",
+        },
+        "type": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Type",
+        },
+        "hreflang": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Hreflang",
+        },
+        "profile": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Profile",
+        },
+        "deprecation": {
+            "anyOf": [{"type": "string"}, {"type": "null"}],
+            "default": None,
+            "title": "Deprecation",
         },
     }
 
@@ -72,7 +102,7 @@ def test_hal_for_no_app():
     hal_for = HALFor("mock_read_with_path", {"id_": "<id_>"})
     hypermedia = hal_for.__build_hypermedia__(None, vars(mock))
 
-    assert hypermedia.href is None
+    assert hypermedia.href == ""
 
 
 def test_build_hypermedia_passing_condition(app: FastAPI):
@@ -103,7 +133,7 @@ def test_build_hypermedia_not_passing_condition(app: FastAPI):
         condition=lambda values: values["locked"],
     )
     uri = hal_for.__build_hypermedia__(app, {"id_": sample_id, "locked": False})
-    assert uri.href is None
+    assert uri.href == ""
 
 
 @pytest.mark.usefixtures("app")
