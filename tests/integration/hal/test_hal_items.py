@@ -27,6 +27,12 @@ def update_uri_template(hal_client: TestClient, item_uri: str) -> str:
     return update_uri
 
 
+def test_items_content_type(hal_client: TestClient, item_uri: str) -> None:
+    response = hal_client.get(item_uri)
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
 def test_get_items(hal_client: TestClient, item_uri: str) -> None:
     response = hal_client.get(item_uri).json()
 

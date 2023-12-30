@@ -28,6 +28,12 @@ def update_uri_template(hal_client: TestClient, people_uri: str) -> str:
     return update_uri
 
 
+def test_people_content_type(hal_client: TestClient, people_uri: str) -> None:
+    response = hal_client.get(people_uri)
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
 def test_get_people(hal_client: TestClient, people_uri: str) -> None:
     response = hal_client.get(people_uri).json()
 
@@ -139,7 +145,8 @@ def test_add_item_to_unlocked_person(
 
     assert add_item_uri
 
-    after_items = hal_client.put(add_item_uri, json=existing_item).json()
+    after = hal_client.put(add_item_uri, json=existing_item).json()
+    after_items = after.get("_embedded", {}).get("items", [])
     assert after_items
 
     lenght_before = len(before_items)
@@ -161,8 +168,9 @@ def test_add_item_to_unlocked_person_nonexisting_item(
 
     assert add_item_uri
 
-    after_items = hal_client.put(add_item_uri, json=non_existing_item).json()
-    assert not after_items
+    response = hal_client.put(add_item_uri, json=non_existing_item)
+    assert response.status_code == 404
+    assert response.json() == {"detail": "No item found with id item05"}
 
 
 def test_add_item_to_locked_person(

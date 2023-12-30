@@ -1,11 +1,11 @@
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import Field
 from pydantic.main import BaseModel
 
 from examples.hal.data import items, people
-from fastapi_hypermodel import HALFor, HyperModel, LinkSet
+from fastapi_hypermodel import HALFor, HALResponse, HyperModel, LinkSet
 
 
 class ItemSummary(HyperModel):
@@ -99,17 +99,17 @@ app = FastAPI()
 HyperModel.init_app(app)
 
 
-@app.get("/items", response_model=ItemCollection)
+@app.get("/items", response_model=ItemCollection, response_class=HALResponse)
 def read_items() -> Any:
     return items
 
 
-@app.get("/items/{id_}", response_model=Item)
+@app.get("/items/{id_}", response_model=Item, response_class=HALResponse)
 def read_item(id_: str) -> Any:
     return next(item for item in items["_embedded"]["items"] if item.get("id_") == id_)
 
 
-@app.put("/items/{id_}", response_model=Item)
+@app.put("/items/{id_}", response_model=Item, response_class=HALResponse)
 def update_item(id_: str, item: ItemUpdate) -> Any:
     base_item = next(
         item for item in items["_embedded"]["items"] if item.get("id_") == id_
@@ -118,19 +118,19 @@ def update_item(id_: str, item: ItemUpdate) -> Any:
     return base_item
 
 
-@app.get("/people", response_model=PersonCollection)
+@app.get("/people", response_model=PersonCollection, response_class=HALResponse)
 def read_people() -> Any:
     return people
 
 
-@app.get("/people/{id_}", response_model=Person)
+@app.get("/people/{id_}", response_model=Person, response_class=HALResponse)
 def read_person(id_: str) -> Any:
     return next(
         person for person in people["_embedded"]["people"] if person.get("id_") == id_
     )
 
 
-@app.put("/people/{id_}", response_model=Person)
+@app.put("/people/{id_}", response_model=Person, response_class=HALResponse)
 def update_person(id_: str, person: PersonUpdate) -> Any:
     base_person = next(
         person for person in people["_embedded"]["people"] if person.get("id_") == id_
@@ -139,7 +139,7 @@ def update_person(id_: str, person: PersonUpdate) -> Any:
     return base_person
 
 
-@app.put("/people/{id_}/items", response_model=List[Item])
+@app.put("/people/{id_}/items", response_model=Person, response_class=HALResponse)
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
         (
@@ -150,10 +150,12 @@ def put_person_items(id_: str, item: ItemCreate) -> Any:
         None,
     )
     if not complete_item:
-        return []
+        raise HTTPException(status_code=404, detail=f"No item found with id {item.id_}")
+
     base_person = next(
         person for person in people["_embedded"]["people"] if person.get("id_") == id_
     )
+
     base_person_items = base_person.get("_embedded", {}).get("items", [])
     base_person_items.append(complete_item)
-    return base_person_items
+    return base_person

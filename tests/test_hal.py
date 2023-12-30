@@ -1,11 +1,9 @@
 from typing import Any, Dict
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 import pytest
 
-from fastapi_hypermodel import (
-    HyperModel,
-    HALFor,
-)
+from fastapi_hypermodel import HyperModel, HALFor, HALResponse
 
 
 class MockClass(HyperModel):
@@ -46,6 +44,19 @@ def hal_for_properties() -> Any:
 @pytest.fixture()
 def hal_for_schema(hal_for_properties: Dict[str, Any]) -> Any:
     return {"type": "object", "properties": hal_for_properties, "title": "HALFor"}
+
+
+def test_hal_response(app: FastAPI):
+    @app.get("/test_response", response_class=HALResponse)
+    def _():
+        pass
+
+    test_client = TestClient(app)
+
+    response = test_client.get("/test_response")
+
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
 
 
 def test_hal_for(app: FastAPI):

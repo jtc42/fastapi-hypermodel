@@ -12,6 +12,7 @@ from pydantic import (
     PrivateAttr,
 )
 from starlette.applications import Starlette
+from starlette.responses import JSONResponse
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName
@@ -74,3 +75,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             description=self._description,
             templated=self._template,
         )
+
+
+class HALResponse(JSONResponse):
+    media_type = "application/hal+json"
