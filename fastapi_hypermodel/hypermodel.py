@@ -11,6 +11,7 @@ from typing import (
     Protocol,
     Type,
     TypeVar,
+    cast,
     runtime_checkable,
 )
 
@@ -74,10 +75,17 @@ class HyperModel(BaseModel):
                 setattr(self, key, value)
                 continue
 
-            hypermedia = value.__build_hypermedia__(
+            hyper_field = cast(AbstractHyperField[BaseModel], value)
+
+            hypermedia = hyper_field.__build_hypermedia__(
                 self._hypermodel_bound_app, vars(self)
             )
-            setattr(self, key, hypermedia)
+
+            if hypermedia:
+                setattr(self, key, hypermedia)
+                continue
+
+            delattr(self, key)
 
         return self
 

@@ -2,6 +2,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Mapping,
     Optional,
     Union,
@@ -21,10 +22,6 @@ from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
-class HALResponse(JSONResponse):
-    media_type = "application/hal+json"
-
-
 class HALForType(BaseModel):
     href: UrlType = Field(default=UrlType())
     templated: Optional[bool] = None
@@ -36,6 +33,9 @@ class HALForType(BaseModel):
     deprecation: Optional[str] = None
     method: Optional[str] = None
     description: Optional[str] = None
+
+    def __bool__(self: Self) -> bool:
+        return bool(self.href)
 
 
 class HALFor(HALForType, AbstractHyperField[HALForType]):
@@ -112,3 +112,65 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             profile=self._profile,
             deprecation=self._deprecation,
         )
+
+
+class HALResponse(JSONResponse):
+    media_type = "application/hal+json"
+
+    def _is_link_valid(
+        self: Self, link: Union[Dict[str, Any], List[Dict[str, Any]]]
+    ) -> None:
+        if not isinstance(link, list):
+            if not link.get("href"):
+                error_message = "Links must contain a href attribute"
+                raise ValueError(error_message)
+
+            HALForType.model_validate(link)
+            return
+
+        for link_item in link:
+            self._is_link_valid(link_item)
+
+    def _validate_links(self: Self, content: Dict[str, Any]) -> None:
+        links = content.get("_links")
+
+        if not links and links is not None:
+            error_message = "If _links is present, it must not be empty"
+            raise ValueError(error_message)
+
+        if not links:
+            return
+
+        for link in links.values():
+            self._is_link_valid(link)
+
+    def _validate_embedded(self: Self, content: Dict[str, Any]) -> None:
+        embedded_content = content.get("_embedded")
+
+        if not embedded_content and embedded_content is not None:
+            error_message = "If _embedded is present, it must not be empty"
+            raise ValueError(error_message)
+
+        if not embedded_content:
+            return
+
+        for embedded_content_value in embedded_content.values():
+            self.validate(embedded_content_value)
+
+    def validate(
+        self: Self, content: Union[List[Dict[str, Any]], Dict[str, Any]]
+    ) -> None:
+        if not content:
+            return
+
+        if isinstance(content, dict):
+            self._validate_links(content)
+            self._validate_embedded(content)
+            return
+
+        for element in content:
+            self.validate(element)
+
+    def render(self: Self, content: Any) -> bytes:
+        self.validate(content)
+        return super().render(content)

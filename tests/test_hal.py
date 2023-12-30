@@ -1,9 +1,14 @@
 from typing import Any, Dict
+import uuid
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 
-from fastapi_hypermodel import HyperModel, HALFor, HALResponse
+from fastapi_hypermodel import HyperModel, HALFor, HALResponse, HALForType, UrlType
+
+from pydantic import ValidationError
+
+from pytest_lazy_fixtures import lf
 
 
 class MockClass(HyperModel):
@@ -76,7 +81,42 @@ def hal_for_schema(hal_for_properties: Dict[str, Any]) -> Any:
     return {"type": "object", "properties": hal_for_properties, "title": "HALFor"}
 
 
-def test_hal_response(app: FastAPI):
+@pytest.fixture
+def invalid_links_empty() -> Any:
+    return {"_links": {}}
+
+
+@pytest.fixture
+def invalid_links() -> Any:
+    return {"_links": {"test_link": {"name": "test_name"}}}
+
+
+@pytest.fixture
+def invalid_links_list() -> Any:
+    return {"_links": {"test_link": [{"name": "test_name"}]}}
+
+
+@pytest.fixture()
+def invalid_embedded_links(invalid_links: Any) -> Any:
+    return {"_embedded": {"test": invalid_links}}
+
+
+@pytest.fixture()
+def invalid_embedded_links_list(invalid_links_list: Any) -> Any:
+    return {"_embedded": {"test": invalid_links_list}}
+
+
+@pytest.fixture()
+def invalid_embedded_links_empty(invalid_links_empty: Any) -> Any:
+    return {"_embedded": {"test": invalid_links_empty}}
+
+
+@pytest.fixture
+def invalid_embedded_empty() -> Any:
+    return {"_embedded": {}}
+
+
+def test_hal_response_empty(app: FastAPI):
     @app.get("/test_response", response_class=HALResponse)
     def _():
         pass
@@ -87,6 +127,71 @@ def test_hal_response(app: FastAPI):
 
     content_type = response.headers.get("content-type")
     assert content_type == "application/hal+json"
+
+
+def test_hal_response_single_link(app: FastAPI):
+    @app.get("/test_response_single_link", response_class=HALResponse)
+    def _():  # pragma: no cover
+        return {"_links": {"self": HALForType(href=UrlType("test"))}}
+
+    test_client = TestClient(app)
+
+    response = test_client.get("/test_response_single_link")
+
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
+def test_hal_response_link_list(app: FastAPI):
+    @app.get("/test_response_link_list", response_class=HALResponse)
+    def _():  # pragma: no cover
+        return {"_links": {"self": [HALForType(href=UrlType("test"))]}}
+
+    test_client = TestClient(app)
+
+    response = test_client.get("/test_response_link_list")
+
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
+def test_hal_response_embedded(app: FastAPI):
+    @app.get("/test_response_single_link_list", response_class=HALResponse)
+    def _():  # pragma: no cover
+        return {"_embedded": {"self": [HALForType(href=UrlType())]}}
+
+    test_client = TestClient(app)
+
+    response = test_client.get("/test_response_single_link_list")
+
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
+@pytest.mark.parametrize(
+    "invalid_response",
+    [
+        lf("invalid_links_empty"),
+        lf("invalid_links"),
+        lf("invalid_links_list"),
+        lf("invalid_embedded_links"),
+        lf("invalid_embedded_links_list"),
+        lf("invalid_embedded_links_empty"),
+        lf("invalid_embedded_empty"),
+    ],
+)
+def test_hal_response_invalid(app: FastAPI, invalid_response: Any):
+    suffix = uuid.uuid4().hex
+    endpoint = f"/test_response_invalid_{suffix}"
+
+    @app.get(endpoint, response_class=HALResponse)
+    def _():
+        return invalid_response
+
+    test_client = TestClient(app)
+
+    with pytest.raises((ValidationError, ValueError)):
+        test_client.get(endpoint)
 
 
 def test_hal_for(app: FastAPI):

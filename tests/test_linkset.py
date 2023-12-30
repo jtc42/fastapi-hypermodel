@@ -1,6 +1,6 @@
 from typing import Any, Optional
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr
 
 from fastapi_hypermodel import (
     HyperModel,
@@ -14,21 +14,30 @@ from typing_extensions import Self
 class MockHypermediaType(BaseModel):
     href: Optional[str] = None
 
-
-class MockHypermedia(MockHypermediaType, AbstractHyperField):
-    def __build_hypermedia__(self: Self, *_: Any) -> Optional[Any]:
-        return MockHypermediaType(href="test")
+    def __bool__(self):
+        return bool(self.href)
 
 
-class MockHypermediaEmpty(AbstractHyperField):
-    def __build_hypermedia__(self: Self, *_: Any) -> Optional[Any]:
-        return None
+class MockHypermedia(MockHypermediaType, AbstractHyperField[MockHypermediaType]):
+    _href: Optional[str] = PrivateAttr()
+
+    def __init__(self: Self, href: Optional[str] = None) -> None:
+        super().__init__()
+        self._href = href
+
+    def __build_hypermedia__(self: Self, *_: Any) -> MockHypermediaType:
+        return MockHypermediaType(href=self._href)
+
+
+class MockHypermediaEmpty(AbstractHyperField[MockHypermediaType]):
+    def __build_hypermedia__(self: Self, *_: Any) -> MockHypermediaType:
+        return MockHypermediaType()
 
 
 class MockClassLinkSet(HyperModel):
     test_field: LinkSet = LinkSet(
         {
-            "self": MockHypermedia(),
+            "self": MockHypermedia("test"),
         }
     )
 
@@ -40,7 +49,7 @@ class MockClassLinkSetEmpty(HyperModel):
 class MockClassLinkSetWithEmptyHypermedia(HyperModel):
     test_field: LinkSet = LinkSet(
         {
-            "self": MockHypermedia(),
+            "self": MockHypermedia("test"),
             "other": MockHypermediaEmpty(),
         }
     )
