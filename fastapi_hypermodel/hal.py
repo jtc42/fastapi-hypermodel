@@ -5,6 +5,7 @@ from typing import (
     List,
     Mapping,
     Optional,
+    Tuple,
     Union,
 )
 
@@ -15,6 +16,7 @@ from pydantic import (
 )
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
+from starlette.routing import Route
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName
@@ -40,7 +42,7 @@ class HALForType(BaseModel):
 
 class HALFor(HALForType, AbstractHyperField[HALForType]):
     # pylint: disable=too-many-instance-attributes
-    _endpoint: str = PrivateAttr()
+    _endpoint: Optional[str] = PrivateAttr()
     _param_values: Dict[str, str] = PrivateAttr()
     _description: Optional[str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
@@ -55,7 +57,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
     def __init__(
         self: Self,
-        endpoint: Union[HasName, str],
+        endpoint: Optional[Union[HasName, str]] = None,
         param_values: Optional[Dict[str, str]] = None,
         description: Optional[str] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
@@ -82,6 +84,30 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         self._profile = profile
         self._deprecation = deprecation
 
+    def _get_uri_path(
+        self: Self, app: Starlette, values: Mapping[str, Any], route: Route
+    ) -> UrlType:
+        if self.href:
+            return UrlType(self.href)
+
+        if self._templated:
+            return UrlType(route.path)
+
+        if self._endpoint:
+            params = resolve_param_values(self._param_values, values)
+            return UrlType(app.url_path_for(self._endpoint, **params))
+
+        error_message = "No valid configurations found to generate Href"
+        raise ValueError(error_message)
+
+    def _get_route_and_method(self: Self, app: Starlette) -> Tuple[Route, str]:
+        if not self._endpoint:
+            return Route(path=self.href, endpoint=self), "GET"
+
+        route = get_route_from_app(app, self._endpoint)
+        method = next(iter(route.methods), "GET") if route.methods else "GET"
+        return route, method
+
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> HALForType:
@@ -91,14 +117,9 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         if self._condition and not self._condition(values):
             return HALForType()
 
-        route = get_route_from_app(app, self._endpoint)
-        method = next(iter(route.methods), None) if route.methods else None
+        route, method = self._get_route_and_method(app)
 
-        if not self._templated:
-            params = resolve_param_values(self._param_values, values)
-            uri_path = UrlType(app.url_path_for(self._endpoint, **params))
-        else:
-            uri_path = UrlType(route.path)
+        uri_path = self._get_uri_path(app, values, route)
 
         return HALForType(
             href=uri_path,
@@ -112,6 +133,13 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             profile=self._profile,
             deprecation=self._deprecation,
         )
+
+
+class HALForCurieType(HALFor, AbstractHyperField[HALForType]):
+    templated: Optional[bool] = True
+
+    def __bool__(self: Self) -> bool:
+        return bool(self.href) and bool(self.name) and bool(self.templated)
 
 
 class HALResponse(JSONResponse):
@@ -131,6 +159,53 @@ class HALResponse(JSONResponse):
         for link_item in link:
             self._is_link_valid(link_item)
 
+    @staticmethod
+    def _validate_curies(links: Union[Dict[str, Any], List[Dict[str, Any]]]) -> None:
+        if not isinstance(links, list):
+            error_message = "Curies must be a list of Links"
+            raise ValueError(error_message)  # noqa: TRY004
+
+        for curie_link in links:
+            HALForCurieType.model_validate(links)
+
+            if not curie_link.get("name"):
+                error_message = "Curies must have a name"
+                raise ValueError(error_message)
+
+            if not curie_link.get("templated"):
+                error_message = "Curies must be templated"
+                raise ValueError(error_message)
+
+            curie_uri_field_name = "rel"
+            if curie_uri_field_name not in curie_link.get("href", ""):
+                error_message = "Curies must have a templated URI with rel field"
+                raise ValueError(error_message)
+
+    @staticmethod
+    def _validate_curie_name_exists(
+        links: Optional[Dict[str, List[Dict[str, Any]]]], name: str
+    ) -> None:
+        expected_curie_name, separator, _ = name.partition(":")
+        if not separator:
+            return
+
+        if not links:
+            error_message = "CURIEs were used but there is no _links field"
+            raise ValueError(error_message)
+
+        curies = links.get("curies")
+        if not curies:
+            error_message = "CURIEs were used but not defined in _links"
+            raise ValueError(error_message)
+
+        for curie_link in curies:
+            curie_name = curie_link.get("name")
+            if expected_curie_name == curie_name:
+                return
+
+        error_message = "No CURIE found for {curie} in _links"
+        raise ValueError(error_message)
+
     def _validate_links(self: Self, content: Dict[str, Any]) -> None:
         links = content.get("_links")
 
@@ -141,8 +216,13 @@ class HALResponse(JSONResponse):
         if not links:
             return
 
-        for link in links.values():
+        curies = links.get("curies")
+        if curies:
+            self._validate_curies(curies)
+
+        for name, link in links.items():
             self._is_link_valid(link)
+            self._validate_curie_name_exists(links, name)
 
     def _validate_embedded(self: Self, content: Dict[str, Any]) -> None:
         embedded_content = content.get("_embedded")
@@ -154,8 +234,10 @@ class HALResponse(JSONResponse):
         if not embedded_content:
             return
 
-        for embedded_content_value in embedded_content.values():
-            self.validate(embedded_content_value)
+        links = content.get("_links")
+        for name, value in embedded_content.items():
+            self._validate_curie_name_exists(links, name)
+            self.validate(value)
 
     def validate(
         self: Self, content: Union[List[Dict[str, Any]], Dict[str, Any]]
