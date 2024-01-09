@@ -1,13 +1,12 @@
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, cast
 
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from examples.url_for.data import Item as ItemData
+from examples.url_for.data import Person as PersonData
 from examples.url_for.data import items, people
 from fastapi_hypermodel import HyperModel, UrlFor
-
-app = FastAPI()
-HyperModel.init_app(app)
 
 
 class ItemSummary(HyperModel):
@@ -69,6 +68,10 @@ class PeopleCollection(HyperModel):
     update: UrlFor = UrlFor("update_person", template=True)
 
 
+app = FastAPI()
+HyperModel.init_app(app)
+
+
 @app.get("/items", response_model=ItemCollection)
 def read_items() -> Any:
     return items
@@ -76,13 +79,14 @@ def read_items() -> Any:
 
 @app.get("/items/{id_}", response_model=Item)
 def read_item(id_: str) -> Any:
-    return next(item for item in items.get("items", []) if item.get("id_") == id_)
+    return next(item for item in items["items"] if item["id_"] == id_)
 
 
 @app.put("/items/{id_}", response_model=Item)
 def update_item(id_: str, item: ItemUpdate) -> Any:
-    item_ = next(item_ for item_ in items.get("items", []) if item_.get("id_") == id_)
-    item_.update(item.model_dump(exclude_none=True))
+    item_ = next(item_ for item_ in items["items"] if item_["id_"] == id_)
+    update_item = cast(ItemData, item.model_dump(exclude_none=True))
+    item_.update(update_item)
     return item_
 
 
@@ -93,33 +97,28 @@ def read_people() -> Any:
 
 @app.get("/people/{id_}", response_model=Person)
 def read_person(id_: str) -> Any:
-    return next(
-        person for person in people.get("people", []) if person.get("id_") == id_
-    )
+    return next(person for person in people["people"] if person["id_"] == id_)
 
 
 @app.put("/people/{id_}", response_model=Person)
 def update_person(id_: str, person: PersonUpdate) -> Any:
-    base_person = next(
-        person for person in people.get("people", []) if person.get("id_") == id_
-    )
-    base_person.update(person.model_dump(exclude_none=True))
+    base_person = next(person for person in people["people"] if person["id_"] == id_)
+    update_person = cast(PersonData, person.model_dump(exclude_none=True))
+    base_person.update(update_person)
     return base_person
 
 
 @app.put("/people/{id_}/items", response_model=Sequence[Item])
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
-        (item_ for item_ in items.get("items", []) if item_.get("id_") == item.id_),
+        (item_ for item_ in items["items"] if item_["id_"] == item.id_),
         None,
     )
 
     if not complete_item:
         return []
 
-    base_person = next(
-        person for person in people.get("people", []) if person.get("id_") == id_
-    )
-    base_person_items = base_person.get("items", [])
+    base_person = next(person for person in people["people"] if person["id_"] == id_)
+    base_person_items = base_person["items"]
     base_person_items.append(complete_item)
     return base_person_items

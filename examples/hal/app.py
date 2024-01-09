@@ -1,9 +1,11 @@
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, cast
 
 from fastapi import FastAPI, HTTPException
 from pydantic import Field
 from pydantic.main import BaseModel
 
+from examples.hal.data import Item as ItemData
+from examples.hal.data import Person as PersonData
 from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
     HALFor,
@@ -112,13 +114,14 @@ def read_items() -> Any:
 
 @app.get("/items/{id_}", response_model=Item, response_class=HALResponse)
 def read_item(id_: str) -> Any:
-    return next(item for item in items["sc:items"] if item.get("id_") == id_)
+    return next(item for item in items["sc:items"] if item["id_"] == id_)
 
 
 @app.put("/items/{id_}", response_model=Item, response_class=HALResponse)
 def update_item(id_: str, item: ItemUpdate) -> Any:
-    base_item = next(item for item in items["sc:items"] if item.get("id_") == id_)
-    base_item.update(item.model_dump(exclude_none=True))
+    base_item = next(item for item in items["sc:items"] if item["id_"] == id_)
+    update_item = cast(ItemData, item.model_dump(exclude_none=True))
+    base_item.update(update_item)
     return base_item
 
 
@@ -129,31 +132,28 @@ def read_people() -> Any:
 
 @app.get("/people/{id_}", response_model=Person, response_class=HALResponse)
 def read_person(id_: str) -> Any:
-    return next(person for person in people["people"] if person.get("id_") == id_)
+    return next(person for person in people["people"] if person["id_"] == id_)
 
 
 @app.put("/people/{id_}", response_model=Person, response_class=HALResponse)
 def update_person(id_: str, person: PersonUpdate) -> Any:
-    base_person = next(
-        person for person in people["people"] if person.get("id_") == id_
-    )
-    base_person.update(person.model_dump(exclude_none=True))
+    base_person = next(person for person in people["people"] if person["id_"] == id_)
+    update_person = cast(PersonData, person.model_dump(exclude_none=True))
+    base_person.update(update_person)
     return base_person
 
 
 @app.put("/people/{id_}/items", response_model=Person, response_class=HALResponse)
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
-        (item_ for item_ in items["sc:items"] if item_.get("id_") == item.id_),
+        (item_ for item_ in items["sc:items"] if item_["id_"] == item.id_),
         None,
     )
     if not complete_item:
         raise HTTPException(status_code=404, detail=f"No item found with id {item.id_}")
 
-    base_person = next(
-        person for person in people["people"] if person.get("id_") == id_
-    )
+    base_person = next(person for person in people["people"] if person["id_"] == id_)
 
-    base_person_items = base_person.get("sc:items", [])
+    base_person_items = base_person["sc:items"]
     base_person_items.append(complete_item)
     return base_person

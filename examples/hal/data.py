@@ -1,8 +1,20 @@
 from typing import List
 
+from typing_extensions import NotRequired, TypedDict
+
 from fastapi_hypermodel import HALForType, UrlType
 
-items = {
+
+class Item(TypedDict):
+    id_: str
+    name: str
+    price: float
+    description: NotRequired[str]
+
+
+Items = TypedDict("Items", {"sc:items": List[Item]})
+
+items: Items = {
     "sc:items": [
         {"id_": "item01", "name": "Foo", "price": 10.2},
         {
@@ -26,7 +38,16 @@ items = {
     ]
 }
 
-people = {
+Person = TypedDict(
+    "Person", {"id_": str, "name": str, "is_locked": bool, "sc:items": List[Item]}
+)
+
+
+class People(TypedDict):
+    people: List[Person]
+
+
+people: People = {
     "people": [
         {
             "id_": "person01",

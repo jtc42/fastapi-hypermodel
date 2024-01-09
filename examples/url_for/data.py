@@ -1,4 +1,20 @@
-items = {
+from typing import List
+
+from typing_extensions import NotRequired, TypedDict
+
+
+class Item(TypedDict):
+    id_: str
+    name: str
+    price: float
+    description: NotRequired[str]
+
+
+class Items(TypedDict):
+    items: List[Item]
+
+
+items: Items = {
     "items": [
         {"id_": "item01", "name": "Foo", "price": 50.2},
         {
@@ -22,7 +38,19 @@ items = {
     ]
 }
 
-people = {
+
+class Person(TypedDict):
+    id_: str
+    name: str
+    is_locked: bool
+    items: List[Item]
+
+
+class People(TypedDict):
+    people: List[Person]
+
+
+people: People = {
     "people": [
         {
             "id_": "person01",
