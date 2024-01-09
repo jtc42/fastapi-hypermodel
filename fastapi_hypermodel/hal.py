@@ -13,7 +13,7 @@ from typing import (
     Union,
 )
 
-from pydantic import BaseModel, Field, PrivateAttr, model_validator
+from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -124,6 +124,12 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
 class HalHyperModel(HyperModel):
     curies_: ClassVar[Optional[Sequence[HALForType]]] = None
+    embedded: Mapping[str, Union[Self, Sequence[Self]]] = Field(
+        default=None, alias="_embedded"
+    )
+
+    # This config is needed to use the Self in Embedded
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @classmethod
     def register_curies(cls: Type[Self], curies: Sequence[HALForType]) -> None:
@@ -139,6 +145,28 @@ class HalHyperModel(HyperModel):
             if not isinstance(value, LinkSetType):
                 continue
             value.mapping["curies"] = HalHyperModel.curies()  # type: ignore
+
+        return self
+
+    @model_validator(mode="after")
+    def add_hypermodels_to_embedded(self: Self) -> Self:
+        embedded: Dict[str, Union[Self, Sequence[Self]]] = {}
+        for name, field in self:
+            value: Sequence[Union[Any, Self]] = (
+                field if isinstance(field, Sequence) else [field]
+            )
+
+            if not all(isinstance(element, HalHyperModel) for element in value):
+                continue
+
+            key = self.model_fields[name].alias or name
+            embedded[key] = value
+            delattr(self, name)
+
+        self.embedded = embedded
+
+        if not self.embedded:
+            delattr(self, "embedded")
 
         return self
 

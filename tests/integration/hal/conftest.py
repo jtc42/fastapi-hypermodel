@@ -28,35 +28,31 @@ def hal_client() -> TestClient:
 
 @pytest.fixture()
 def items() -> Any:
-    return items_["_embedded"]["sc:items"]
+    return items_["sc:items"]
 
 
-@pytest.fixture(params=items_["_embedded"]["sc:items"])
+@pytest.fixture(params=items_["sc:items"])
 def item(request: Any) -> ItemSummary:
     return ItemSummary(**request.param)
 
 
 @pytest.fixture()
 def people() -> Any:
-    return people_["_embedded"]["people"]
+    return people_["people"]
 
 
-@pytest.fixture(params=list(people_["_embedded"]["people"]))
+@pytest.fixture(params=list(people_["people"]))
 def person(request: Any) -> Person:
     return Person(**request.param)
 
 
-@pytest.fixture(
-    params=[person for person in people_["_embedded"]["people"] if person["is_locked"]]
-)
+@pytest.fixture(params=[person for person in people_["people"] if person["is_locked"]])
 def locked_person(request: Any) -> Person:
     return Person(**request.param)
 
 
 @pytest.fixture(
-    params=[
-        person for person in people_["_embedded"]["people"] if not person["is_locked"]
-    ]
+    params=[person for person in people_["people"] if not person["is_locked"]]
 )
 def unlocked_person(request: Any) -> Person:
     return Person(**request.param)

@@ -42,6 +42,10 @@ def test_get_items(hal_client: TestClient, item_uri: str) -> None:
     assert find_uri.get("templated")
     assert item_uri in find_uri.get("href")
 
+    items = response.get("_embedded", {}).get("sc:items", [])
+    assert items
+    assert len(items) == 4
+
 
 def test_get_item(
     hal_client: TestClient,

@@ -28,6 +28,37 @@ class MockClass(HalHyperModel):
     )
 
 
+class MockClassWithEmbedded(HalHyperModel):
+    id_: str
+
+    test: MockClass
+
+
+class MockClassWithMultipleEmbedded(HalHyperModel):
+    id_: str
+
+    test: MockClass
+    test2: MockClass
+
+
+class MockClassWithEmbeddedAliased(HalHyperModel):
+    id_: str
+
+    test: MockClass = Field(alias="sc:test")
+
+
+class MockClassWithEmbeddedList(HalHyperModel):
+    id_: str
+
+    test: Sequence[MockClass]
+
+
+class MockClassWithEmbeddedListAliased(HalHyperModel):
+    id_: str
+
+    test: Sequence[MockClass] = Field(alias="sc:test")
+
+
 class MockClassWithCuries(HalHyperModel):
     id_: str
 
@@ -496,6 +527,77 @@ def test_register_curies() -> None:
     curie_raw, *_ = curies
     curie = HALForType.model_validate(curie_raw)
     assert curie.href == "https://schema.org/{rel}"
+
+
+@pytest.mark.usefixtures("hal_app")
+def test_with_embedded() -> None:
+    mock = MockClass(id_="test")
+    mock_with_embedded = MockClassWithEmbedded(id_="test_parent", test=mock).model_dump(
+        by_alias=True
+    )
+    assert mock_with_embedded
+
+    child, *_ = mock_with_embedded.get("_embedded", {}).get("test", [])
+    assert child
+    assert child.get("id_") == "test"
+
+
+@pytest.mark.usefixtures("hal_app")
+def test_with_multiple_embedded() -> None:
+    mock = MockClass(id_="test1")
+    mock2 = MockClass(id_="test2")
+    mock_with_embedded = MockClassWithMultipleEmbedded(
+        id_="test_parent", test=mock, test2=mock2
+    ).model_dump(by_alias=True)
+    assert mock_with_embedded
+
+    embedded = mock_with_embedded.get("_embedded", {})
+    child, *_ = embedded.get("test", [])
+    assert child
+    assert child.get("id_") == "test1"
+
+    child2, *_ = embedded.get("test2", [])
+    assert child2
+    assert child2.get("id_") == "test2"
+
+
+@pytest.mark.usefixtures("hal_app")
+def test_with_embedded_and_alias() -> None:
+    dump = {"id_": "test_parent", "sc:test": {"id_": "test"}}
+    mock_with_embedded = MockClassWithEmbeddedAliased.model_validate(dump).model_dump(
+        by_alias=True
+    )
+    assert mock_with_embedded
+
+    child, *_ = mock_with_embedded.get("_embedded", {}).get("sc:test", [])
+    assert child
+    assert child.get("id_") == "test"
+
+
+@pytest.mark.usefixtures("hal_app")
+def test_with_embedded_list() -> None:
+    mock = MockClass(id_="test")
+    mock_with_embedded = MockClassWithEmbeddedList(
+        id_="test_parent", test=[mock]
+    ).model_dump(by_alias=True)
+    assert mock_with_embedded
+
+    child, *_ = mock_with_embedded.get("_embedded", {}).get("test", [])
+    assert child
+    assert child.get("id_") == "test"
+
+
+@pytest.mark.usefixtures("hal_app")
+def test_with_embedded_list_and_alias() -> None:
+    dump = {"id_": "test_parent", "sc:test": [{"id_": "test"}]}
+    mock_with_embedded = MockClassWithEmbeddedListAliased.model_validate(
+        dump
+    ).model_dump(by_alias=True)
+    assert mock_with_embedded
+
+    child, *_ = mock_with_embedded.get("_embedded", {}).get("sc:test", [])
+    assert child
+    assert child.get("id_") == "test"
 
 
 def test_hal_response_curies_defined_but_not_used(hal_app: FastAPI) -> None:
