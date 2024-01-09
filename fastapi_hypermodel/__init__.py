@@ -1,4 +1,4 @@
-from .hal import HALFor, HALForCurieType, HALForType, HALResponse
+from .hal import HALFor, HALForType, HalHyperModel, HALResponse
 from .hypermodel import (
     AbstractHyperField,
     HasName,
@@ -23,7 +23,7 @@ __all__ = [
     "HALFor",
     "HALForType",
     "HALResponse",
-    "HALForCurieType",
+    "HalHyperModel",
     "LinkSet",
     "LinkSetType",
     "UrlType",

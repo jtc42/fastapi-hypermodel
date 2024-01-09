@@ -1,4 +1,5 @@
 from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -6,7 +7,11 @@ from examples.url_for import (
     ItemSummary,
     Person,
     app,
+)
+from examples.url_for import (
     items as items_,
+)
+from examples.url_for import (
     people as people_,
 )
 from fastapi_hypermodel import HyperModel
@@ -32,11 +37,6 @@ def item(request: Any) -> ItemSummary:
 @pytest.fixture()
 def people() -> Any:
     return people_.values()
-
-
-@pytest.fixture(params=list(people_.values()))
-def locked_person(request: Any) -> Person:
-    return Person(**request.param)
 
 
 @pytest.fixture(

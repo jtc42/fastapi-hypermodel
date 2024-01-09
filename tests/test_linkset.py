@@ -1,20 +1,20 @@
 from typing import Any, Optional
+
 from fastapi import FastAPI
 from pydantic import BaseModel, PrivateAttr
+from typing_extensions import Self
 
 from fastapi_hypermodel import (
+    AbstractHyperField,
     HyperModel,
     LinkSet,
-    AbstractHyperField,
 )
-
-from typing_extensions import Self
 
 
 class MockHypermediaType(BaseModel):
     href: Optional[str] = None
 
-    def __bool__(self):
+    def __bool__(self: Self) -> bool:
         return bool(self.href)
 
 
@@ -35,11 +35,9 @@ class MockHypermediaEmpty(AbstractHyperField[MockHypermediaType]):
 
 
 class MockClassLinkSet(HyperModel):
-    test_field: LinkSet = LinkSet(
-        {
-            "self": MockHypermedia("test"),
-        }
-    )
+    test_field: LinkSet = LinkSet({
+        "self": MockHypermedia("test"),
+    })
 
 
 class MockClassLinkSetEmpty(HyperModel):
@@ -47,15 +45,20 @@ class MockClassLinkSetEmpty(HyperModel):
 
 
 class MockClassLinkSetWithEmptyHypermedia(HyperModel):
-    test_field: LinkSet = LinkSet(
-        {
-            "self": MockHypermedia("test"),
-            "other": MockHypermediaEmpty(),
-        }
-    )
+    test_field: LinkSet = LinkSet({
+        "self": MockHypermedia("test"),
+        "other": MockHypermediaEmpty(),
+    })
 
 
-def test_linkset_in_hypermodel():
+class MockClassLinkSetWithMultipleHypermedia(HyperModel):
+    test_field: LinkSet = LinkSet({
+        "self": MockHypermedia("test"),
+        "other": [MockHypermedia("test"), MockHypermedia("test2")],
+    })
+
+
+def test_linkset_in_hypermodel() -> None:
     linkset = MockClassLinkSet()
     hypermedia = linkset.model_dump()
     test_field = hypermedia.get("test_field")
@@ -65,7 +68,20 @@ def test_linkset_in_hypermodel():
     assert test_field == expected
 
 
-def test_linkset_in_hypermodel_empty():
+def test_linkset_in_hypermodel_with_link_list() -> None:
+    linkset = MockClassLinkSetWithMultipleHypermedia()
+    hypermedia = linkset.model_dump()
+    test_field = hypermedia.get("test_field")
+    assert test_field
+
+    expected = {
+        "self": {"href": "test"},
+        "other": [{"href": "test"}, {"href": "test2"}],
+    }
+    assert test_field == expected
+
+
+def test_linkset_in_hypermodel_empty() -> None:
     linkset = MockClassLinkSetEmpty()
     hypermedia = linkset.model_dump()
     test_field = hypermedia.get("test_field")
@@ -73,7 +89,7 @@ def test_linkset_in_hypermodel_empty():
     assert test_field == expected
 
 
-def test_linkset_in_hypermodel_with_empty_hypermedia():
+def test_linkset_in_hypermodel_with_empty_hypermedia() -> None:
     linkset = MockClassLinkSetWithEmptyHypermedia()
     hypermedia = linkset.model_dump()
     test_field = hypermedia.get("test_field")
@@ -94,13 +110,15 @@ def test_linkset_schema() -> None:
     assert "additionalProperties" in schema
 
 
-def test_linkset_empty(app: FastAPI):
+def test_linkset_empty(app: FastAPI) -> None:
     linkset = LinkSet()
     hypermedia = linkset(app, {})
-    assert hypermedia and hypermedia.mapping == {}
+    assert hypermedia
+    assert hypermedia.mapping == {}
 
 
-def test_linkset_empty_no_app():
+def test_linkset_empty_no_app() -> None:
     linkset = LinkSet()
     hypermedia = linkset(None, {})
-    assert hypermedia and hypermedia.mapping == {}
+    assert hypermedia
+    assert hypermedia.mapping == {}

@@ -1,14 +1,19 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Mapping, Optional, Sequence
 
 from fastapi import FastAPI, HTTPException
 from pydantic import Field
 from pydantic.main import BaseModel
 
-from examples.hal.data import items, people
-from fastapi_hypermodel import HALFor, HALResponse, HyperModel, LinkSet
+from examples.hal.data import curies, items, people
+from fastapi_hypermodel import (
+    HALFor,
+    HalHyperModel,
+    HALResponse,
+    LinkSet,
+)
 
 
-class ItemSummary(HyperModel):
+class ItemSummary(HalHyperModel):
     name: str
     id_: str
 
@@ -36,20 +41,20 @@ class ItemCreate(ItemUpdate):
     id_: str
 
 
-class ItemCollection(HyperModel):
+class ItemCollection(HalHyperModel):
     links: LinkSet = Field(
         default=LinkSet({
             "self": HALFor("read_items"),
-            "find": HALFor("read_item", template=True),
-            "update": HALFor("update_item", template=True),
+            "find": HALFor("read_item", templated=True),
+            "update": HALFor("update_item", templated=True),
         }),
         alias="_links",
     )
 
-    embedded: Dict[str, List[Item]] = Field(alias="_embedded")
+    embedded: Mapping[str, Sequence[Item]] = Field(alias="_embedded")
 
 
-class Person(HyperModel):
+class Person(HalHyperModel):
     name: str
     id_: str
     is_locked: bool
@@ -68,26 +73,26 @@ class Person(HyperModel):
         alias="_links",
     )
 
-    embedded: Dict[str, List[Item]] = Field(alias="_embedded")
+    embedded: Mapping[str, Sequence[Item]] = Field(alias="_embedded")
 
 
-class PersonCollection(HyperModel):
+class PersonCollection(HalHyperModel):
     links: LinkSet = Field(
         default=LinkSet({
             "self": HALFor("read_people"),
             "find": HALFor(
-                "read_person", description="Get a particular person", template=True
+                "read_person", description="Get a particular person", templated=True
             ),
             "update": HALFor(
                 "update_person",
                 description="Update a particular person",
-                template=True,
+                templated=True,
             ),
         }),
         alias="_links",
     )
 
-    embedded: Dict[str, List[Person]] = Field(alias="_embedded")
+    embedded: Mapping[str, Sequence[Person]] = Field(alias="_embedded")
 
 
 class PersonUpdate(BaseModel):
@@ -96,7 +101,8 @@ class PersonUpdate(BaseModel):
 
 
 app = FastAPI()
-HyperModel.init_app(app)
+HalHyperModel.init_app(app)
+HalHyperModel.register_curies(curies)
 
 
 @app.get("/items", response_model=ItemCollection, response_class=HALResponse)
@@ -106,13 +112,15 @@ def read_items() -> Any:
 
 @app.get("/items/{id_}", response_model=Item, response_class=HALResponse)
 def read_item(id_: str) -> Any:
-    return next(item for item in items["_embedded"]["items"] if item.get("id_") == id_)
+    return next(
+        item for item in items["_embedded"]["sc:items"] if item.get("id_") == id_
+    )
 
 
 @app.put("/items/{id_}", response_model=Item, response_class=HALResponse)
 def update_item(id_: str, item: ItemUpdate) -> Any:
     base_item = next(
-        item for item in items["_embedded"]["items"] if item.get("id_") == id_
+        item for item in items["_embedded"]["sc:items"] if item.get("id_") == id_
     )
     base_item.update(item.model_dump(exclude_none=True))
     return base_item
@@ -144,7 +152,7 @@ def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
         (
             item_
-            for item_ in items["_embedded"]["items"]
+            for item_ in items["_embedded"]["sc:items"]
             if item_.get("id_") == item.id_
         ),
         None,
@@ -156,6 +164,6 @@ def put_person_items(id_: str, item: ItemCreate) -> Any:
         person for person in people["_embedded"]["people"] if person.get("id_") == id_
     )
 
-    base_person_items = base_person.get("_embedded", {}).get("items", [])
+    base_person_items = base_person.get("_embedded", {}).get("sc:items", [])
     base_person_items.append(complete_item)
     return base_person

@@ -1,12 +1,11 @@
+import uuid
 from typing import Any
-from fastapi.testclient import TestClient
-from examples.hal import Person
 
 import pytest
+from fastapi.testclient import TestClient
 
+from examples.hal import Person
 from fastapi_hypermodel import get_hal_link_href
-
-import uuid
 
 
 @pytest.fixture()
@@ -53,13 +52,14 @@ def test_get_person(
 
     person_href = get_hal_link_href(person_response, "self")
 
-    assert people_uri in person_href and person.id_ in person_href
+    assert people_uri in person_href
+    assert person.id_ in person_href
     assert person_response.get("id_") == person.id_
 
     embedded = person_response.get("_embedded")
     assert embedded
 
-    items = embedded.get("items")
+    items = embedded.get("sc:items")
     assert items
 
 
@@ -111,9 +111,10 @@ def test_get_person_items(
     find_uri = person.parse_uri(find_uri_template)
     person_response = hal_client.get(find_uri).json()
 
-    person_items = person_response.get("_embedded").get("items")
+    person_items = person_response.get("_embedded").get("sc:items")
 
-    assert isinstance(person_items, list) and person_items
+    assert person_items
+    assert isinstance(person_items, list)
 
     first_item, *_ = person_items
     first_item_uri = get_hal_link_href(first_item, "self")
@@ -140,13 +141,13 @@ def test_add_item_to_unlocked_person(
 ) -> None:
     find_uri = unlocked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
-    before_items = before.get("_embedded", {}).get("items", [])
+    before_items = before.get("_embedded", {}).get("sc:items", [])
     add_item_uri = get_hal_link_href(before, "add_item")
 
     assert add_item_uri
 
     after = hal_client.put(add_item_uri, json=existing_item).json()
-    after_items = after.get("_embedded", {}).get("items", [])
+    after_items = after.get("_embedded", {}).get("sc:items", [])
     assert after_items
 
     lenght_before = len(before_items)

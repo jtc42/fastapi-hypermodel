@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Callable,
-    Dict,
     Mapping,
     Optional,
     Type,
@@ -37,14 +36,14 @@ class UrlForType(BaseModel):
 
 class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
     _endpoint: str = PrivateAttr()
-    _param_values: Dict[str, str] = PrivateAttr()
+    _param_values: Mapping[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
     _template: Optional[bool] = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
-        param_values: Optional[Dict[str, Any]] = None,
+        param_values: Optional[Mapping[str, Any]] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
         template: Optional[bool] = None,
         **kwargs: Any,

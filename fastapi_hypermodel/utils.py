@@ -3,9 +3,9 @@ import urllib
 from typing import (
     Any,
     Dict,
-    List,
     Mapping,
     Optional,
+    Sequence,
     Union,
 )
 
@@ -37,7 +37,7 @@ def _get_value(obj: Any, key: str, default: Optional[Any] = None) -> Any:
     return _get_value_for_key(obj, key, default)
 
 
-def _get_value_for_keys(obj: Any, keys: List[str], default: Any) -> Any:
+def _get_value_for_keys(obj: Any, keys: Sequence[str], default: Any) -> Any:
     first, *rest = keys
     value = _get_value_for_key(obj, first, default)
 

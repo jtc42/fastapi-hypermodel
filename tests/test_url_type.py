@@ -1,6 +1,6 @@
-from typing import Any, Dict
-import pytest
+from typing import Any, Mapping
 
+import pytest
 
 from fastapi_hypermodel import HyperModel
 from fastapi_hypermodel.url_type import UrlType
@@ -11,7 +11,7 @@ class MockClassWithURL(HyperModel):
 
 
 @pytest.mark.usefixtures("app")
-def test_openapi_schema(url_type_schema: Dict[str, Any]) -> None:
+def test_openapi_schema(url_type_schema: Mapping[str, Any]) -> None:
     mock = MockClassWithURL()
     schema = mock.model_json_schema()
     url_type_schema = schema["properties"]["test_field"]

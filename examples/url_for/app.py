@@ -1,4 +1,4 @@
-from typing import Any, List, Optional
+from typing import Any, Optional, Sequence
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -34,7 +34,7 @@ class ItemCreate(ItemUpdate):
 
 
 class ItemCollection(HyperModel):
-    items: List[Item]
+    items: Sequence[Item]
 
     href: UrlFor = UrlFor("read_items")
     find: UrlFor = UrlFor("read_item", template=True)
@@ -45,7 +45,7 @@ class Person(HyperModel):
     name: str
     id_: str
     is_locked: bool
-    items: List[Item]
+    items: Sequence[Item]
 
     href: UrlFor = UrlFor("read_person", {"id_": "<id_>"})
     update: UrlFor = UrlFor("update_person", {"id_": "<id_>"})
@@ -62,7 +62,7 @@ class PersonUpdate(BaseModel):
 
 
 class PeopleCollection(HyperModel):
-    people: List[Person]
+    people: Sequence[Person]
 
     href: UrlFor = UrlFor("read_people")
     find: UrlFor = UrlFor("read_person", template=True)
@@ -102,7 +102,7 @@ def update_person(id_: str, person: PersonUpdate) -> Any:
     return base_person
 
 
-@app.put("/people/{id_}/items", response_model=List[Item])
+@app.put("/people/{id_}/items", response_model=Sequence[Item])
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = items.get(item.id_)
 

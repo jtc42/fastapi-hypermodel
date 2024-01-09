@@ -1,11 +1,10 @@
-from fastapi.testclient import TestClient
-from examples.hal import Item
+import uuid
 
 import pytest
+from fastapi.testclient import TestClient
 
+from examples.hal import Item
 from fastapi_hypermodel import get_hal_link_href
-
-import uuid
 
 
 @pytest.fixture()
@@ -55,7 +54,8 @@ def test_get_item(
 
     item_href = get_hal_link_href(item_response, "self")
 
-    assert item_uri in item_href and item.id_ in item_href
+    assert item_uri in item_href
+    assert item.id_ in item_href
     assert item_response.get("id_") == item.id_
 
 

@@ -1,6 +1,10 @@
+from typing import List
+
+from fastapi_hypermodel import HALForType, UrlType
+
 items = {
     "_embedded": {
-        "items": [
+        "sc:items": [
             {"id_": "item01", "name": "Foo", "price": 10.2},
             {
                 "id_": "item02",
@@ -32,9 +36,9 @@ people = {
                 "name": "Alice",
                 "is_locked": False,
                 "_embedded": {
-                    "items": [
-                        items["_embedded"]["items"][0],
-                        items["_embedded"]["items"][1],
+                    "sc:items": [
+                        items["_embedded"]["sc:items"][0],
+                        items["_embedded"]["sc:items"][1],
                     ],
                 },
             },
@@ -43,9 +47,17 @@ people = {
                 "name": "Bob",
                 "is_locked": True,
                 "_embedded": {
-                    "items": [items["_embedded"]["items"][2]],
+                    "sc:items": [items["_embedded"]["sc:items"][2]],
                 },
             },
         ]
-    }
+    },
 }
+
+curies: List[HALForType] = [
+    HALForType(
+        href=UrlType("https://schema.org/{rel}"),
+        name="sc",
+        templated=True,
+    )
+]
