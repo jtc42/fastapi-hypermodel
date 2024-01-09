@@ -71,45 +71,55 @@ class PeopleCollection(HyperModel):
 
 @app.get("/items", response_model=ItemCollection)
 def read_items() -> Any:
-    return {"items": list(items.values())}
+    return items
 
 
 @app.get("/items/{id_}", response_model=Item)
 def read_item(id_: str) -> Any:
-    return items.get(id_)
+    return next(item for item in items.get("items", []) if item.get("id_") == id_)
 
 
 @app.put("/items/{id_}", response_model=Item)
 def update_item(id_: str, item: ItemUpdate) -> Any:
-    items.get(id_, {}).update(item.model_dump(exclude_none=True))
-    return items.get(id_)
+    item_ = next(item_ for item_ in items.get("items", []) if item_.get("id_") == id_)
+    item_.update(item.model_dump(exclude_none=True))
+    return item_
 
 
 @app.get("/people", response_model=PeopleCollection)
 def read_people() -> Any:
-    return {"people": list(people.values())}
+    return people
 
 
 @app.get("/people/{id_}", response_model=Person)
 def read_person(id_: str) -> Any:
-    return people.get(id_)
+    return next(
+        person for person in people.get("people", []) if person.get("id_") == id_
+    )
 
 
 @app.put("/people/{id_}", response_model=Person)
 def update_person(id_: str, person: PersonUpdate) -> Any:
-    base_person = people.get(id_, {})
+    base_person = next(
+        person for person in people.get("people", []) if person.get("id_") == id_
+    )
     base_person.update(person.model_dump(exclude_none=True))
     return base_person
 
 
 @app.put("/people/{id_}/items", response_model=Sequence[Item])
 def put_person_items(id_: str, item: ItemCreate) -> Any:
-    complete_item = items.get(item.id_)
+    complete_item = next(
+        (item_ for item_ in items.get("items", []) if item_.get("id_") == item.id_),
+        None,
+    )
 
     if not complete_item:
         return []
 
-    base_person = people.get(id_, {})
+    base_person = next(
+        person for person in people.get("people", []) if person.get("id_") == id_
+    )
     base_person_items = base_person.get("items", [])
     base_person_items.append(complete_item)
     return base_person_items
