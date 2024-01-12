@@ -9,9 +9,17 @@ from typing import (
     Optional,
     Sequence,
     Union,
+    cast,
 )
 
-from pydantic import BaseModel, Field, PrivateAttr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    PrivateAttr,
+    model_serializer,
+    model_validator,
+)
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -22,65 +30,57 @@ from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
-class SirenForType(BaseModel):
-    href: UrlType = Field(default=UrlType())
-    templated: Optional[bool] = None
+class SirenBase(BaseModel):
+    class_: Optional[Sequence[str]] = Field(default=None, alias="class")
     title: Optional[str] = None
-    name: Optional[str] = None
-    type: Optional[str] = None
-    hreflang: Optional[str] = None
-    profile: Optional[str] = None
-    deprecation: Optional[str] = None
-    method: Optional[str] = None
-    description: Optional[str] = None
-
-    def __bool__(self: Self) -> bool:
-        return bool(self.href)
 
 
-class SirenFor(SirenForType, AbstractHyperField[SirenForType]):
+class SirenLinkType(SirenBase):
+    rel: Sequence[str] = Field(default_factory=list)
+    href: UrlType = Field(default=UrlType())
+    type_: Optional[str] = Field(default=None, alias="type")
+
+    @model_serializer
+    def serialize(self: Self) -> Mapping[str, Any]:
+        return {self.model_fields[k].alias or k: v for k, v in self if v}
+
+
+class SirenFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
     # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
-    _description: Optional[str] = PrivateAttr()
+    _templated: bool = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
-    _templated: Optional[bool] = PrivateAttr()
+
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
     _title: Optional[str] = PrivateAttr()
-    _name: Optional[str] = PrivateAttr()
     _type: Optional[str] = PrivateAttr()
-    _hreflang: Optional[str] = PrivateAttr()
-    _profile: Optional[str] = PrivateAttr()
-    _deprecation: Optional[str] = PrivateAttr()
+    _rel: Sequence[str] = PrivateAttr()
+    _class: Optional[Sequence[str]] = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Mapping[str, str]] = None,
-        description: Optional[str] = None,
+        templated: bool = False,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        templated: Optional[bool] = None,
         title: Optional[str] = None,
-        name: Optional[str] = None,
         type_: Optional[str] = None,
-        hreflang: Optional[str] = None,
-        profile: Optional[str] = None,
-        deprecation: Optional[str] = None,
+        rel: Optional[Sequence[str]] = None,
+        class_: Optional[Sequence[str]] = None,
+        **kwargs: Any,
     ) -> None:
-        super().__init__()
+        super().__init__(**kwargs)
         self._endpoint = (
             endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
         )
         self._param_values = param_values or {}
-        self._description = description
-        self._condition = condition
         self._templated = templated
+        self._condition = condition
         self._title = title
-        self._name = name
         self._type = type_
-        self._hreflang = hreflang
-        self._profile = profile
-        self._deprecation = deprecation
+        self._rel = rel or []
+        self._class = class_
 
     def _get_uri_path(
         self: Self, app: Starlette, values: Mapping[str, Any], route: Union[Route, str]
@@ -93,35 +93,25 @@ class SirenFor(SirenForType, AbstractHyperField[SirenForType]):
 
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
-    ) -> HALForType:
+    ) -> Optional[SirenLinkType]:
         if app is None:
-            return HALForType()
+            return None
 
         if self._condition and not self._condition(values):
-            return HALForType()
+            return None
 
         route = get_route_from_app(app, self._endpoint)
-        method = next(iter(route.methods), "GET") if route.methods else "GET"
 
         uri_path = self._get_uri_path(app, values, route)
 
-        return HALForType(
-            href=uri_path,
-            method=method,
-            description=self._description,
-            templated=self._templated,
-            title=self._title,
-            name=self._name,
-            type=self._type,
-            hreflang=self._hreflang,
-            profile=self._profile,
-            deprecation=self._deprecation,
-        )
-
-
-class SirenBase(BaseModel):
-    class_: Optional[Sequence[str]] = Field(default=None, alias="class")
-    title: Optional[str] = None
+        # Using model_validate to avoid conflicts with keyword class
+        return SirenLinkType.model_validate({
+            "href": uri_path,
+            "rel": self._rel,
+            "title": self._title,
+            "type": self._type,
+            "class": self._class,
+        })
 
 
 POSSIBLE_FIELDS = [
@@ -165,12 +155,6 @@ class SirenActionType(SirenBase):
     fields: Optional[Sequence[SirenFieldType]]
 
 
-class SirenLinkType(SirenBase):
-    rel: Sequence[str]
-    href: UrlType = Field(default=UrlType())
-    type_: Optional[str] = Field(default=None, alias="type")
-
-
 class SirenEntityType(SirenBase):
     properties: Optional[Mapping[str, Any]] = None
     entities: Optional[Sequence[Union[SirenEmbeddedType, SirenLinkType]]] = None
@@ -185,8 +169,43 @@ class SirenEmbeddedType(SirenEntityType):
 class SirenHyperModel(HyperModel):
     properties: Optional[Mapping[str, Any]] = None
     entities: Optional[Sequence[Union[SirenEmbeddedType, SirenLinkType]]] = None
-    links: Optional[Sequence[SirenLinkType]] = None
+    links_: Optional[Sequence[Self]] = Field(default=None, alias="links")
     actions: Optional[Sequence[SirenActionType]] = None
+
+    # This config is needed to use the Self in Embedded
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    # @model_validator(mode="after")
+    # def add_properties(self: Self) -> Self:
+    #     properties: Dict[str, Any] = {}
+    #     for key, field in self:
+    #         value: Sequence[Any] = (
+    #             field if isinstance(field, Sequence) else [field]
+    #         )
+    #         if any(isinstance(value_, AbstractHyperField) for value_ in value):
+    #             continue
+
+    #         properties[key] = value
+
+    #         delattr(self, key)
+
+    #     self.properties = properties
+
+    #     return self
+
+    @model_validator(mode="after")
+    def add_links(self: Self) -> Self:
+        for name, value in self:
+            key = self.model_fields[name].alias or name
+
+            if key != "links" or not value:
+                continue
+
+            links = cast(Sequence[SirenFor], value)
+
+            self.links = [link(self._app, vars(self)) for link in links]
+
+        return self
 
     @model_validator(mode="after")
     def add_hypermodels_to_entities(self: Self) -> Self:
@@ -202,9 +221,9 @@ class SirenHyperModel(HyperModel):
             entities.extend(value)
             delattr(self, name)
 
-        self.embedded = entities
+        self.entities = entities
 
-        if not self.embedded:
+        if not self.entities:
             delattr(self, "entities")
 
         return self

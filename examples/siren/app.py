@@ -1,14 +1,12 @@
 from typing import Any, Optional, Sequence, cast
 
 from fastapi import FastAPI, HTTPException
-from pydantic import Field
 from pydantic.main import BaseModel
 
 from examples.siren.data import Item as ItemData
 from examples.siren.data import Person as PersonData
 from examples.siren.data import items, people
 from fastapi_hypermodel import (
-    LinkSet,
     SirenFor,
     SirenHyperModel,
     SirenResponse,
@@ -19,12 +17,9 @@ class ItemSummary(SirenHyperModel):
     name: str
     id_: str
 
-    links_: LinkSet = Field(
-        default=LinkSet({
-            "self": SirenFor("read_item", {"id_": "<id_>"}),
-            "update": SirenFor("update_item", {"id_": "<id_>"}),
-        }),
-        alias="_links",
+    links: Sequence[SirenFor] = (
+        SirenFor("read_item", {"id_": "<id_>"}, rel=["self"]),
+        SirenFor("update_item", {"id_": "<id_>"}, rel=["update"]),
     )
 
 
@@ -46,13 +41,10 @@ class ItemCreate(ItemUpdate):
 class ItemCollection(SirenHyperModel):
     items: Sequence[Item]
 
-    links_: LinkSet = Field(
-        default=LinkSet({
-            "self": SirenFor("read_items"),
-            "find": SirenFor("read_item", templated=True),
-            "update": SirenFor("update_item", templated=True),
-        }),
-        alias="_links",
+    links: Sequence[SirenFor] = (
+        SirenFor("read_items", rel=["self"], class_=["item"]),
+        SirenFor("read_item", rel=["find"], templated=True),
+        SirenFor("update_item", rel=["update"], templated=True),
     )
 
 
@@ -63,37 +55,29 @@ class Person(SirenHyperModel):
 
     items: Sequence[Item]
 
-    links_: LinkSet = Field(
-        default=LinkSet({
-            "self": SirenFor("read_person", {"id_": "<id_>"}),
-            "update": SirenFor("update_person", {"id_": "<id_>"}),
-            "add_item": SirenFor(
-                "put_person_items",
-                {"id_": "<id_>"},
-                description="Add an item to this person and the items list",
-                condition=lambda values: not values["is_locked"],
-            ),
-        }),
-        alias="_links",
+    links: Sequence[SirenFor] = (
+        SirenFor("read_person", {"id_": "<id_>"}),
+        SirenFor("update_person", {"id_": "<id_>"}),
+        SirenFor(
+            "put_person_items",
+            {"id_": "<id_>"},
+            description="Add an item to this person and the items list",
+            condition=lambda values: not values["is_locked"],
+        ),
     )
 
 
 class PersonCollection(SirenHyperModel):
     people: Sequence[Person]
 
-    links_: LinkSet = Field(
-        default=LinkSet({
-            "self": SirenFor("read_people"),
-            "find": SirenFor(
-                "read_person", description="Get a particular person", templated=True
-            ),
-            "update": SirenFor(
-                "update_person",
-                description="Update a particular person",
-                templated=True,
-            ),
-        }),
-        alias="_links",
+    links: Sequence[SirenFor] = (
+        SirenFor("read_people"),
+        SirenFor("read_person", description="Get a particular person", templated=True),
+        SirenFor(
+            "update_person",
+            description="Update a particular person",
+            templated=True,
+        ),
     )
 
 

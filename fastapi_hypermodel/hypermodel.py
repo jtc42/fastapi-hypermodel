@@ -59,7 +59,9 @@ class AbstractHyperField(ABC, Generic[T]):
         return subclasses_schemas
 
     @abstractmethod
-    def __call__(self: Self, app: Optional[Starlette], values: Mapping[str, Any]) -> T:
+    def __call__(
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> Optional[T]:
         raise NotImplementedError
 
 
