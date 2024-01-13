@@ -7,8 +7,9 @@ from examples.siren.data import Item as ItemData
 from examples.siren.data import Person as PersonData
 from examples.siren.data import items, people
 from fastapi_hypermodel import (
-    SirenFor,
+    SirenActionFor,
     SirenHyperModel,
+    SirenLinkFor,
     SirenResponse,
 )
 
@@ -17,9 +18,12 @@ class ItemSummary(SirenHyperModel):
     name: str
     id_: str
 
-    links: Sequence[SirenFor] = (
-        SirenFor("read_item", {"id_": "<id_>"}, rel=["self"]),
-        SirenFor("update_item", {"id_": "<id_>"}, rel=["update"]),
+    links: Sequence[SirenLinkFor] = (
+        SirenLinkFor("read_item", {"id_": "<id_>"}, rel=["self"]),
+    )
+
+    actions: Sequence[SirenActionFor] = (
+        SirenActionFor("update_item", {"id_": "<id_>"}, name="update"),
     )
 
 
@@ -41,10 +45,11 @@ class ItemCreate(ItemUpdate):
 class ItemCollection(SirenHyperModel):
     items: Sequence[Item]
 
-    links: Sequence[SirenFor] = (
-        SirenFor("read_items", rel=["self"], class_=["item"]),
-        SirenFor("read_item", rel=["find"], templated=True),
-        SirenFor("update_item", rel=["update"], templated=True),
+    links: Sequence[SirenLinkFor] = (SirenLinkFor("read_items", rel=["self"]),)
+
+    actions: Sequence[SirenActionFor] = (
+        SirenActionFor("read_item", rel=["find"], templated=True, name="find"),
+        SirenActionFor("update_item", rel=["update"], templated=True, name="update"),
     )
 
 
@@ -55,14 +60,18 @@ class Person(SirenHyperModel):
 
     items: Sequence[Item]
 
-    links: Sequence[SirenFor] = (
-        SirenFor("read_person", {"id_": "<id_>"}),
-        SirenFor("update_person", {"id_": "<id_>"}),
-        SirenFor(
+    links: Sequence[SirenLinkFor] = (
+        SirenLinkFor("read_person", {"id_": "<id_>"}, rel=["self"]),
+    )
+
+    actions: Sequence[SirenActionFor] = (
+        SirenActionFor("update_person", {"id_": "<id_>"}, rel=["update"]),
+        SirenActionFor(
             "put_person_items",
             {"id_": "<id_>"},
             description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
+            rel=["add_item"],
         ),
     )
 
@@ -70,13 +79,20 @@ class Person(SirenHyperModel):
 class PersonCollection(SirenHyperModel):
     people: Sequence[Person]
 
-    links: Sequence[SirenFor] = (
-        SirenFor("read_people"),
-        SirenFor("read_person", description="Get a particular person", templated=True),
-        SirenFor(
+    links: Sequence[SirenLinkFor] = (SirenLinkFor("read_people", rel=["self"]),)
+
+    actions: Sequence[SirenActionFor] = (
+        SirenActionFor(
+            "read_person",
+            description="Get a particular person",
+            templated=True,
+            rel=["find"],
+        ),
+        SirenActionFor(
             "update_person",
             description="Update a particular person",
             templated=True,
+            rel=["update"],
         ),
     )
 

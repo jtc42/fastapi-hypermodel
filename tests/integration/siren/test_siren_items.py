@@ -1,3 +1,4 @@
+from typing import Any, List
 import uuid
 
 import pytest
@@ -28,8 +29,63 @@ def item_uri() -> str:
 def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     response = siren_client.get(item_uri)
     content_type = response.headers.get("content-type")
-    assert content_type == "application/siren+json"
+    response_json = response.json()
+    assert response_json
 
+    assert not response_json.get("properties")
+    
+    links: List[Any] = response_json["links"]
+    assert links
+    assert isinstance(links, list)
+    assert len(links) == 1
+    first, *_ = links
+    assert first["href"]
+    assert not isinstance(first["href"], list)
+    assert first["href"]
+    
+    actions: List[Any] = response_json["actions"]
+    assert actions
+    assert isinstance(actions, list)
+    assert len(actions) == 2
+    first, *_ = actions
+    assert first["name"]
+    assert not isinstance(first["name"], list)
+    assert first["href"]
+    assert len(first) == 2
+    assert content_type == "application/siren+json"
+    
+    entities: List[Any] = response_json["entities"]
+    assert entities
+    assert isinstance(entities, list)
+    assert len(entities) == 4
+
+    first, *_ = entities
+    properties = first["properties"]
+    assert len(properties) == 4
+    assert properties.get("name")
+    assert properties.get("id_")
+    assert not isinstance(properties.get("description"), list)
+    assert properties.get("price")
+    
+    links = first["links"]
+    assert isinstance(links, list)
+    assert len(links) == 1
+
+    first_link, *_ = links
+    assert first_link.get("rel")
+    assert len(first_link.get("rel")) == 1
+    assert isinstance(first_link.get("rel"), list)
+    assert first_link.get("href")
+
+    actions = first["actions"]
+    assert isinstance(actions, list)
+    assert len(actions) == 1
+
+    first_action, *_ = actions
+    assert first_action.get("name")
+    assert first_link.get("href")
+
+    assert content_type == "application/siren+json"
 
 # def test_get_items(siren_client: TestClient, item_uri: str) -> None:
 #     response = siren_client.get(item_uri).json()
