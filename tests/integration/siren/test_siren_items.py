@@ -28,7 +28,10 @@ def item_uri() -> str:
 
 def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     response = siren_client.get(item_uri)
+    
     content_type = response.headers.get("content-type")
+    assert content_type == "application/siren+json"
+    
     response_json = response.json()
     assert response_json
 
@@ -47,13 +50,21 @@ def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     assert actions
     assert isinstance(actions, list)
     assert len(actions) == 2
-    first, *_ = actions
+    first, second, *_ = actions
     assert first["name"]
     assert not isinstance(first["name"], list)
     assert first["href"]
-    assert len(first) == 2
-    assert content_type == "application/siren+json"
-    
+    assert len(first) == 3
+
+    assert len(second) == 4
+    fields = second.get("fields")
+    assert fields
+    assert all(field.get("name") for field in fields)
+    types = [field.get("type") for field in fields]
+    assert all(types)
+    assert any(type_ == "text" for type_ in types)
+    assert any(type_ == "number" for type_ in types)
+
     entities: List[Any] = response_json["entities"]
     assert entities
     assert isinstance(entities, list)
@@ -85,7 +96,6 @@ def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     assert first_action.get("name")
     assert first_link.get("href")
 
-    assert content_type == "application/siren+json"
 
 # def test_get_items(siren_client: TestClient, item_uri: str) -> None:
 #     response = siren_client.get(item_uri).json()

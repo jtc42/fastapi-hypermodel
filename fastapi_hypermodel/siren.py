@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from enum import Enum
+from itertools import starmap
 from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
     List,
+    Literal,
     Mapping,
     Optional,
     Sequence,
@@ -14,22 +16,20 @@ from typing import (
     cast,
 )
 
+from fastapi.routing import APIRoute
 from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
     PrivateAttr,
+    field_validator,
     model_serializer,
     model_validator,
-    field_validator,
 )
 from pydantic.fields import FieldInfo
 from starlette.applications import Starlette
 from starlette.responses import JSONResponse
 from starlette.routing import Route
-
-from fastapi.routing import APIRoute
-
 from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, HyperModel
@@ -133,34 +133,52 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         })
 
 
-POSSIBLE_FIELDS = [
-    "hidden"
-    "text"
-    "search"
-    "tel"
-    "url"
-    "email"
-    "password"
-    "datetime"
-    "date"
-    "month"
-    "week"
-    "time"
-    "datetime-local"
-    "number"
-    "range"
-    "color"
-    "checkbox"
-    "radio"
-    "file"
+FieldType = Literal[
+    "hidden",
+    "text",
+    "search",
+    "tel",
+    "url",
+    "email",
+    "password",
+    "datetime",
+    "date",
+    "month",
+    "week",
+    "time",
+    "datetime-local",
+    "number",
+    "range",
+    "color",
+    "checkbox",
+    "radio",
+    "file",
 ]
-FieldType = Enum("FieldType", POSSIBLE_FIELDS)
 
 
 class SirenFieldType(SirenBase):
     name: str
-    type_: Optional[str] = Field(default=None, alias="type")
+    type_: Optional[FieldType] = Field(default=None, alias="type")
     value: Optional[str] = None
+
+    @classmethod
+    def from_field_info(cls: Type[Self], name: str, field_info: FieldInfo) -> Self:
+        return cls.model_validate({
+            "name": name,
+            "type": cls.parse_type(field_info.annotation),
+            "value": field_info.default,
+        })
+
+    @staticmethod
+    def parse_type(python_type: Optional[Type[Any]]) -> FieldType:
+        type_repr = repr(python_type)
+        if "str" in type_repr:
+            return "text"
+
+        if "float" in type_repr or "int" in type_repr:
+            return "number"
+
+        return "text"
 
 
 class SirenActionType(SirenBase):
@@ -186,7 +204,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
     _templated: bool = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
 
-    # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
+    # For details on the folllowing fields, check https://github.com/kevinswiber/siren
     _class: Optional[Sequence[str]] = PrivateAttr()
     _title: Optional[str] = PrivateAttr()
     _name: Optional[str] = PrivateAttr()
@@ -231,11 +249,10 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         params = resolve_param_values(self._param_values, values)
         return UrlType(app.url_path_for(self._endpoint, **params))
 
-
     def _compute_fields(self: Self, route: Route) -> List[SirenFieldType]:
         if not isinstance(route, APIRoute):
             return []
-        
+
         body_field = route.body_field
         if not body_field:
             return []
@@ -244,21 +261,12 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
 
         if not annotation:
             return []
-        
-        model_fields = cast(Optional[Dict[str, FieldInfo]], annotation.model_fields) # type: ignore
+
+        model_fields = cast(Optional[Dict[str, FieldInfo]], annotation.model_fields)  # type: ignore
         if not model_fields:
             return []
-        
-        fields: List[SirenFieldType] = []
-        for name, field_info in model_fields.items():
-            field = SirenFieldType.model_validate({
-                "name": name,
-                "type": repr(field_info.annotation),
-                "value": field_info.default,
-            }) 
-            fields.append(field)
 
-        return fields
+        return list(starmap(SirenFieldType.from_field_info, model_fields.items()))
 
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
@@ -270,7 +278,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
             return None
 
         route = get_route_from_app(app, self._endpoint)
-        
+
         if not self._method:
             self._method = next(iter(route.methods or {}), None)
 
