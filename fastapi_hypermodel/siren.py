@@ -159,7 +159,7 @@ FieldType = Literal[
 class SirenFieldType(SirenBase):
     name: str
     type_: Optional[FieldType] = Field(default=None, alias="type")
-    value: Optional[str] = None
+    value: Optional[Any] = None
 
     @classmethod
     def from_field_info(cls: Type[Self], name: str, field_info: FieldInfo) -> Self:
@@ -185,7 +185,9 @@ class SirenActionType(SirenBase):
     name: str = Field(default="")
     method: Optional[str] = Field(default=None)
     href: UrlType = Field(default=UrlType())
-    type_: Optional[str] = Field(default=None, alias="type")
+    type_: Optional[str] = Field(
+        default="application/x-www-form-urlencoded", alias="type"
+    )
     fields: Optional[Sequence[SirenFieldType]] = Field(default=None)
 
     @field_validator("name", "href")
@@ -198,7 +200,6 @@ class SirenActionType(SirenBase):
 
 
 class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
-    # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _templated: bool = PrivateAttr()
@@ -249,7 +250,16 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         params = resolve_param_values(self._param_values, values)
         return UrlType(app.url_path_for(self._endpoint, **params))
 
-    def _compute_fields(self: Self, route: Route) -> List[SirenFieldType]:
+    def _prepopulate_fields(
+        self: Self, fields: Sequence[SirenFieldType], values: Mapping[str, Any]
+    ) -> List[SirenFieldType]:
+        for field in fields:
+            field.value = values.get(field.name) or field.value
+        return list(fields)
+
+    def _compute_fields(
+        self: Self, route: Route, values: Mapping[str, Any]
+    ) -> List[SirenFieldType]:
         if not isinstance(route, APIRoute):
             return []
 
@@ -266,7 +276,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         if not model_fields:
             return []
 
-        return list(starmap(SirenFieldType.from_field_info, model_fields.items()))
+        fields = list(starmap(SirenFieldType.from_field_info, model_fields.items()))
+        return self._prepopulate_fields(fields, values)
 
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
@@ -285,7 +296,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         uri_path = self._get_uri_path(app, values, route)
 
         if not self._fields:
-            self._fields = self._compute_fields(route)
+            self._fields = self._compute_fields(route, values)
 
         # Using model_validate to avoid conflicts with class and type
         return SirenActionType.model_validate({

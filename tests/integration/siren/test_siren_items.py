@@ -94,7 +94,15 @@ def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
 
     first_action, *_ = actions
     assert first_action.get("name")
-    assert first_link.get("href")
+    assert first_action.get("href")
+    assert first_action.get("type")
+
+    fields = first_action.get("fields")
+    assert fields
+    assert all(field.get("name") for field in fields)
+    assert all(field.get("type") for field in fields)
+    assert any(field.get("value") for field in fields)
+
 
 
 # def test_get_items(siren_client: TestClient, item_uri: str) -> None:
