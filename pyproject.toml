@@ -65,6 +65,7 @@ ignore = [
     "ISC001", # Disable for compatibility with ruff-format
 ]
 extend-exclude = ["tests"]
+target-version = "py38"
 
 [tool.ruff.lint]
 extend-select = [

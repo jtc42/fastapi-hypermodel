@@ -10,7 +10,9 @@ class Item(TypedDict):
     description: NotRequired[str]
 
 
-Items = TypedDict("Items", {"items": List[Item]})
+class Items(TypedDict):
+    items: List[Item]
+
 
 items: Items = {
     "items": [
@@ -36,9 +38,12 @@ items: Items = {
     ]
 }
 
-Person = TypedDict(
-    "Person", {"id_": str, "name": str, "is_locked": bool, "items": List[Item]}
-)
+
+class Person(TypedDict):
+    id_: str
+    name: str
+    is_locked: bool
+    items: List[Item]
 
 
 class People(TypedDict):
