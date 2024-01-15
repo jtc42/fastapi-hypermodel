@@ -180,7 +180,7 @@ class SirenFieldType(SirenBase):
 
 
 class SirenActionType(SirenBase):
-    name: str = Field(default="")
+    name: str | None = Field(default="")
     method: str | None = Field(default=None)
     href: UrlType = Field(default=UrlType())
     type_: str | None = Field(default="application/x-www-form-urlencoded", alias="type")
@@ -217,7 +217,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         templated: bool = False,
         condition: Callable[[Mapping[str, Any]], bool] | None = None,
         title: str | None = None,
-        type_: str | None = None,
+        type_: str | None = "application/x-www-form-urlencoded",
         class_: Sequence[str] | None = None,
         fields: Sequence[SirenFieldType] | None = None,
         method: str | None = None,

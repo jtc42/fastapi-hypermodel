@@ -1,12 +1,11 @@
-from typing import Any, List
 import uuid
+from typing import Any, List, Mapping
 
 import pytest
 from fastapi.testclient import TestClient
 
-from fastapi_hypermodel import get_siren_link, get_siren_action
-
 from examples.siren import Item
+from fastapi_hypermodel import get_siren_action, get_siren_link
 
 
 @pytest.fixture()
@@ -15,17 +14,17 @@ def item_uri() -> str:
 
 
 @pytest.fixture()
-def find_uri_template(siren_client: TestClient, item_uri: str) -> str:
+def find_uri_template(siren_client: TestClient, item_uri: str) -> Mapping[str, str]:
     reponse = siren_client.get(item_uri).json()
-    find_uri = get_siren_action(reponse, "find").get("href", "")
+    find_uri = get_siren_action(reponse, "find")
     assert find_uri
     return find_uri
 
 
 @pytest.fixture()
-def update_uri_template(siren_client: TestClient, item_uri: str) -> str:
+def update_uri_template(siren_client: TestClient, item_uri: str) -> Mapping[str, str]:
     reponse = siren_client.get(item_uri).json()
-    update_uri = get_siren_action(reponse, "update").get("href", "")
+    update_uri = get_siren_action(reponse, "update")
     assert update_uri
     return update_uri
 
@@ -58,9 +57,9 @@ def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     assert first["name"]
     assert not isinstance(first["name"], list)
     assert first["href"]
-    assert len(first) == 4
+    assert len(first) == 5
 
-    assert len(second) == 5
+    assert len(second) == 6
     fields = second.get("fields")
     assert fields
     assert all(field.get("name") for field in fields)
@@ -126,12 +125,15 @@ def test_get_items(siren_client: TestClient, item_uri: str) -> None:
 
 def test_get_item(
     siren_client: TestClient,
-    find_uri_template: str,
+    find_uri_template: Mapping[str, str],
     item_uri: str,
     item: Item,
 ) -> None:
-    find_uri = item.parse_uri(find_uri_template)
-    item_response = siren_client.get(find_uri).json()
+    find_uri_href = find_uri_template.get("href", "")
+    find_uri = item.parse_uri(find_uri_href)
+
+    find_method = find_uri_template.get("method", "")
+    item_response = siren_client.request(find_method, find_uri).json()
 
     item_href = get_siren_link(item_response, "self").get("href", "")
 
@@ -145,16 +147,23 @@ def test_get_item(
 
 def test_update_item_from_uri_template(
     siren_client: TestClient,
-    find_uri_template: str,
-    update_uri_template: str,
+    find_uri_template: Mapping[str, str],
+    update_uri_template: Mapping[str, str],
     item: Item,
 ) -> None:
-    find_uri = item.parse_uri(find_uri_template)
-    before = siren_client.get(find_uri).json()
+    find_uri_href = find_uri_template.get("href", "")
+    find_uri = item.parse_uri(find_uri_href)
+
+    find_method = find_uri_template.get("method", "")
+    before = siren_client.request(find_method, find_uri).json()
 
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
-    update_uri = item.parse_uri(update_uri_template)
-    response = siren_client.put(update_uri, json=new_data).json()
+
+    update_uri_href = update_uri_template.get("href", "")
+    update_uri = item.parse_uri(update_uri_href)
+
+    update_method = update_uri_template.get("method", "")
+    response = siren_client.request(update_method, update_uri, json=new_data).json()
 
     name = response.get("properties", {}).get("name")
     assert name == new_data.get("name")
@@ -167,21 +176,24 @@ def test_update_item_from_uri_template(
 
 
 def test_update_item_from_update_uri(
-    siren_client: TestClient, find_uri_template: str, item: Item
+    siren_client: TestClient, find_uri_template: Mapping[str, str], item: Item
 ) -> None:
-    find_uri = item.parse_uri(find_uri_template)
-    before = siren_client.get(find_uri).json()
+    find_uri_href = find_uri_template.get("href", "")
+    find_uri = item.parse_uri(find_uri_href)
+
+    find_method = find_uri_template.get("method", "")
+    before = siren_client.request(find_method, find_uri).json()
 
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
     update_action = get_siren_action(before, "update")
 
-    uddate_method = update_action.get("method")
-    assert uddate_method
+    update_method = update_action.get("method")
+    assert update_method
     update_uri = update_action.get("href")
     assert update_uri
 
-    response = siren_client.request(uddate_method, update_uri, json=new_data).json()
+    response = siren_client.request(update_method, update_uri, json=new_data).json()
 
     name = response.get("properties", {}).get("name")
     assert name == new_data.get("name")

@@ -48,8 +48,8 @@ class ItemCollection(SirenHyperModel):
     links: Sequence[SirenLinkFor] = (SirenLinkFor("read_items", rel=["self"]),)
 
     actions: Sequence[SirenActionFor] = (
-        SirenActionFor("read_item", rel=["find"], templated=True, name="find"),
-        SirenActionFor("update_item", rel=["update"], templated=True, name="update"),
+        SirenActionFor("read_item", templated=True, name="find"),
+        SirenActionFor("update_item", templated=True, name="update"),
     )
 
 
@@ -65,19 +65,19 @@ class Person(SirenHyperModel):
     )
 
     actions: Sequence[SirenActionFor] = (
-        SirenActionFor("update_person", {"id_": "<id_>"}, rel=["update"]),
+        SirenActionFor("update_person", {"id_": "<id_>"}, name="update"),
         SirenActionFor(
             "put_person_items",
             {"id_": "<id_>"},
             description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
-            rel=["add_item"],
+            name="add_item",
         ),
     )
 
 
 class PersonCollection(SirenHyperModel):
-    people: Sequence[Person]
+    # people: Sequence[Person]
 
     links: Sequence[SirenLinkFor] = (SirenLinkFor("read_people", rel=["self"]),)
 
@@ -86,13 +86,13 @@ class PersonCollection(SirenHyperModel):
             "read_person",
             description="Get a particular person",
             templated=True,
-            rel=["find"],
+            name="find",
         ),
         SirenActionFor(
             "update_person",
             description="Update a particular person",
             templated=True,
-            rel=["update"],
+            name="update",
         ),
     )
 
