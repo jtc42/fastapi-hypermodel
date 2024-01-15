@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from itertools import starmap
+from string import Formatter
 from typing import (
     Any,
     Callable,
@@ -31,6 +32,7 @@ from typing_extensions import Self
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, HyperModel
 from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import (
+    extract_value_by_name,
     get_route_from_app,
     resolve_param_values,
 )
@@ -181,10 +183,9 @@ class SirenActionType(SirenBase):
     name: str = Field(default="")
     method: str | None = Field(default=None)
     href: UrlType = Field(default=UrlType())
-    type_: str | None = Field(
-        default="application/x-www-form-urlencoded", alias="type"
-    )
+    type_: str | None = Field(default="application/x-www-form-urlencoded", alias="type")
     fields: Sequence[SirenFieldType] | None = Field(default=None)
+    templated: bool | None = Field(default=False)
 
     @field_validator("name", "href")
     @classmethod
@@ -303,6 +304,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
             "title": self._title,
             "type": self._type,
             "class": self._class,
+            "templated": self._templated,
         })
 
 
@@ -424,6 +426,18 @@ class SirenHyperModel(HyperModel):
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:
         return SirenEmbeddedType(rel=rel, **field.model_dump())
+
+    def parse_uri(self: Self, uri_template: str) -> str:
+        parameters: dict[str, str] = {}
+
+        for _, field, *_ in Formatter().parse(uri_template):
+            if not field:
+                error_message = "Empty Fields Cannot be Processed"
+                raise ValueError(error_message)
+
+            parameters[field] = extract_value_by_name(self.properties, field)
+
+        return uri_template.format(**parameters)
 
 
 class SirenResponse(JSONResponse):

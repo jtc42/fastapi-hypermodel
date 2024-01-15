@@ -19,6 +19,8 @@ from .utils import (
     extract_value_by_name,
     get_hal_link_href,
     get_route_from_app,
+    get_siren_action,
+    get_siren_link,
     resolve_param_values,
 )
 
@@ -42,6 +44,8 @@ __all__ = [
     "resolve_param_values",
     "AbstractHyperField",
     "get_hal_link_href",
+    "get_siren_action",
+    "get_siren_link",
     "extract_value_by_name",
     "get_route_from_app",
     "URL_TYPE_SCHEMA",
