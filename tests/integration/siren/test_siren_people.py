@@ -38,6 +38,10 @@ def test_people_content_type(siren_client: TestClient, people_uri: str) -> None:
 def test_get_people(siren_client: TestClient, people_uri: str) -> None:
     response = siren_client.get(people_uri).json()
 
+    people = response.get("entities", [])
+    assert len(people) == 2
+    assert all(person.get("rel") == "people" for person in people)
+
     self_uri = get_siren_link(response, "self").get("href")
     assert self_uri == people_uri
 
@@ -140,6 +144,7 @@ def test_get_person_items(
 
     assert person_items
     assert isinstance(person_items, list)
+    assert all(item.get("rel") == "items" for item in person_items)
 
     first_item, *_ = person_items
     first_item_uri = get_siren_link(first_item, "self").get("href", "")

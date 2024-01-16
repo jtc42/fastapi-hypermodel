@@ -77,7 +77,7 @@ class Person(SirenHyperModel):
 
 
 class PersonCollection(SirenHyperModel):
-    # people: Sequence[Person]
+    people: Sequence[Person]
 
     links: Sequence[SirenLinkFor] = (SirenLinkFor("read_people", rel=["self"]),)
 

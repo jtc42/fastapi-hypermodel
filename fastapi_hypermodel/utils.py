@@ -117,9 +117,9 @@ def get_siren_link(response: Any, link_name: str) -> Mapping[str, Any]:
     return next((link for link in links if link_name in link.get("rel")), {})
 
 
-def get_siren_action(response: Any, link_name: str) -> Mapping[str, Any]:
-    links = response.get("actions", [])
-    return next((link for link in links if link_name in link.get("name")), {})
+def get_siren_action(response: Any, action_name: str) -> Mapping[str, Any]:
+    actions = response.get("actions", [])
+    return next((action for action in actions if action_name in action.get("name")), {})
 
 
 def get_route_from_app(app: Starlette, endpoint_function: str) -> Route:

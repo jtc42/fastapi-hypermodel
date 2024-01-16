@@ -6,6 +6,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Literal,
     Mapping,
     Optional,
@@ -376,7 +377,14 @@ class SirenHyperModel(HyperModel):
 
             self.properties = self.properties or {}
 
-            self.links = [link(self._app, self.properties) for link in links]
+            validated_links: List[SirenLinkType] = []
+            for link_factory in links:
+                link = link_factory(self._app, self.properties)
+                if not link:
+                    continue
+                validated_links.append(link)
+            
+            self.links = validated_links
 
         return self
 
@@ -392,7 +400,14 @@ class SirenHyperModel(HyperModel):
 
             self.properties = self.properties or {}
 
-            self.actions = [action(self._app, self.properties) for action in actions]
+            validated_actions: List[SirenActionType] = []
+            for action_factory in actions:
+                action = action_factory(self._app, self.properties)
+                if not action:
+                    continue
+                validated_actions.append(action)
+            
+            self.actions = validated_actions
 
         return self
 
@@ -421,7 +436,7 @@ class SirenHyperModel(HyperModel):
 
     @model_serializer
     def serialize(self: Self) -> Mapping[str, Any]:
-        return {self.model_fields[k].alias or k: v for k, v in self if v}
+        return {self.model_fields[k].alias or k: v for k, v in self}
 
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:
