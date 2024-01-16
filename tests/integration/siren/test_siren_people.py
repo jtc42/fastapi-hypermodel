@@ -28,6 +28,18 @@ def update_uri_template(siren_client: TestClient, people_uri: str) -> Mapping[st
     assert update_uri
     return update_uri
 
+@pytest.fixture()
+def person_response(
+    siren_client: TestClient,
+    find_uri_template: Mapping[str, str],
+    person: Person
+) -> Mapping[str, Any]:
+    find_uri_href = find_uri_template.get("href", "")
+    find_uri = person.parse_uri(find_uri_href)
+
+    find_method = find_uri_template.get("method", "")
+    return siren_client.request(find_method, find_uri).json()
+
 
 def test_people_content_type(siren_client: TestClient, people_uri: str) -> None:
     response = siren_client.get(people_uri)
@@ -51,17 +63,10 @@ def test_get_people(siren_client: TestClient, people_uri: str) -> None:
 
 
 def test_get_person(
-    siren_client: TestClient,
-    find_uri_template: Mapping[str, str],
+    person_response: Mapping[str, Any],
     person: Person,
     people_uri: str,
 ) -> None:
-    find_uri_href = find_uri_template.get("href", "")
-    find_uri = person.parse_uri(find_uri_href)
-
-    find_method = find_uri_template.get("method", "")
-    person_response = siren_client.request(find_method, find_uri).json()
-
     person_href = get_siren_link(person_response, "self").get("href", "")
 
     assert people_uri in person_href
@@ -70,7 +75,7 @@ def test_get_person(
 
     person_id = person.properties.get("id_", "")
     assert person_id in person_href
-    assert person_response.get("properties").get("id_") == person_id
+    assert person_response.get("properties", {}).get("id_") == person_id
 
     entities = person_response.get("entities")
     assert entities
@@ -79,16 +84,10 @@ def test_get_person(
 
 def test_update_person_from_uri_template(
     siren_client: TestClient,
-    find_uri_template: Mapping[str, str],
+    person_response: Mapping[str, Any],
     update_uri_template: Mapping[str, str],
     person: Person,
 ) -> None:
-    find_uri_href = find_uri_template.get("href", "")
-    find_uri = person.parse_uri(find_uri_href)
-
-    find_method = find_uri_template.get("method", "")
-    before = siren_client.request(find_method, find_uri).json()
-
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
     update_uri_href = update_uri_template.get("href", "")
@@ -98,49 +97,37 @@ def test_update_person_from_uri_template(
     response = siren_client.request(update_method, update_uri, json=new_data).json()
 
     assert response.get("properties").get("name") == new_data.get("name")
-    assert response.get("properties").get("name") != before.get("name")
+    assert response.get("properties").get("name") != person_response.get("name")
 
-    before_uri = get_siren_link(before, "self").get("href")
+    person_response_uri = get_siren_link(person_response, "self").get("href")
     after_uri = get_siren_link(response, "self").get("href")
 
-    assert before_uri == after_uri
+    assert person_response_uri == after_uri
 
 
 def test_update_person_from_update_uri(
-    siren_client: TestClient, find_uri_template: Mapping[str, str], person: Person
+    siren_client: TestClient, person_response: Mapping[str, Any]
 ) -> None:
-    find_uri_href = find_uri_template.get("href", "")
-    find_uri = person.parse_uri(find_uri_href)
-
-    find_method = find_uri_template.get("method", "")
-    before = siren_client.request(find_method, find_uri).json()
-
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
-    update_action = get_siren_action(before, "update")
+    update_action = get_siren_action(person_response, "update")
     update_href = update_action.get("href", "")
     update_method = update_action.get("method", "")
     response = siren_client.request(update_method, update_href, json=new_data).json()
 
     assert response.get("properties").get("name") == new_data.get("name")
-    assert response.get("properties").get("name") != before.get("name")
+    assert response.get("properties").get("name") != person_response.get("name")
 
-    before_uri = get_siren_link(before, "self").get("href")
+    person_response_uri = get_siren_link(person_response, "self").get("href")
     after_uri = get_siren_link(response, "self").get("href")
 
-    assert before_uri == after_uri
+    assert person_response_uri == after_uri
 
 
 def test_get_person_items(
-    siren_client: TestClient, find_uri_template: Mapping[str, str], person: Person
+    siren_client: TestClient, person_response: Mapping[str, Any]
 ) -> None:
-    find_uri_href = find_uri_template.get("href", "")
-    find_uri = person.parse_uri(find_uri_href)
-
-    find_method = find_uri_template.get("method", "")
-    person_response = siren_client.request(find_method, find_uri).json()
-
-    person_items: Sequence[Mapping[str, str]] = person_response.get("entities")
+    person_items: Sequence[Mapping[str, str]] = person_response.get("entities", [])
 
     assert person_items
     assert isinstance(person_items, list)
