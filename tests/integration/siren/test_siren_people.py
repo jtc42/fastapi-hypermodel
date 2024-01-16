@@ -170,6 +170,10 @@ def test_add_item_to_unlocked_person(
 
     add_item_href = add_item_action.get("href", "")
     add_item_method = add_item_action.get("method", "")
+    required_fields = add_item_action.get("fields", {})
+
+    for required_field in required_fields:
+        assert existing_item.get(required_field.get("name"))
 
     after = siren_client.request(
         add_item_method, add_item_href, json=existing_item

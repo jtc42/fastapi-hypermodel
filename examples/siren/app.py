@@ -38,7 +38,7 @@ class ItemUpdate(BaseModel):
     price: Optional[float] = None
 
 
-class ItemCreate(ItemUpdate):
+class ItemCreate(BaseModel):
     id_: str
 
 
@@ -72,6 +72,7 @@ class Person(SirenHyperModel):
             description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
             name="add_item",
+            populate_fields=False,
         ),
     )
 

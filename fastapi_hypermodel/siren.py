@@ -202,6 +202,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
     _param_values: Mapping[str, str] = PrivateAttr()
     _templated: bool = PrivateAttr()
     _condition: Callable[[Mapping[str, Any]], bool] | None = PrivateAttr()
+    _populate_fields: bool = PrivateAttr()
 
     # For details on the folllowing fields, check https://github.com/kevinswiber/siren
     _class: Sequence[str] | None = PrivateAttr()
@@ -217,6 +218,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         param_values: Mapping[str, str] | None = None,
         templated: bool = False,
         condition: Callable[[Mapping[str, Any]], bool] | None = None,
+        populate_fields: bool = True,
         title: str | None = None,
         type_: str | None = "application/x-www-form-urlencoded",
         class_: Sequence[str] | None = None,
@@ -232,6 +234,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         self._param_values = param_values or {}
         self._templated = templated
         self._condition = condition
+        self._populate_fields = populate_fields
         self._title = title
         self._type = type_
         self._fields = fields or []
@@ -251,6 +254,9 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
     def _prepopulate_fields(
         self: Self, fields: Sequence[SirenFieldType], values: Mapping[str, Any]
     ) -> list[SirenFieldType]:
+        if not self._populate_fields:
+            return list(fields)
+
         for field in fields:
             field.value = values.get(field.name) or field.value
         return list(fields)
