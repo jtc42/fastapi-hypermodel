@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from examples.siren import Person
-from fastapi_hypermodel import get_siren_action, get_siren_link, SirenActionType
+from fastapi_hypermodel import SirenActionType, get_siren_action, get_siren_link
 
 
 @pytest.fixture()
@@ -28,11 +28,10 @@ def update_action(siren_client: TestClient, people_uri: str) -> SirenActionType:
     assert update_action_
     return update_action_
 
+
 @pytest.fixture()
 def person_response(
-    siren_client: TestClient,
-    find_action: SirenActionType,
-    person: Person
+    siren_client: TestClient, find_action: SirenActionType, person: Person
 ) -> Mapping[str, Any]:
     find_uri = person.parse_uri(find_action.href)
     return siren_client.request(find_action.method, find_uri).json()
@@ -67,7 +66,7 @@ def test_get_person(
     people_uri: str,
 ) -> None:
     self_link = get_siren_link(person_response, "self")
-    
+
     assert self_link
     assert people_uri in self_link.href
     assert person.properties
@@ -90,14 +89,16 @@ def test_update_person_from_uri_template(
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
     update_uri = person.parse_uri(update_action.href)
-    response = siren_client.request(update_action.method, update_uri, json=new_data).json()
+    response = siren_client.request(
+        update_action.method, update_uri, json=new_data
+    ).json()
 
     assert response.get("properties").get("name") == new_data.get("name")
     assert response.get("properties").get("name") != person_response.get("name")
 
     self_link = get_siren_link(person_response, "self")
     after_link = get_siren_link(response, "self")
-    
+
     assert self_link
     assert after_link
     assert self_link.href == after_link.href
@@ -110,7 +111,9 @@ def test_update_person_from_update_uri(
 
     update_action = get_siren_action(person_response, "update")
     assert update_action
-    response = siren_client.request(update_action.method, update_action.href, json=new_data).json()
+    response = siren_client.request(
+        update_action.method, update_action.href, json=new_data
+    ).json()
 
     assert response.get("properties").get("name") == new_data.get("name")
     assert response.get("properties").get("name") != person_response.get("name")
@@ -169,7 +172,9 @@ def test_add_item_to_unlocked_person(
     for required_field in add_item.fields:
         assert existing_item.get(required_field.name)
 
-    after = siren_client.request(add_item.method, add_item.href, json=existing_item).json()
+    after = siren_client.request(
+        add_item.method, add_item.href, json=existing_item
+    ).json()
     after_items = after.get("entities", {})
     assert after_items
 
@@ -193,7 +198,9 @@ def test_add_item_to_unlocked_person_nonexisting_item(
 
     assert add_item
 
-    response = siren_client.request(add_item.method, add_item.href, json=non_existing_item)
+    response = siren_client.request(
+        add_item.method, add_item.href, json=non_existing_item
+    )
 
     assert response.status_code == 404
     assert response.json() == {"detail": "No item found with id item05"}

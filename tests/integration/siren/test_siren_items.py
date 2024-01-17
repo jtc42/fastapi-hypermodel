@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from examples.siren import Item
-from fastapi_hypermodel import get_siren_action, get_siren_link, SirenActionType
+from fastapi_hypermodel import SirenActionType, get_siren_action, get_siren_link
 
 
 @pytest.fixture()
@@ -160,7 +160,9 @@ def test_update_item_from_uri_template(
     update_uri = item.parse_uri(update_uri_template.href)
 
     assert update_uri_template.method
-    response = siren_client.request(update_uri_template.method, update_uri, json=new_data).json()
+    response = siren_client.request(
+        update_uri_template.method, update_uri, json=new_data
+    ).json()
 
     name = response.get("properties", {}).get("name")
     assert name == new_data.get("name")
@@ -186,7 +188,9 @@ def test_update_item_from_update_uri(
 
     assert update_action
 
-    response = siren_client.request(update_action.method, update_action.href, json=new_data).json()
+    response = siren_client.request(
+        update_action.method, update_action.href, json=new_data
+    ).json()
 
     name = response.get("properties", {}).get("name")
     assert name == new_data.get("name")

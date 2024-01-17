@@ -6,7 +6,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    List,
     Literal,
     Mapping,
     Optional,
@@ -408,8 +407,8 @@ class SirenHyperModel(HyperModel):
 
     def _validate_factory(
         self: Self, elements: Sequence[T], properties: Mapping[str, str]
-    ) -> List[T]:
-        validated_elements: List[Any] = []
+    ) -> list[T]:
+        validated_elements: list[Any] = []
         for element_factory in elements:
             element = element_factory(self._app, properties)
             if not element:
