@@ -11,6 +11,7 @@ from typing import (
     Mapping,
     Optional,
     Sequence,
+    TypeVar,
     cast,
 )
 
@@ -181,12 +182,12 @@ class SirenFieldType(SirenBase):
 
 
 class SirenActionType(SirenBase):
-    name: str | None = Field(default="")
-    method: str | None = Field(default=None)
+    name: str = Field(default="")
+    method: str = Field(default="GET")
     href: UrlType = Field(default=UrlType())
-    type_: str | None = Field(default="application/x-www-form-urlencoded", alias="type")
+    type_: str | None = Field(default=None, alias="type")
     fields: Sequence[SirenFieldType] | None = Field(default=None)
-    templated: bool | None = Field(default=False)
+    templated: bool = Field(default=False)
 
     @field_validator("name", "href")
     @classmethod
@@ -220,7 +221,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         condition: Callable[[Mapping[str, Any]], bool] | None = None,
         populate_fields: bool = True,
         title: str | None = None,
-        type_: str | None = "application/x-www-form-urlencoded",
+        type_: str = "application/x-www-form-urlencoded",
         class_: Sequence[str] | None = None,
         fields: Sequence[SirenFieldType] | None = None,
         method: str | None = None,
@@ -302,6 +303,9 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         if not self._fields:
             self._fields = self._compute_fields(route, values)
 
+        if not self._type and self._fields:
+            self._type = "application/x-www-form-urlencoded"
+
         # Using model_validate to avoid conflicts with class and type
         return SirenActionType.model_validate({
             "href": uri_path,
@@ -324,6 +328,9 @@ class SirenEntityType(SirenBase):
 
 class SirenEmbeddedType(SirenEntityType):
     rel: str = Field()
+
+
+T = TypeVar("T", bound=Callable[..., Any])
 
 
 class SirenHyperModel(HyperModel):
@@ -380,17 +387,8 @@ class SirenHyperModel(HyperModel):
                 continue
 
             links = cast(Sequence[SirenLinkFor], value)
-
-            self.properties = self.properties or {}
-
-            validated_links: List[SirenLinkType] = []
-            for link_factory in links:
-                link = link_factory(self._app, self.properties)
-                if not link:
-                    continue
-                validated_links.append(link)
-            
-            self.links = validated_links
+            properties = self.properties or {}
+            self.links = self._validate_factory(links, properties)
 
         return self
 
@@ -402,20 +400,22 @@ class SirenHyperModel(HyperModel):
             if key != "actions" or not value:
                 continue
 
+            properties = self.properties or {}
             actions = cast(Sequence[SirenActionFor], value)
-
-            self.properties = self.properties or {}
-
-            validated_actions: List[SirenActionType] = []
-            for action_factory in actions:
-                action = action_factory(self._app, self.properties)
-                if not action:
-                    continue
-                validated_actions.append(action)
-            
-            self.actions = validated_actions
+            self.actions = self._validate_factory(actions, properties)
 
         return self
+
+    def _validate_factory(
+        self: Self, elements: Sequence[T], properties: Mapping[str, str]
+    ) -> List[T]:
+        validated_elements: List[Any] = []
+        for element_factory in elements:
+            element = element_factory(self._app, properties)
+            if not element:
+                continue
+            validated_elements.append(element)
+        return validated_elements
 
     @model_validator(mode="after")
     def add_hypermodels_to_entities(self: Self) -> Self:
@@ -482,7 +482,9 @@ def get_siren_link(response: Any, link_name: str) -> SirenLinkType | None:
 
 def get_siren_action(response: Any, action_name: str) -> SirenActionType | None:
     actions = response.get("actions", [])
-    action = next((action for action in actions if action_name in action.get("name")), {})
+    action = next(
+        (action for action in actions if action_name in action.get("name")), {}
+    )
     if not action:
         return None
     return SirenActionType.model_validate(action)

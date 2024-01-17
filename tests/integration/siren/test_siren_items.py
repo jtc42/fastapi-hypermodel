@@ -131,9 +131,6 @@ def test_get_item(
     item: Item,
 ) -> None:
     find_uri = item.parse_uri(find_uri_template.href)
-
-    assert find_uri_template.method
-
     item_response = siren_client.request(find_uri_template.method, find_uri).json()
 
     item_href = get_siren_link(item_response, "self")
@@ -181,9 +178,6 @@ def test_update_item_from_update_uri(
     siren_client: TestClient, find_uri_template: SirenActionType, item: Item
 ) -> None:
     find_uri = item.parse_uri(find_uri_template.href)
-
-    assert find_uri_template.method
-
     before = siren_client.request(find_uri_template.method, find_uri).json()
 
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
@@ -191,8 +185,6 @@ def test_update_item_from_update_uri(
     update_action = get_siren_action(before, "update")
 
     assert update_action
-    assert update_action.method
-    assert update_action.href
 
     response = siren_client.request(update_action.method, update_action.href, json=new_data).json()
 
