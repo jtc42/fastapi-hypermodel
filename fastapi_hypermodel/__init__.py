@@ -7,10 +7,13 @@ from .hypermodel import (
 from .linkset import LinkSet, LinkSetType
 from .siren import (
     SirenActionFor,
+    SirenActionType,
     SirenHyperModel,
     SirenLinkFor,
     SirenLinkType,
     SirenResponse,
+    get_siren_action,
+    get_siren_link,
 )
 from .url_for import UrlFor
 from .url_type import URL_TYPE_SCHEMA, UrlType
@@ -19,8 +22,6 @@ from .utils import (
     extract_value_by_name,
     get_hal_link_href,
     get_route_from_app,
-    get_siren_action,
-    get_siren_link,
     resolve_param_values,
 )
 
@@ -33,6 +34,7 @@ __all__ = [
     "HALForType",
     "HALResponse",
     "HalHyperModel",
+    "SirenActionType",
     "SirenActionFor",
     "SirenLinkFor",
     "SirenLinkType",

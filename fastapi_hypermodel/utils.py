@@ -112,16 +112,6 @@ def get_hal_link_href(response: Any, link_name: str) -> Union[str, Any]:
     return response.get("_links", {}).get(link_name, {}).get("href", "")
 
 
-def get_siren_link(response: Any, link_name: str) -> Mapping[str, Any]:
-    links = response.get("links", [])
-    return next((link for link in links if link_name in link.get("rel")), {})
-
-
-def get_siren_action(response: Any, action_name: str) -> Mapping[str, Any]:
-    actions = response.get("actions", [])
-    return next((action for action in actions if action_name in action.get("name")), {})
-
-
 def get_route_from_app(app: Starlette, endpoint_function: str) -> Route:
     for route in app.routes:
         if isinstance(route, Route) and route.name == endpoint_function:

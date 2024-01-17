@@ -470,3 +470,19 @@ class SirenResponse(JSONResponse):
     def render(self: Self, content: Any) -> bytes:
         self._validate(content)
         return super().render(content)
+
+
+def get_siren_link(response: Any, link_name: str) -> SirenLinkType | None:
+    links = response.get("links", [])
+    link = next((link for link in links if link_name in link.get("rel")), {})
+    if not link:
+        return None
+    return SirenLinkType.model_validate(link)
+
+
+def get_siren_action(response: Any, action_name: str) -> SirenActionType | None:
+    actions = response.get("actions", [])
+    action = next((action for action in actions if action_name in action.get("name")), {})
+    if not action:
+        return None
+    return SirenActionType.model_validate(action)
