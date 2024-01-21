@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from itertools import starmap
-from string import Formatter
 from typing import (
     Any,
     Callable,
@@ -33,7 +32,6 @@ from typing_extensions import Self
 from fastapi_hypermodel.hypermodel import AbstractHyperField, HasName, HyperModel
 from fastapi_hypermodel.url_type import UrlType
 from fastapi_hypermodel.utils import (
-    extract_value_by_name,
     get_route_from_app,
     resolve_param_values,
 )
@@ -331,6 +329,13 @@ class SirenEmbeddedType(SirenEntityType):
 
 T = TypeVar("T", bound=Callable[..., Any])
 
+SIREN_RESERVED_FIELDS = {
+    "properties",
+    "entities",
+    "links",
+    "actions",
+}
+
 
 class SirenHyperModel(HyperModel):
     properties: dict[str, Any] | None = None
@@ -345,6 +350,11 @@ class SirenHyperModel(HyperModel):
     def add_properties(self: Self) -> Self:
         properties = {}
         for name, field in self:
+            alias = self.model_fields[name].alias or name
+
+            if alias in SIREN_RESERVED_FIELDS:
+                continue
+
             value: Sequence[Any] = field if isinstance(field, Sequence) else [field]
 
             omit_types: Any = (
@@ -356,16 +366,6 @@ class SirenHyperModel(HyperModel):
             if any(isinstance(value_, omit_types) for value_ in value):
                 continue
 
-            built_in_types = {
-                "properties",
-                "entities",
-                "links_",
-                "actions_",
-            }
-            if name in built_in_types:
-                continue
-
-            alias = self.model_fields[name].alias or name
             properties[alias] = value if isinstance(field, Sequence) else field
 
             delattr(self, name)
@@ -380,9 +380,9 @@ class SirenHyperModel(HyperModel):
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
         for name, value in self:
-            key = self.model_fields[name].alias or name
+            alias = self.model_fields[name].alias or name
 
-            if key != "links" or not value:
+            if alias != "links" or not value:
                 continue
 
             links = cast(Sequence[SirenLinkFor], value)
@@ -428,36 +428,31 @@ class SirenHyperModel(HyperModel):
                 continue
 
             rel = self.model_fields[name].alias or name
-            embedded = [self.as_embedded(field, rel) for field in value]
-            entities.extend(embedded)
+
+            for field in value:
+                if isinstance(field, SirenLinkType):
+                    entities.append(field)
+                    continue
+
+                child = self.as_embedded(field, rel)
+                entities.append(child)
+
             delattr(self, name)
 
         self.entities = entities
-
-        if not self.entities:
-            delattr(self, "entities")
 
         return self
 
     @model_serializer
     def serialize(self: Self) -> Mapping[str, Any]:
-        return {self.model_fields[k].alias or k: v for k, v in self}
+        return {self.model_fields[k].alias or k: v for k, v in self if v}
 
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:
         return SirenEmbeddedType(rel=rel, **field.model_dump())
 
     def parse_uri(self: Self, uri_template: str) -> str:
-        parameters: dict[str, str] = {}
-
-        for _, field, *_ in Formatter().parse(uri_template):
-            if not field:
-                error_message = "Empty Fields Cannot be Processed"
-                raise ValueError(error_message)
-
-            parameters[field] = extract_value_by_name(self.properties, field)
-
-        return uri_template.format(**parameters)
+        return self._parse_uri(self.properties, uri_template)
 
 
 class SirenResponse(JSONResponse):
@@ -473,17 +468,13 @@ class SirenResponse(JSONResponse):
 
 def get_siren_link(response: Any, link_name: str) -> SirenLinkType | None:
     links = response.get("links", [])
-    link = next((link for link in links if link_name in link.get("rel")), {})
-    if not link:
-        return None
-    return SirenLinkType.model_validate(link)
+    link = next((link for link in links if link_name in link.get("rel")), None)
+    return SirenLinkType.model_validate(link) if link else None
 
 
 def get_siren_action(response: Any, action_name: str) -> SirenActionType | None:
     actions = response.get("actions", [])
     action = next(
-        (action for action in actions if action_name in action.get("name")), {}
+        (action for action in actions if action_name in action.get("name")), None
     )
-    if not action:
-        return None
-    return SirenActionType.model_validate(action)
+    return SirenActionType.model_validate(action) if action else None

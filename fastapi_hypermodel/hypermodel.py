@@ -99,7 +99,7 @@ class HyperModel(BaseModel):
         """
         cls._app = app
 
-    def parse_uri(self: Self, uri_template: str) -> str:
+    def _parse_uri(self: Self, values: Any, uri_template: str) -> str:
         parameters: Dict[str, str] = {}
 
         for _, field, *_ in Formatter().parse(uri_template):
@@ -107,6 +107,9 @@ class HyperModel(BaseModel):
                 error_message = "Empty Fields Cannot be Processed"
                 raise ValueError(error_message)
 
-            parameters[field] = extract_value_by_name(self, field)
+            parameters[field] = extract_value_by_name(values, field)
 
         return uri_template.format(**parameters)
+
+    def parse_uri(self: Self, uri_template: str) -> str:
+        return self._parse_uri(self, uri_template)
