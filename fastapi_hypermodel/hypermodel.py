@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
@@ -15,6 +16,7 @@ from typing import (
     runtime_checkable,
 )
 
+import jsonref
 import pydantic_core
 from pydantic import (
     BaseModel,
@@ -54,7 +56,9 @@ class AbstractHyperField(ABC, Generic[T]):
                 continue
 
             schema = subclass.model_json_schema()
-            subclasses_schemas.append(schema)
+            deref_schema: Dict[str, Any] = jsonref.loads(json.dumps(schema))  # type: ignore
+
+            subclasses_schemas.append(deref_schema)
 
         return subclasses_schemas
 
