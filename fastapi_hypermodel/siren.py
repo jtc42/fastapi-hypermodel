@@ -7,7 +7,6 @@ from typing import (
     Dict,
     Literal,
     Mapping,
-    Optional,
     Sequence,
     TypeVar,
     cast,
@@ -218,11 +217,11 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         condition: Callable[[Mapping[str, Any]], bool] | None = None,
         populate_fields: bool = True,
         title: str | None = None,
-        type_: str = "application/x-www-form-urlencoded",
+        type_: str | None = None,
         class_: Sequence[str] | None = None,
         fields: Sequence[SirenFieldType] | None = None,
         method: str | None = None,
-        name: str | None = None,
+        name: str | None = "",
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -262,21 +261,17 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
     def _compute_fields(
         self: Self, route: Route, values: Mapping[str, Any]
     ) -> list[SirenFieldType]:
-        if not isinstance(route, APIRoute):
-            return []
+        if not isinstance(route, APIRoute):  # pragma: no cover
+            route.body_field = ""  # type: ignore
+            route = cast(APIRoute, route)
 
         body_field = route.body_field
         if not body_field:
             return []
 
-        annotation = body_field.field_info.annotation
-
-        if not annotation:
-            return []
-
-        model_fields = cast(Optional[Dict[str, FieldInfo]], annotation.model_fields)  # type: ignore
-        if not model_fields:
-            return []
+        annotation = body_field.field_info.annotation or {}
+        model_fields = annotation.model_fields if annotation else {}  # type: ignore
+        model_fields = cast(Dict[str, FieldInfo], model_fields)
 
         fields = list(starmap(SirenFieldType.from_field_info, model_fields.items()))
         return self._prepopulate_fields(fields, values)
@@ -345,6 +340,33 @@ class SirenHyperModel(HyperModel):
 
     # This config is needed to use the Self in Embedded
     model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    @model_validator(mode="after")
+    def add_hypermodels_to_entities(self: Self) -> Self:
+        entities: list[SirenEmbeddedType | SirenLinkType] = []
+        for name, field in self:
+            value: Sequence[Any | Self] = (
+                field if isinstance(field, Sequence) else [field]
+            )
+
+            if not all(isinstance(element, SirenHyperModel) for element in value):
+                continue
+
+            rel = self.model_fields[name].alias or name
+
+            for field in value:
+                if isinstance(field, SirenLinkType):
+                    entities.append(field)
+                    continue
+
+                child = self.as_embedded(field, rel)
+                entities.append(child)
+
+            delattr(self, name)
+
+        self.entities = entities
+
+        return self
 
     @model_validator(mode="after")
     def add_properties(self: Self) -> Self:
@@ -417,29 +439,35 @@ class SirenHyperModel(HyperModel):
         return validated_elements
 
     @model_validator(mode="after")
-    def add_hypermodels_to_entities(self: Self) -> Self:
-        entities: list[SirenEmbeddedType | SirenLinkType] = []
-        for name, field in self:
-            value: Sequence[Any | Self] = (
-                field if isinstance(field, Sequence) else [field]
-            )
-
-            if not all(isinstance(element, SirenHyperModel) for element in value):
+    def no_hypermodels_outside_of_entities(self: Self) -> Self:
+        for _, field in self:
+            if not isinstance(field, (SirenHyperModel, AbstractHyperField)):
                 continue
 
-            rel = self.model_fields[name].alias or name
+            error_message = "All hypermodels must be inside the entities property"
+            raise ValueError(error_message)
 
-            for field in value:
-                if isinstance(field, SirenLinkType):
-                    entities.append(field)
-                    continue
+        return self
 
-                child = self.as_embedded(field, rel)
-                entities.append(child)
+    @model_validator(mode="after")
+    def no_action_outside_of_actions(self: Self) -> Self:
+        for _, field in self:
+            if not isinstance(field, (SirenActionFor, SirenActionType)):
+                continue
 
-            delattr(self, name)
+            error_message = "All actions must be inside the actions property"
+            raise ValueError(error_message)
 
-        self.entities = entities
+        return self
+
+    @model_validator(mode="after")
+    def no_link_outside_of_links(self: Self) -> Self:
+        for _, field in self:
+            if not isinstance(field, (SirenLinkFor, SirenLinkType)):
+                continue
+
+            error_message = "All links must be inside the links property"
+            raise ValueError(error_message)
 
         return self
 

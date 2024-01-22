@@ -57,7 +57,7 @@ def test_items_content_type(siren_client: TestClient, item_uri: str) -> None:
     assert first["name"]
     assert not isinstance(first["name"], list)
     assert first["href"]
-    assert len(first) == 5
+    assert len(first) == 4
 
     assert len(second) == 6
     fields = second.get("fields")
