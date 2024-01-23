@@ -553,7 +553,7 @@ def test_siren_hypermodel_with_actions_empty() -> None:
         )
 
     mock = MockClassWithActions(id_="test")
-    assert not mock.actions_
+    assert not mock.actions
 
 
 def test_siren_parse_uri() -> None:

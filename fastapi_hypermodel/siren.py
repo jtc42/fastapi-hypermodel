@@ -316,10 +316,10 @@ SIREN_RESERVED_FIELDS = {
 
 
 class SirenHyperModel(HyperModel):
-    properties: dict[str, Any] | None = None
-    entities: Sequence[SirenEmbeddedType | SirenLinkType] | None = None
-    links_: Sequence[Self] | None = Field(default=None, alias="links")
-    actions_: Sequence[SirenActionType] | None = Field(default=None, alias="actions")
+    properties: dict[str, Any] = Field(default_factory=dict)
+    entities: Sequence[SirenEmbeddedType | SirenLinkType] = Field(default_factory=list)
+    links: Sequence[SirenLinkFor] = Field(default_factory=list)
+    actions: Sequence[SirenActionFor] = Field(default_factory=list)
 
     # This config is needed to use the Self in Embedded
     model_config = ConfigDict(arbitrary_types_allowed=True)
