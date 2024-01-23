@@ -53,6 +53,7 @@ exclude_also = [
 
 [tool.mypy]
 strict = true
+ignore_missing_imports = true
 
 #########################################
 # Ruff
@@ -66,10 +67,7 @@ ignore = [
     "ANN401", # Ignore Anys
     "ISC001", # Disable for compatibility with ruff-format
 ]
-extend-exclude = [
-    "tests",
-    "*_schema.py"
-]
+extend-exclude = ["tests", "*_schema.py"]
 target-version = "py38"
 
 [tool.ruff.lint]
@@ -187,6 +185,7 @@ disable = [
     "too-many-arguments",
     "consider-using-assignment-expr", # Disabled until walrus operator is widely used
     "unused-variable",                # Too many false positives
+    "too-many-lines",                 # Disable until refactor
 ]
 enable = [
     "bad-inline-option",
@@ -220,7 +219,7 @@ check-str-concat-over-line-jumps = true
 ignore-comments = true
 ignore-docstrings = true
 ignore-signatures = true
-min-similarity-lines = 4
+min-similarity-lines = 7
 
 [tool.pylint.variables]
 allow-global-unused-variables = false

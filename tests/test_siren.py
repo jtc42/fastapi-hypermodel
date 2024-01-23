@@ -528,7 +528,7 @@ def test_siren_hypermodel_with_actions_outside_actions() -> None:
     class MockClassWithActions(SirenHyperModel):
         id_: str
 
-        model_action: SirenActionFor = SirenActionFor(
+        test_action: SirenActionFor = SirenActionFor(
             "mock_read_with_path_siren", {"id_": "<id_>"}, name="model"
         )
 

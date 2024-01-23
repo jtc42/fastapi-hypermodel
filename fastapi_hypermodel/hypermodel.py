@@ -56,7 +56,8 @@ class AbstractHyperField(ABC, Generic[T]):
                 continue
 
             schema = subclass.model_json_schema()
-            deref_schema: Dict[str, Any] = jsonref.loads(json.dumps(schema))  # type: ignore
+            schema_dict = json.dumps(schema)
+            deref_schema: Dict[str, Any] = jsonref.loads(schema_dict)
 
             subclasses_schemas.append(deref_schema)
 
@@ -103,7 +104,8 @@ class HyperModel(BaseModel):
         """
         cls._app = app
 
-    def _parse_uri(self: Self, values: Any, uri_template: str) -> str:
+    @staticmethod
+    def _parse_uri(values: Any, uri_template: str) -> str:
         parameters: Dict[str, str] = {}
 
         for _, field, *_ in Formatter().parse(uri_template):

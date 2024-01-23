@@ -1,11 +1,13 @@
 from typing import (
     Any,
     Dict,
+    List,
     Mapping,
     Optional,
     Sequence,
     Type,
     Union,
+    cast,
 )
 
 from pydantic import (
@@ -66,6 +68,7 @@ class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
         links: Dict[str, LinkType] = {}
 
         for key, hyperfields in self._mapping.items():
+            hypermedia: Union[List[Any], Any] = []
             if isinstance(hyperfields, Sequence):
                 hypermedia = [hyperfield(app, values) for hyperfield in hyperfields]
             else:
@@ -74,6 +77,6 @@ class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
             if not hypermedia:
                 continue
 
-            links[key] = hypermedia
+            links[key] = cast(LinkType, hypermedia)
 
         return LinkSetType(mapping=links)

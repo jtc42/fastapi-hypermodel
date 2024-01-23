@@ -5,7 +5,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Literal,
     Mapping,
     Sequence,
     TypeVar,
@@ -132,32 +131,9 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         })
 
 
-FieldType = Literal[
-    "hidden",
-    "text",
-    "search",
-    "tel",
-    "url",
-    "email",
-    "password",
-    "datetime",
-    "date",
-    "month",
-    "week",
-    "time",
-    "datetime-local",
-    "number",
-    "range",
-    "color",
-    "checkbox",
-    "radio",
-    "file",
-]
-
-
 class SirenFieldType(SirenBase):
     name: str
-    type_: FieldType | None = Field(default=None, alias="type")
+    type_: str | None = Field(default=None, alias="type")
     value: Any | None = None
 
     @classmethod
@@ -169,12 +145,15 @@ class SirenFieldType(SirenBase):
         })
 
     @staticmethod
-    def parse_type(python_type: type[Any] | None) -> FieldType:
+    def parse_type(python_type: type[Any] | None) -> str:
         type_repr = repr(python_type)
-        if "str" in type_repr:
+
+        text_types = ("str",)
+        if any(text_type in type_repr for text_type in text_types):
             return "text"
 
-        if "float" in type_repr or "int" in type_repr:
+        number_types = ("float", "int")
+        if any(number_type in type_repr for number_type in number_types):
             return "number"
 
         return "text"
@@ -197,7 +176,7 @@ class SirenActionType(SirenBase):
         return value
 
 
-class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
+class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _templated: bool = PrivateAttr()
@@ -273,8 +252,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
         if not body_field:
             return []
 
-        annotation = body_field.field_info.annotation or {}
-        model_fields = annotation.model_fields if annotation else {}  # type: ignore
+        annotation: Any = body_field.field_info.annotation or {}
+        model_fields: Any = annotation.model_fields if annotation else {}
         model_fields = cast(Dict[str, FieldInfo], model_fields)
 
         fields = list(starmap(SirenFieldType.from_field_info, model_fields.items()))
@@ -364,12 +343,12 @@ class SirenHyperModel(HyperModel):
             ):
                 continue
 
-            for field in value:
-                if isinstance(field, SirenLinkType):
-                    entities.append(field)
+            for field_ in value:
+                if isinstance(field_, SirenLinkType):
+                    entities.append(field_)
                     continue
 
-                child = self.as_embedded(field, alias)
+                child = self.as_embedded(field_, alias)
                 entities.append(child)
 
             delattr(self, name)
@@ -413,11 +392,12 @@ class SirenHyperModel(HyperModel):
 
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
+        links_key = "links"
         validated_links: list[SirenLinkFor] = []
         for name, value in self:
             alias = self.model_fields[name].alias or name
 
-            if alias != "links" or not value:
+            if alias != links_key or not value:
                 continue
 
             links = cast(Sequence[SirenLinkFor], value)
@@ -442,10 +422,11 @@ class SirenHyperModel(HyperModel):
 
     @model_validator(mode="after")
     def add_actions(self: Self) -> Self:
+        actions_key = "actions"
         for name, value in self:
-            key = self.model_fields[name].alias or name
+            alias = self.model_fields[name].alias or name
 
-            if key != "actions" or not value:
+            if alias != actions_key or not value:
                 continue
 
             properties = self.properties or {}
@@ -491,7 +472,8 @@ class SirenHyperModel(HyperModel):
 class SirenResponse(JSONResponse):
     media_type = "application/siren+json"
 
-    def _validate(self: Self, content: Any) -> None:
+    @staticmethod
+    def _validate(content: Any) -> None:
         jsonschema.validate(instance=content, schema=schema)
 
     def render(self: Self, content: Any) -> bytes:
