@@ -8,12 +8,8 @@ from examples.siren import (
     Person,
     app,
 )
-from examples.siren import (
-    items as items_,
-)
-from examples.siren import (
-    people as people_,
-)
+from examples.siren import items as items_
+from examples.siren import people as people_
 from fastapi_hypermodel import SirenHyperModel
 
 

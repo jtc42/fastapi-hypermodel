@@ -2,8 +2,7 @@ from typing import Any, Mapping
 
 import pytest
 
-from fastapi_hypermodel import HyperModel
-from fastapi_hypermodel.url_type import UrlType
+from fastapi_hypermodel import HyperModel, UrlType
 
 
 class MockClassWithURL(HyperModel):

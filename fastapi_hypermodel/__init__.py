@@ -8,6 +8,7 @@ from .linkset import LinkSet, LinkSetType
 from .siren import (
     SirenActionFor,
     SirenActionType,
+    SirenEmbeddedType,
     SirenFieldType,
     SirenHyperModel,
     SirenLinkFor,
@@ -40,6 +41,7 @@ __all__ = [
     "SirenFieldType",
     "SirenLinkFor",
     "SirenLinkType",
+    "SirenEmbeddedType",
     "SirenHyperModel",
     "SirenResponse",
     "LinkSet",

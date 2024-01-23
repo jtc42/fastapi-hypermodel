@@ -9,14 +9,16 @@ from pydantic.fields import FieldInfo
 from fastapi_hypermodel import (
     SirenActionFor,
     SirenActionType,
+    SirenEmbeddedType,
     SirenFieldType,
     SirenHyperModel,
     SirenLinkFor,
     SirenLinkType,
     SirenResponse,
+    UrlType,
+    get_siren_action,
+    get_siren_link,
 )
-from fastapi_hypermodel.siren import SirenEmbeddedType, get_siren_action, get_siren_link
-from fastapi_hypermodel.url_type import UrlType
 
 SAMPLE_ENDPOINT = "/mock_read_with_path_siren/{id_}"
 
