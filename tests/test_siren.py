@@ -543,11 +543,13 @@ def test_siren_hypermodel_with_actions_empty() -> None:
     class MockClassWithActions(SirenHyperModel):
         id_: str
 
-        model_action: SirenActionFor = SirenActionFor(
-            "mock_read_with_path_siren",
-            {"id_": "<id_>"},
-            name="model",
-            condition=lambda values: "model" in values,
+        actions: Sequence[SirenActionFor] = (
+            SirenActionFor(
+                "mock_read_with_path_siren",
+                {"id_": "<id_>"},
+                name="model",
+                condition=lambda values: "model" in values,
+            ),
         )
 
     mock = MockClassWithActions(id_="test")
