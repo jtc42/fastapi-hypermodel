@@ -12,6 +12,7 @@ from typing import (
     cast,
 )
 
+import jsonschema
 from fastapi.routing import APIRoute
 from pydantic import (
     BaseModel,
@@ -34,6 +35,8 @@ from fastapi_hypermodel.utils import (
     get_route_from_app,
     resolve_param_values,
 )
+
+from .siren_schema import schema
 
 
 class SirenBase(BaseModel):
@@ -255,7 +258,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
             return list(fields)
 
         for field in fields:
-            field.value = values.get(field.name) or field.value
+            value = values.get(field.name) or field.value
+            field.value = str(value)
         return list(fields)
 
     def _compute_fields(
@@ -488,7 +492,7 @@ class SirenResponse(JSONResponse):
     media_type = "application/siren+json"
 
     def _validate(self: Self, content: Any) -> None:
-        pass
+        jsonschema.validate(instance=content, schema=schema)
 
     def render(self: Self, content: Any) -> bytes:
         self._validate(content)
