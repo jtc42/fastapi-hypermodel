@@ -5,6 +5,7 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Literal,
     Mapping,
     Sequence,
@@ -120,13 +121,15 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         uri_path = self._get_uri_path(app, properties, route)
 
         # Using model_validate to avoid conflicts with keyword class
-        return SirenLinkType.model_validate({
-            "href": uri_path,
-            "rel": self._rel,
-            "title": self._title,
-            "type": self._type,
-            "class": self._class,
-        })
+        return SirenLinkType.model_validate(
+            {
+                "href": uri_path,
+                "rel": self._rel,
+                "title": self._title,
+                "type": self._type,
+                "class": self._class,
+            }
+        )
 
 
 FieldType = Literal[
@@ -159,11 +162,13 @@ class SirenFieldType(SirenBase):
 
     @classmethod
     def from_field_info(cls: type[Self], name: str, field_info: FieldInfo) -> Self:
-        return cls.model_validate({
-            "name": name,
-            "type": cls.parse_type(field_info.annotation),
-            "value": field_info.default,
-        })
+        return cls.model_validate(
+            {
+                "name": name,
+                "type": cls.parse_type(field_info.annotation),
+                "value": field_info.default,
+            }
+        )
 
     @staticmethod
     def parse_type(python_type: type[Any] | None) -> FieldType:
@@ -299,16 +304,18 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):
             self._type = "application/x-www-form-urlencoded"
 
         # Using model_validate to avoid conflicts with class and type
-        return SirenActionType.model_validate({
-            "href": uri_path,
-            "name": self._name,
-            "fields": self._fields,
-            "method": self._method,
-            "title": self._title,
-            "type": self._type,
-            "class": self._class,
-            "templated": self._templated,
-        })
+        return SirenActionType.model_validate(
+            {
+                "href": uri_path,
+                "name": self._name,
+                "fields": self._fields,
+                "method": self._method,
+                "title": self._title,
+                "type": self._type,
+                "class": self._class,
+                "templated": self._templated,
+            }
+        )
 
 
 class SirenEntityType(SirenBase):
@@ -319,7 +326,7 @@ class SirenEntityType(SirenBase):
 
 
 class SirenEmbeddedType(SirenEntityType):
-    rel: str = Field()
+    rel: Sequence[str] = Field()
 
 
 T = TypeVar("T", bound=Callable[..., Any])
@@ -345,21 +352,27 @@ class SirenHyperModel(HyperModel):
     def add_hypermodels_to_entities(self: Self) -> Self:
         entities: list[SirenEmbeddedType | SirenLinkType] = []
         for name, field in self:
+            alias = self.model_fields[name].alias or name
+
+            if alias in SIREN_RESERVED_FIELDS:
+                continue
+
             value: Sequence[Any | Self] = (
                 field if isinstance(field, Sequence) else [field]
             )
 
-            if not all(isinstance(element, SirenHyperModel) for element in value):
+            if not all(
+                isinstance(element, (SirenHyperModel, SirenLinkType))
+                for element in value
+            ):
                 continue
-
-            rel = self.model_fields[name].alias or name
 
             for field in value:
                 if isinstance(field, SirenLinkType):
                     entities.append(field)
                     continue
 
-                child = self.as_embedded(field, rel)
+                child = self.as_embedded(field, alias)
                 entities.append(child)
 
             delattr(self, name)
@@ -382,7 +395,9 @@ class SirenHyperModel(HyperModel):
             omit_types: Any = (
                 AbstractHyperField,
                 SirenLinkFor,
+                SirenLinkType,
                 SirenActionFor,
+                SirenActionType,
                 SirenHyperModel,
             )
             if any(isinstance(value_, omit_types) for value_ in value):
@@ -401,6 +416,7 @@ class SirenHyperModel(HyperModel):
 
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
+        validated_links: list[SirenLinkFor] = []
         for name, value in self:
             alias = self.model_fields[name].alias or name
 
@@ -409,9 +425,24 @@ class SirenHyperModel(HyperModel):
 
             links = cast(Sequence[SirenLinkFor], value)
             properties = self.properties or {}
-            self.links = self._validate_factory(links, properties)
+            validated_links = self._validate_factory(links, properties)
+            self.links = validated_links
+
+        self.validate_has_self_link(validated_links)
 
         return self
+
+    @staticmethod
+    def validate_has_self_link(links: Sequence[SirenLinkFor]) -> None:
+        if not links:
+            return
+
+        if any(link.rel == ["self"] for link in links):
+            return
+
+        error_message = "If links are present, a link with rel self must be present"
+        raise ValueError(error_message)
+
 
     @model_validator(mode="after")
     def add_actions(self: Self) -> Self:
@@ -430,24 +461,11 @@ class SirenHyperModel(HyperModel):
     def _validate_factory(
         self: Self, elements: Sequence[T], properties: Mapping[str, str]
     ) -> list[T]:
-        validated_elements: list[Any] = []
+        validated_elements: list[T] = []
         for element_factory in elements:
             element = element_factory(self._app, properties)
-            if not element:
-                continue
             validated_elements.append(element)
         return validated_elements
-
-    @model_validator(mode="after")
-    def no_hypermodels_outside_of_entities(self: Self) -> Self:
-        for _, field in self:
-            if not isinstance(field, (SirenHyperModel, AbstractHyperField)):
-                continue
-
-            error_message = "All hypermodels must be inside the entities property"
-            raise ValueError(error_message)
-
-        return self
 
     @model_validator(mode="after")
     def no_action_outside_of_actions(self: Self) -> Self:
@@ -460,24 +478,13 @@ class SirenHyperModel(HyperModel):
 
         return self
 
-    @model_validator(mode="after")
-    def no_link_outside_of_links(self: Self) -> Self:
-        for _, field in self:
-            if not isinstance(field, (SirenLinkFor, SirenLinkType)):
-                continue
-
-            error_message = "All links must be inside the links property"
-            raise ValueError(error_message)
-
-        return self
-
     @model_serializer
     def serialize(self: Self) -> Mapping[str, Any]:
         return {self.model_fields[k].alias or k: v for k, v in self if v}
 
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:
-        return SirenEmbeddedType(rel=rel, **field.model_dump())
+        return SirenEmbeddedType(rel=[rel], **field.model_dump())
 
     def parse_uri(self: Self, uri_template: str) -> str:
         return self._parse_uri(self.properties, uri_template)

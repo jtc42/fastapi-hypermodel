@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 import pytest
 from fastapi import FastAPI
@@ -15,6 +15,8 @@ from fastapi_hypermodel import (
     SirenLinkType,
     SirenResponse,
 )
+from fastapi_hypermodel.siren import SirenEmbeddedType, get_siren_action, get_siren_link
+from fastapi_hypermodel.url_type import UrlType
 
 SAMPLE_ENDPOINT = "/mock_read_with_path_siren/{id_}"
 
@@ -26,6 +28,11 @@ class MockClass(SirenHyperModel):
 class MockParams(BaseModel):
     name: str
     lenght: float
+
+
+class MockClassWithProperties(SirenHyperModel):
+    id_: str
+    model: MockClass
 
 
 @pytest.fixture()
@@ -425,3 +432,151 @@ def test_siren_action_for_with_fields_no_populate(siren_app: FastAPI) -> None:
     assert any(field.name == "lenght" and field.type_ == "number" for field in fields)
 
     assert siren_action_for_type.type_ == "application/x-www-form-urlencoded"
+
+
+# SirenHypermodel
+
+
+def test_siren_hypermodel_with_properties() -> None:
+    mock = MockClass(id_="test")
+    assert mock.properties
+    assert mock.properties.get("id_") == "test"
+
+
+def test_siren_hypermodel_with_entities_embedded_hypermodel() -> None:
+    mock = MockClassWithProperties(id_="test", model=MockClass(id_="test_nested"))
+    assert mock.entities
+
+    first, *_ = mock.entities
+    assert isinstance(first, SirenEmbeddedType)
+    assert first.rel == ["model"]
+    assert first.properties
+    assert first.properties.get("id_") == "test_nested"
+
+
+def test_siren_hypermodel_with_entities_embedded_link() -> None:
+    class MockClassWithEmbeddedLink(SirenHyperModel):
+        id_: str
+        model: SirenLinkType
+
+    mock = MockClassWithEmbeddedLink(
+        id_="test", model=SirenLinkType(href=UrlType("test_nested"), rel=["model"])
+    )
+    assert mock.entities
+
+    first, *_ = mock.entities
+    assert isinstance(first, SirenLinkType)
+    assert first.rel == ["model"]
+    assert first.href == "test_nested"
+
+
+@pytest.mark.usefixtures("siren_app")
+def test_siren_hypermodel_with_links() -> None:
+    class MockClassWithLinks(SirenHyperModel):
+        id_: str
+
+        links: Sequence[SirenLinkFor] = (
+            SirenLinkFor("mock_read_with_path_siren", {"id_": "<id_>"}, rel=["self"]),
+        )
+
+    mock = MockClassWithLinks(id_="test")
+
+    assert mock.links
+
+    first, *_ = mock.links
+    assert isinstance(first, SirenLinkType)
+    assert first.rel == ["self"]
+    assert first.href == "/mock_read_with_path_siren/test"
+
+
+@pytest.mark.usefixtures("siren_app")
+def test_siren_hypermodel_with_links_no_self() -> None:
+    class MockClassWithLinks(SirenHyperModel):
+        id_: str
+
+        links: Sequence[SirenLinkFor] = (
+            SirenLinkFor("mock_read_with_path_siren", {"id_": "<id_>"}, rel=["model"]),
+        )
+
+    with pytest.raises(
+        ValueError, match="If links are present, a link with rel self must be present"
+    ):
+        MockClassWithLinks(id_="test")
+
+
+@pytest.mark.usefixtures("siren_app")
+def test_siren_hypermodel_with_actions() -> None:
+    class MockClassWithLinks(SirenHyperModel):
+        id_: str
+
+        actions: Sequence[SirenActionFor] = (
+            SirenActionFor("mock_read_with_path_siren", {"id_": "<id_>"}, name="test"),
+        )
+
+    mock = MockClassWithLinks(id_="test")
+
+    assert mock.actions
+
+    first, *_ = mock.actions
+    assert isinstance(first, SirenActionType)
+    assert first.name == "test"
+    assert first.href == "/mock_read_with_path_siren/test"
+
+
+@pytest.mark.usefixtures("siren_app")
+def test_siren_hypermodel_with_actions_outside_actions() -> None:
+    class MockClassWithActions(SirenHyperModel):
+        id_: str
+
+        model_action: SirenActionFor = SirenActionFor(
+            "mock_read_with_path_siren", templated=True, name="model"
+        )
+
+    with pytest.raises(
+        ValueError, match="All actions must be inside the actions property"
+    ):
+        MockClassWithActions(id_="test")
+
+
+def test_siren_parse_uri() -> None:
+    uri_template = "/model/{id_}"
+
+    mock = MockClass(id_="test")
+
+    assert mock.properties
+    assert mock.parse_uri(uri_template) == f"/model/{mock.properties.get('id_')}"
+
+
+# Utils
+
+
+@pytest.fixture()
+def siren_response() -> Any:
+    return {
+        "links": [{"rel": ["self"], "href": "/self"}],
+        "actions": [{"name": "add", "href": "/self"}],
+    }
+
+
+def test_get_siren_link_href(siren_response: Any) -> None:
+    actual = get_siren_link(siren_response, "self")
+    expected = SirenLinkType(href=UrlType("/self"), rel=["self"])
+
+    assert actual == expected
+
+
+def test_get_siren_link_href_not_found(siren_response: Any) -> None:
+    actual = get_siren_link(siren_response, "update")
+    assert actual is None
+
+
+def test_get_siren_action_href(siren_response: Any) -> None:
+    actual = get_siren_action(siren_response, "add")
+    expected = SirenActionType(href=UrlType("/self"), name="add")
+
+    assert actual == expected
+
+
+def test_get_siren_action_href_not_found(siren_response: Any) -> None:
+    actual = get_siren_action(siren_response, "update")
+    assert actual is None

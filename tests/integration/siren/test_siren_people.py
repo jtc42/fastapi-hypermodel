@@ -48,7 +48,7 @@ def test_get_people(siren_client: TestClient, people_uri: str) -> None:
 
     people = response.get("entities", [])
     assert len(people) == 2
-    assert all(person.get("rel") == "people" for person in people)
+    assert all(person.get("rel") == ["people"] for person in people)
 
     self_link = get_siren_link(response, "self")
     assert self_link
@@ -133,13 +133,13 @@ def test_get_person_items(
 
     assert person_items
     assert isinstance(person_items, list)
-    assert all(item.get("rel") == "items" for item in person_items)
+    assert all(item.get("rel") == ["items"] for item in person_items)
 
     first_item, *_ = person_items
     first_item_link = get_siren_link(first_item, "self")
     assert first_item_link
     first_item_response = siren_client.get(first_item_link.href).json()
-    first_item_response.update({"rel": "items"})
+    first_item_response.update({"rel": ["items"]})
 
     assert first_item == first_item_response
 
