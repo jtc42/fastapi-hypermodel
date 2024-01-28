@@ -10,6 +10,7 @@ from typing import (
 )
 
 from pydantic import (
+    ConfigDict,
     Field,
     PrivateAttr,
     field_validator,
@@ -33,6 +34,8 @@ class SirenLinkType(SirenBase):
     rel: Sequence[str] = Field(default_factory=list)
     href: UrlType = Field(default=UrlType())
     type_: Union[str, None] = Field(default=None, alias="type")
+
+    model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("rel", "href")
     @classmethod
@@ -104,10 +107,10 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         uri_path = self._get_uri_path(app, properties, route)
 
         # Using model_validate to avoid conflicts with keyword class
-        return SirenLinkType.model_validate({
-            "href": uri_path,
-            "rel": self._rel,
-            "title": self._title,
-            "type": self._type,
-            "class": self._class,
-        })
+        return SirenLinkType(
+            href=uri_path,
+            rel=self._rel,
+            title=self._title,
+            type_=self._type,  # type: ignore
+            class_=self._class,  # type: ignore
+        )

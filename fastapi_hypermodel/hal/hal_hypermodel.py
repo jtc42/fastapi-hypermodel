@@ -31,10 +31,14 @@ class HALForType(BaseModel):
     templated: Optional[bool] = None
     title: Optional[str] = None
     name: Optional[str] = None
-    type: Optional[str] = None
+    type_: Union[str, None] = Field(default=None, alias="type")
     hreflang: Optional[str] = None
     profile: Optional[str] = None
     deprecation: Optional[str] = None
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
     def __bool__(self: Self) -> bool:
         return bool(self.href)
@@ -110,7 +114,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             templated=self._templated,
             title=self._title,
             name=self._name,
-            type=self._type,
+            type_=self._type,  # type: ignore
             hreflang=self._hreflang,
             profile=self._profile,
             deprecation=self._deprecation,

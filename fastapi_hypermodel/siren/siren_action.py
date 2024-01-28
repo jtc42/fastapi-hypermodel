@@ -15,6 +15,7 @@ from typing import (
 
 from fastapi.routing import APIRoute
 from pydantic import (
+    ConfigDict,
     Field,
     PrivateAttr,
     field_validator,
@@ -43,6 +44,10 @@ class SirenActionType(SirenBase):
     type_: Union[str, None] = Field(default=None, alias="type")
     fields: Union[Sequence[SirenFieldType], None] = Field(default=None)
     templated: bool = Field(default=False)
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
 
     @field_validator("name", "href")
     @classmethod
@@ -158,14 +163,13 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         if not self._type and self._fields:
             self._type = "application/x-www-form-urlencoded"
 
-        # Using model_validate to avoid conflicts with class and type
-        return SirenActionType.model_validate({
-            "href": uri_path,
-            "name": self._name,
-            "fields": self._fields,
-            "method": self._method,
-            "title": self._title,
-            "type": self._type,
-            "class": self._class,
-            "templated": self._templated,
-        })
+        return SirenActionType(
+            href=uri_path,
+            name=self._name,
+            fields=self._fields,
+            method=self._method,
+            title=self._title,
+            type_=self._type,  # type: ignore
+            class_=self._class,  # type: ignore
+            templated=self._templated,
+        )

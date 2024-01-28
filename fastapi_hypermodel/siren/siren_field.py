@@ -7,6 +7,7 @@ from typing import (
 )
 
 from pydantic import (
+    ConfigDict,
     Field,
 )
 from pydantic.fields import FieldInfo
@@ -20,13 +21,15 @@ class SirenFieldType(SirenBase):
     type_: Union[str, None] = Field(default=None, alias="type")
     value: Union[Any, None] = None
 
+    model_config = ConfigDict(populate_by_name=True)
+
     @classmethod
     def from_field_info(cls: Type[Self], name: str, field_info: FieldInfo) -> Self:
-        return cls.model_validate({
-            "name": name,
-            "type": cls.parse_type(field_info.annotation),
-            "value": field_info.default,
-        })
+        return cls(
+            name=name,
+            type_=cls.parse_type(field_info.annotation),  # type: ignore
+            value=field_info.default,
+        )
 
     @staticmethod
     def parse_type(python_type: Union[Type[Any], None]) -> str:
