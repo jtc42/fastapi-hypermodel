@@ -108,12 +108,12 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
-    ) -> HALForType:
+    ) -> Optional[HALForType]:
         if app is None:
-            return HALForType()
+            return None
 
         if self._condition and not self._condition(values):
-            return HALForType()
+            return None
 
         route = get_route_from_app(app, self._endpoint)
 

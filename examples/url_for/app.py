@@ -36,8 +36,8 @@ class ItemCollection(HyperModel):
     items: Sequence[Item]
 
     href: UrlFor = UrlFor("read_items")
-    find: UrlFor = UrlFor("read_item", template=True)
-    update: UrlFor = UrlFor("update_item", template=True)
+    find: UrlFor = UrlFor("read_item", templated=True)
+    update: UrlFor = UrlFor("update_item", templated=True)
 
 
 class Person(HyperModel):
@@ -64,8 +64,8 @@ class PeopleCollection(HyperModel):
     people: Sequence[Person]
 
     href: UrlFor = UrlFor("read_people")
-    find: UrlFor = UrlFor("read_person", template=True)
-    update: UrlFor = UrlFor("update_person", template=True)
+    find: UrlFor = UrlFor("read_person", templated=True)
+    update: UrlFor = UrlFor("update_person", templated=True)
 
 
 app = FastAPI()

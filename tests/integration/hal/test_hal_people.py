@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from examples.hal import Person
-from fastapi_hypermodel import UrlType, get_hal_link_href
+from fastapi_hypermodel import UrlType, get_hal_link
 
 
 @pytest.fixture()
@@ -15,14 +15,14 @@ def people_uri() -> str:
 
 @pytest.fixture()
 def find_uri_template(hal_client: TestClient, people_uri: str) -> UrlType:
-    find_uri = get_hal_link_href(hal_client.get(people_uri).json(), "find")
+    find_uri = get_hal_link(hal_client.get(people_uri).json(), "find")
     assert find_uri
     return find_uri.href
 
 
 @pytest.fixture()
 def update_uri_template(hal_client: TestClient, people_uri: str) -> UrlType:
-    update_uri = get_hal_link_href(hal_client.get(people_uri).json(), "update")
+    update_uri = get_hal_link(hal_client.get(people_uri).json(), "update")
     assert update_uri
     return update_uri.href
 
@@ -36,7 +36,7 @@ def test_people_content_type(hal_client: TestClient, people_uri: str) -> None:
 def test_get_people(hal_client: TestClient, people_uri: str) -> None:
     response = hal_client.get(people_uri).json()
 
-    self_link = get_hal_link_href(response, "self")
+    self_link = get_hal_link(response, "self")
     assert self_link
     assert self_link.href == people_uri
 
@@ -51,7 +51,7 @@ def test_get_person(
     find_uri = person.parse_uri(find_uri_template)
     person_response = hal_client.get(find_uri).json()
 
-    self_link = get_hal_link_href(person_response, "self")
+    self_link = get_hal_link(person_response, "self")
 
     assert self_link
     assert people_uri in self_link.href
@@ -81,8 +81,8 @@ def test_update_person_from_uri_template(
     assert response.get("name") == new_data.get("name")
     assert response.get("name") != before.get("name")
 
-    before_uri = get_hal_link_href(before, "self")
-    after_uri = get_hal_link_href(response, "self")
+    before_uri = get_hal_link(before, "self")
+    after_uri = get_hal_link(response, "self")
 
     assert before_uri == after_uri
 
@@ -95,15 +95,15 @@ def test_update_person_from_update_uri(
 
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
-    update_link = get_hal_link_href(before, "update")
+    update_link = get_hal_link(before, "update")
     assert update_link
     response = hal_client.put(update_link.href, json=new_data).json()
 
     assert response.get("name") == new_data.get("name")
     assert response.get("name") != before.get("name")
 
-    before_uri = get_hal_link_href(before, "self")
-    after_uri = get_hal_link_href(response, "self")
+    before_uri = get_hal_link(before, "self")
+    after_uri = get_hal_link(response, "self")
 
     assert before_uri == after_uri
 
@@ -120,7 +120,7 @@ def test_get_person_items(
     assert isinstance(person_items, list)
 
     first_item, *_ = person_items
-    first_item_link = get_hal_link_href(first_item, "self")
+    first_item_link = get_hal_link(first_item, "self")
     assert first_item_link
     first_item_response = hal_client.get(first_item_link.href).json()
 
@@ -146,7 +146,7 @@ def test_add_item_to_unlocked_person(
     find_uri = unlocked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
     before_items = before.get("_embedded", {}).get("sc:items", [])
-    add_item_link = get_hal_link_href(before, "add_item")
+    add_item_link = get_hal_link(before, "add_item")
 
     assert add_item_link
 
@@ -169,7 +169,7 @@ def test_add_item_to_unlocked_person_nonexisting_item(
 ) -> None:
     find_uri = unlocked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
-    add_item_link = get_hal_link_href(before, "add_item")
+    add_item_link = get_hal_link(before, "add_item")
 
     assert add_item_link
 
@@ -185,6 +185,6 @@ def test_add_item_to_locked_person(
 ) -> None:
     find_uri = locked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
-    add_item_uri = get_hal_link_href(before, "add_item")
+    add_item_uri = get_hal_link(before, "add_item")
 
     assert not add_item_uri

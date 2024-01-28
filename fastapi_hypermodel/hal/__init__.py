@@ -1,5 +1,5 @@
 from .hal_hypermodel import FrozenDict, HALFor, HALForType, HALHyperModel, HALLinks
-from .hal_response import HALResponse, get_hal_link_href
+from .hal_response import HALResponse, get_hal_link
 
 __all__ = [
     "FrozenDict",
@@ -8,5 +8,5 @@ __all__ = [
     "HALHyperModel",
     "HALLinks",
     "HALResponse",
-    "get_hal_link_href",
+    "get_hal_link",
 ]

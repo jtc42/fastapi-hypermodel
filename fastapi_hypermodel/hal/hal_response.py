@@ -162,7 +162,7 @@ class HALResponse(JSONResponse):
         return super().render(content)
 
 
-def get_hal_link_href(response: Any, link_name: str) -> Union[HALForType, None]:
+def get_hal_link(response: Any, link_name: str) -> Union[HALForType, None]:
     links = response.get("_links", {})
     link = links.get(link_name, {})
     return HALForType.model_validate(link) if link else None

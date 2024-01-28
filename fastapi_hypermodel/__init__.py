@@ -16,7 +16,7 @@ from .hal import (
     HALHyperModel,
     HALLinks,
     HALResponse,
-    get_hal_link_href,
+    get_hal_link,
 )
 from .siren import (
     SirenActionFor,
@@ -55,7 +55,7 @@ __all__ = [
     "UrlFor",
     "UrlType",
     "extract_value_by_name",
-    "get_hal_link_href",
+    "get_hal_link",
     "get_route_from_app",
     "get_siren_action",
     "get_siren_link",

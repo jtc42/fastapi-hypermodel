@@ -8,7 +8,7 @@ from fastapi_hypermodel import (
     HyperModel,
     InvalidAttribute,
     extract_value_by_name,
-    get_hal_link_href,
+    get_hal_link,
     get_route_from_app,
     resolve_param_values,
 )
@@ -110,7 +110,7 @@ def test_extract_value_by_name_invalid() -> None:
 
 
 def test_get_hal_link_href(hal_response: Any) -> None:
-    actual = get_hal_link_href(hal_response, "self")
+    actual = get_hal_link(hal_response, "self")
     expected = "/self"
 
     assert actual
@@ -118,7 +118,7 @@ def test_get_hal_link_href(hal_response: Any) -> None:
 
 
 def test_get_hal_link_href_not_found(hal_response: Any) -> None:
-    actual = get_hal_link_href(hal_response, "update")
+    actual = get_hal_link(hal_response, "update")
 
     assert not actual
 
