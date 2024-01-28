@@ -132,7 +132,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 HALLinkType = Union[HALFor, Sequence[HALFor]]
 
 
-class FrozenDict(frozendict[str, HALLinkType]):
+class FrozenDict(frozendict):  # type: ignore
     @classmethod
     def __get_pydantic_core_schema__(
         cls: Type[Self],
