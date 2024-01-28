@@ -8,6 +8,7 @@ from examples.hal.data import Item as ItemData
 from examples.hal.data import Person as PersonData
 from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
+    FrozenDict,
     HALFor,
     HalHyperModel,
     HALResponse,
@@ -19,10 +20,10 @@ class ItemSummary(HalHyperModel):
     name: str
     id_: str
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("read_item", {"id_": "<id_>"}),
         "update": HALFor("update_item", {"id_": "<id_>"}),
-    }
+    })
 
 
 class Item(ItemSummary):
@@ -43,11 +44,11 @@ class ItemCreate(ItemUpdate):
 class ItemCollection(HalHyperModel):
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("read_items"),
         "find": HALFor("read_item", templated=True),
         "update": HALFor("update_item", templated=True),
-    }
+    })
 
 
 class Person(HalHyperModel):
@@ -57,7 +58,7 @@ class Person(HalHyperModel):
 
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("read_person", {"id_": "<id_>"}),
         "update": HALFor("update_person", {"id_": "<id_>"}),
         "add_item": HALFor(
@@ -66,13 +67,13 @@ class Person(HalHyperModel):
             description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
         ),
-    }
+    })
 
 
 class PersonCollection(HalHyperModel):
     people: Sequence[Person]
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("read_people"),
         "find": HALFor(
             "read_person", description="Get a particular person", templated=True
@@ -82,7 +83,7 @@ class PersonCollection(HalHyperModel):
             description="Update a particular person",
             templated=True,
         ),
-    }
+    })
 
 
 class PersonUpdate(BaseModel):

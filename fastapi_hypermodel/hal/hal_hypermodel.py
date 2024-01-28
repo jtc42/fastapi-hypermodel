@@ -11,8 +11,17 @@ from typing import (
     cast,
 )
 
+import pydantic_core
 from frozendict import frozendict
-from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    GetCoreSchemaHandler,
+    PrivateAttr,
+    field_serializer,
+    model_validator,
+)
 from starlette.applications import Starlette
 from starlette.routing import Route
 from typing_extensions import Annotated, Self
@@ -124,7 +133,33 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
 HALLinkType = Union[HALFor, Sequence[HALFor]]
 
-HALLinks = Annotated[Union[Dict[str, HALLinkType], None], Field(alias="_links")]
+
+class FrozenDict(frozendict[str, HALLinkType]):
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls: Type[Self],
+        __source: Type[BaseModel],
+        __handler: GetCoreSchemaHandler,
+    ) -> pydantic_core.CoreSchema:
+        hal_for_schema = HALFor.__get_pydantic_core_schema__(__source, __handler)
+        hal_for_type_schema = HALForType.__get_pydantic_core_schema__(
+            __source, __handler
+        )
+        hal_link_schema = pydantic_core.core_schema.union_schema([
+            hal_for_schema,
+            hal_for_type_schema,
+        ])
+        link_schema = pydantic_core.core_schema.union_schema([
+            hal_link_schema,
+            pydantic_core.core_schema.list_schema(hal_link_schema),
+        ])
+        return pydantic_core.core_schema.dict_schema(
+            keys_schema=pydantic_core.core_schema.str_schema(),
+            values_schema=link_schema,
+        )
+
+
+HALLinks = Annotated[Union[FrozenDict, None], Field(alias="_links")]
 
 
 class HalHyperModel(HyperModel):
@@ -148,9 +183,8 @@ class HalHyperModel(HyperModel):
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
         links_key = "_links"
-        if not self.links:
-            self.links = {}
 
+        validated_links: Dict[str, HALLinkType] = {}
         for name, value in self:
             alias = self.model_fields[name].alias or name
 
@@ -168,9 +202,11 @@ class HalHyperModel(HyperModel):
                     continue
 
                 first_link, *_ = valid_links
-                self.links[link_name] = valid_links if is_sequence else first_link
+                validated_links[link_name] = valid_links if is_sequence else first_link
 
-            self.links["curies"] = HalHyperModel.curies()  # type: ignore
+            validated_links["curies"] = HalHyperModel.curies()  # type: ignore
+
+            self.links = frozendict(validated_links)
 
         return self
 
@@ -195,6 +231,12 @@ class HalHyperModel(HyperModel):
             delattr(self, "embedded")
 
         return self
+
+    @field_serializer("links")
+    def serialize_links(self: Self, links: HALLinks) -> Dict[str, HALLinkType]:
+        if not links:
+            return {}
+        return dict(links.items())
 
 
 EmbeddedRawType = Union[Mapping[str, Union[Sequence[Any], Any]], Any]

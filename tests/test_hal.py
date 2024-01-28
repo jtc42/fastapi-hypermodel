@@ -8,6 +8,7 @@ from pydantic import Field, ValidationError
 from pytest_lazy_fixtures import lf
 
 from fastapi_hypermodel import (
+    FrozenDict,
     HALFor,
     HALForType,
     HalHyperModel,
@@ -20,9 +21,9 @@ from fastapi_hypermodel import (
 class MockClass(HalHyperModel):
     id_: str
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-    }
+    })
 
 
 class MockClassWithEmbedded(HalHyperModel):
@@ -59,19 +60,19 @@ class MockClassWithEmbeddedListAliased(HalHyperModel):
 class MockClassWithCuries(HalHyperModel):
     id_: str
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
         "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-    }
+    })
 
 
 class MockClassWithMissingCuries(HalHyperModel):
     id_: str
 
-    links: HALLinks = {
+    links: HALLinks = FrozenDict({
         "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
         "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-    }
+    })
 
 
 @pytest.fixture()
