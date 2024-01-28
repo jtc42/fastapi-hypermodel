@@ -5,8 +5,10 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Mapping,
     Sequence,
+    Type,
     TypeVar,
     Union,
     cast,
@@ -55,7 +57,7 @@ class SirenLinkType(SirenBase):
 
     @field_validator("rel", "href")
     @classmethod
-    def mandatory(cls: type[Self], value: Union[str, None]) -> str:
+    def mandatory(cls: Type[Self], value: Union[str, None]) -> str:
         if not value:
             error_message = "Field rel and href are mandatory"
             raise ValueError(error_message)
@@ -138,7 +140,7 @@ class SirenFieldType(SirenBase):
     value: Union[Any, None] = None
 
     @classmethod
-    def from_field_info(cls: type[Self], name: str, field_info: FieldInfo) -> Self:
+    def from_field_info(cls: Type[Self], name: str, field_info: FieldInfo) -> Self:
         return cls.model_validate({
             "name": name,
             "type": cls.parse_type(field_info.annotation),
@@ -146,7 +148,7 @@ class SirenFieldType(SirenBase):
         })
 
     @staticmethod
-    def parse_type(python_type: Union[type[Any], None]) -> str:
+    def parse_type(python_type: Union[Type[Any], None]) -> str:
         type_repr = repr(python_type)
 
         text_types = ("str",)
@@ -170,7 +172,7 @@ class SirenActionType(SirenBase):
 
     @field_validator("name", "href")
     @classmethod
-    def mandatory(cls: type[Self], value: Union[str, None]) -> str:
+    def mandatory(cls: Type[Self], value: Union[str, None]) -> str:
         if not value:
             error_message = f"Field name and href are mandatory, {value}"
             raise ValueError(error_message)
@@ -233,7 +235,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
 
     def _prepopulate_fields(
         self: Self, fields: Sequence[SirenFieldType], values: Mapping[str, Any]
-    ) -> list[SirenFieldType]:
+    ) -> List[SirenFieldType]:
         if not self._populate_fields:
             return list(fields)
 
@@ -244,7 +246,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
 
     def _compute_fields(
         self: Self, route: Route, values: Mapping[str, Any]
-    ) -> list[SirenFieldType]:
+    ) -> List[SirenFieldType]:
         if not isinstance(route, APIRoute):  # pragma: no cover
             route.body_field = ""  # type: ignore
             route = cast(APIRoute, route)
@@ -317,7 +319,7 @@ SIREN_RESERVED_FIELDS = {
 
 
 class SirenHyperModel(HyperModel):
-    properties: dict[str, Any] = Field(default_factory=dict)
+    properties: Dict[str, Any] = Field(default_factory=dict)
     entities: Sequence[Union[SirenEmbeddedType, SirenLinkType]] = Field(
         default_factory=list
     )
@@ -329,7 +331,7 @@ class SirenHyperModel(HyperModel):
 
     @model_validator(mode="after")
     def add_hypermodels_to_entities(self: Self) -> Self:
-        entities: list[Union[SirenEmbeddedType, SirenLinkType]] = []
+        entities: List[Union[SirenEmbeddedType, SirenLinkType]] = []
         for name, field in self:
             alias = self.model_fields[name].alias or name
 
@@ -396,7 +398,7 @@ class SirenHyperModel(HyperModel):
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
         links_key = "links"
-        validated_links: list[SirenLinkFor] = []
+        validated_links: List[SirenLinkFor] = []
         for name, value in self:
             alias = self.model_fields[name].alias or name
 
@@ -440,8 +442,8 @@ class SirenHyperModel(HyperModel):
 
     def _validate_factory(
         self: Self, elements: Sequence[T], properties: Mapping[str, str]
-    ) -> list[T]:
-        validated_elements: list[T] = []
+    ) -> List[T]:
+        validated_elements: List[T] = []
         for element_factory in elements:
             element = element_factory(self._app, properties)
             if not element:
