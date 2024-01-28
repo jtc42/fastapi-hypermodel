@@ -69,7 +69,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
     _class: Union[Sequence[str], None] = PrivateAttr()
     _title: Union[str, None] = PrivateAttr()
     _name: str = PrivateAttr()
-    _method: str = PrivateAttr()
+    _method: Union[str, None] = PrivateAttr()
     _type: Union[str, None] = PrivateAttr()
     _fields: Union[Sequence[SirenFieldType], None] = PrivateAttr()
 
@@ -84,7 +84,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         type_: Union[str, None] = None,
         class_: Union[Sequence[str], None] = None,
         fields: Union[Sequence[SirenFieldType], None] = None,
-        method: str = "GET",
+        method: Union[str, None] = None,
         name: str = "",
         **kwargs: Any,
     ) -> None:
