@@ -39,32 +39,6 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class AbstractHyperField(ABC, Generic[T]):
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls: Type[Self], *_: Any
-    ) -> pydantic_core.CoreSchema:
-        return pydantic_core.core_schema.any_schema()
-
-    @classmethod
-    def __schema_subclasses__(
-        cls: Type[Self], caller_class: Optional[Type[Self]] = None
-    ) -> List[Dict[str, Any]]:
-        subclasses_schemas: List[Dict[str, Any]] = []
-        for subclass in cls.__subclasses__():
-            if caller_class and issubclass(subclass, caller_class):
-                continue
-
-            if not issubclass(subclass, BaseModel):
-                continue
-
-            schema = subclass.model_json_schema()
-            schema_dict = json.dumps(schema)
-            deref_schema: Dict[str, Any] = jsonref.loads(schema_dict)
-
-            subclasses_schemas.append(deref_schema)
-
-        return subclasses_schemas
-
     @abstractmethod
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
