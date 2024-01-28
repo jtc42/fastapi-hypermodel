@@ -66,6 +66,7 @@ ignore = [
     "A003",   # FIXME
     "ANN401", # Ignore Anys
     "ISC001", # Disable for compatibility with ruff-format
+    "UP007",  # Not compatible with Python 3.8
 ]
 extend-exclude = ["tests", "*_schema.py"]
 target-version = "py38"
