@@ -195,7 +195,7 @@ class HALHyperModel(HyperModel):
             for link_name, link_ in links.items():
                 is_sequence = isinstance(link_, Sequence)
 
-                link_sequence: Sequence[HALFor] = link_ if is_sequence else [link_]
+                link_sequence = link_ if is_sequence else [link_]
                 valid_links = self._validate_factory(link_sequence, vars(self))
 
                 if not valid_links:
@@ -206,7 +206,7 @@ class HALHyperModel(HyperModel):
 
             validated_links["curies"] = HALHyperModel.curies()  # type: ignore
 
-            self.links = frozendict(validated_links)
+            self.links = FrozenDict(validated_links)
 
         return self
 
@@ -233,7 +233,8 @@ class HALHyperModel(HyperModel):
         return self
 
     @field_serializer("links")
-    def serialize_links(self: Self, links: HALLinks) -> Dict[str, HALLinkType]:
+    @staticmethod
+    def serialize_links(links: HALLinks) -> Dict[str, HALLinkType]:
         if not links:
             return {}
         return dict(links.items())

@@ -1,4 +1,3 @@
-import json
 from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
@@ -18,8 +17,6 @@ from typing import (
     runtime_checkable,
 )
 
-import jsonref
-import pydantic_core
 from pydantic import (
     BaseModel,
     model_validator,
@@ -46,7 +43,7 @@ class AbstractHyperField(ABC, Generic[T]):
         raise NotImplementedError
 
 
-T2 = TypeVar("T2", bound=Callable[..., Any])
+R = TypeVar("R", bound=Callable[..., Any])
 
 
 class HyperModel(BaseModel):
@@ -100,9 +97,9 @@ class HyperModel(BaseModel):
         return self._parse_uri(self, uri_template)
 
     def _validate_factory(
-        self: Self, elements: Sequence[T2], properties: Mapping[str, str]
-    ) -> List[T2]:
-        validated_elements: List[T2] = []
+        self: Self, elements: Sequence[R], properties: Mapping[str, str]
+    ) -> List[R]:
+        validated_elements: List[R] = []
         for element_factory in elements:
             if not callable(element_factory):
                 validated_elements.append(element_factory)

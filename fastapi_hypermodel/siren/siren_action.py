@@ -68,8 +68,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
     # For details on the folllowing fields, check https://github.com/kevinswiber/siren
     _class: Union[Sequence[str], None] = PrivateAttr()
     _title: Union[str, None] = PrivateAttr()
-    _name: Union[str, None] = PrivateAttr()
-    _method: Union[str, None] = PrivateAttr()
+    _name: str = PrivateAttr()
+    _method: str = PrivateAttr()
     _type: Union[str, None] = PrivateAttr()
     _fields: Union[Sequence[SirenFieldType], None] = PrivateAttr()
 
@@ -84,8 +84,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         type_: Union[str, None] = None,
         class_: Union[Sequence[str], None] = None,
         fields: Union[Sequence[SirenFieldType], None] = None,
-        method: Union[str, None] = None,
-        name: Union[str, None] = "",
+        method: str = "GET",
+        name: str = "",
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -153,7 +153,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         route = get_route_from_app(app, self._endpoint)
 
         if not self._method:
-            self._method = next(iter(route.methods or {}), None)
+            self._method = next(iter(route.methods or {}), "GET")
 
         uri_path = self._get_uri_path(app, values, route)
 

@@ -111,6 +111,6 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
             href=uri_path,
             rel=self._rel,
             title=self._title,
-            type_=self._type,  # type: ignore
-            class_=self._class,  # type: ignore
+            type_=self._type,
+            class_=self._class,
         )
