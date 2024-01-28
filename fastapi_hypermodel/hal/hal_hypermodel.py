@@ -23,7 +23,6 @@ from pydantic import (
     model_validator,
 )
 from starlette.applications import Starlette
-from starlette.routing import Route
 from typing_extensions import Annotated, Self
 
 from fastapi_hypermodel.base import (
@@ -32,7 +31,6 @@ from fastapi_hypermodel.base import (
     HyperModel,
     UrlType,
     get_route_from_app,
-    resolve_param_values,
 )
 
 
@@ -59,7 +57,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
-    _templated: Optional[bool] = PrivateAttr()
+    _templated: bool = PrivateAttr()
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
     _title: Optional[str] = PrivateAttr()
     _name: Optional[str] = PrivateAttr()
@@ -74,7 +72,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         param_values: Optional[Mapping[str, str]] = None,
         description: Optional[str] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        templated: Optional[bool] = None,
+        templated: bool = False,
         title: Optional[str] = None,
         name: Optional[str] = None,
         type_: Optional[str] = None,
@@ -97,15 +95,6 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         self._profile = profile
         self._deprecation = deprecation
 
-    def _get_uri_path(
-        self: Self, app: Starlette, values: Mapping[str, Any], route: Union[Route, str]
-    ) -> UrlType:
-        if self._templated and isinstance(route, Route):
-            return UrlType(route.path)
-
-        params = resolve_param_values(self._param_values, values)
-        return UrlType(app.url_path_for(self._endpoint, **params))
-
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> Optional[HALForType]:
@@ -117,7 +106,14 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
         route = get_route_from_app(app, self._endpoint)
 
-        uri_path = self._get_uri_path(app, values, route)
+        uri_path = self._get_uri_path(
+            templated=self._templated,
+            endpoint=self._endpoint,
+            app=app,
+            values=values,
+            params=self._param_values,
+            route=route,
+        )
 
         return HALForType(
             href=uri_path,

@@ -225,7 +225,7 @@ check-str-concat-over-line-jumps = true
 ignore-comments = true
 ignore-docstrings = true
 ignore-signatures = true
-min-similarity-lines = 10
+min-similarity-lines = 12
 
 [tool.pylint.variables]
 allow-global-unused-variables = false

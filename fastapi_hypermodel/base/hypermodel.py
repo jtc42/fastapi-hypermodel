@@ -23,9 +23,11 @@ from pydantic import (
     model_validator,
 )
 from starlette.applications import Starlette
+from starlette.routing import Route
 from typing_extensions import Self
 
-from fastapi_hypermodel.base.utils import extract_value_by_name
+from fastapi_hypermodel.base.url_type import UrlType
+from fastapi_hypermodel.base.utils import extract_value_by_name, resolve_param_values
 
 
 @runtime_checkable
@@ -42,6 +44,22 @@ class AbstractHyperField(ABC, Generic[T]):
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> Optional[T]:
         raise NotImplementedError
+
+    @staticmethod
+    def _get_uri_path(
+        *,
+        templated: bool,
+        app: Starlette,
+        values: Mapping[str, Any],
+        route: Union[Route, str],
+        params: Mapping[str, str],
+        endpoint: str,
+    ) -> UrlType:
+        if templated and isinstance(route, Route):
+            return UrlType(route.path)
+
+        params = resolve_param_values(params, values)
+        return UrlType(app.url_path_for(endpoint, **params))
 
 
 R = TypeVar("R", bound=Callable[..., Any])

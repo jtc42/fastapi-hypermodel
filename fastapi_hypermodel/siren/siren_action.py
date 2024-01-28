@@ -30,7 +30,6 @@ from fastapi_hypermodel.base import (
     HasName,
     UrlType,
     get_route_from_app,
-    resolve_param_values,
 )
 
 from .siren_base import SirenBase
@@ -103,15 +102,6 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         self._name = name
         self._class = class_
 
-    def _get_uri_path(
-        self: Self, app: Starlette, values: Mapping[str, Any], route: Union[Route, str]
-    ) -> UrlType:
-        if self._templated and isinstance(route, Route):
-            return UrlType(route.path)
-
-        params = resolve_param_values(self._param_values, values)
-        return UrlType(app.url_path_for(self._endpoint, **params))
-
     def _prepopulate_fields(
         self: Self, fields: Sequence[SirenFieldType], values: Mapping[str, Any]
     ) -> List[SirenFieldType]:
@@ -155,7 +145,14 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         if not self._method:
             self._method = next(iter(route.methods or {}), "GET")
 
-        uri_path = self._get_uri_path(app, values, route)
+        uri_path = self._get_uri_path(
+            templated=self._templated,
+            endpoint=self._endpoint,
+            app=app,
+            values=values,
+            params=self._param_values,
+            route=route,
+        )
 
         if not self._fields:
             self._fields = self._compute_fields(route, values)

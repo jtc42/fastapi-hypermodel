@@ -16,7 +16,6 @@ from pydantic import (
     field_validator,
 )
 from starlette.applications import Starlette
-from starlette.routing import Route
 from typing_extensions import Self
 
 from fastapi_hypermodel.base import (
@@ -24,7 +23,6 @@ from fastapi_hypermodel.base import (
     HasName,
     UrlType,
     get_route_from_app,
-    resolve_param_values,
 )
 
 from .siren_base import SirenBase
@@ -83,15 +81,6 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         self._rel = rel or []
         self._class = class_
 
-    def _get_uri_path(
-        self: Self, app: Starlette, values: Mapping[str, Any], route: Union[Route, str]
-    ) -> UrlType:
-        if self._templated and isinstance(route, Route):
-            return UrlType(route.path)
-
-        params = resolve_param_values(self._param_values, values)
-        return UrlType(app.url_path_for(self._endpoint, **params))
-
     def __call__(
         self: Self, app: Union[Starlette, None], values: Mapping[str, Any]
     ) -> Union[SirenLinkType, None]:
@@ -104,7 +93,14 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         route = get_route_from_app(app, self._endpoint)
 
         properties = values.get("properties", values)
-        uri_path = self._get_uri_path(app, properties, route)
+        uri_path = self._get_uri_path(
+            templated=self._templated,
+            endpoint=self._endpoint,
+            app=app,
+            values=properties,
+            params=self._param_values,
+            route=route,
+        )
 
         # Using model_validate to avoid conflicts with keyword class
         return SirenLinkType(

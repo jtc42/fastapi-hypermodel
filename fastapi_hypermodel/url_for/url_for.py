@@ -16,7 +16,6 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 from starlette.applications import Starlette
-from starlette.routing import Route
 from typing_extensions import Self
 
 from fastapi_hypermodel.base import (
@@ -25,7 +24,6 @@ from fastapi_hypermodel.base import (
     HasName,
     UrlType,
     get_route_from_app,
-    resolve_param_values,
 )
 
 
@@ -41,14 +39,14 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
-    _templated: Optional[bool] = PrivateAttr()
+    _templated: bool = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Mapping[str, Any]] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        templated: Optional[bool] = None,
+        templated: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -73,15 +71,6 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
 
         return json_schema
 
-    def _get_uri_path(
-        self: Self, app: Starlette, values: Mapping[str, Any], route: Union[Route, str]
-    ) -> UrlType:
-        if self._templated and isinstance(route, Route):
-            return UrlType(route.path)
-
-        params = resolve_param_values(self._param_values, values)
-        return UrlType(app.url_path_for(self._endpoint, **params))
-
     def __call__(
         self: Self,
         app: Optional[Starlette],
@@ -95,6 +84,13 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
 
         route = get_route_from_app(app, self._endpoint)
 
-        uri_path = self._get_uri_path(app, values, route)
+        uri_path = self._get_uri_path(
+            templated=self._templated,
+            endpoint=self._endpoint,
+            app=app,
+            values=values,
+            params=self._param_values,
+            route=route,
+        )
 
         return UrlForType(hypermedia=uri_path)
