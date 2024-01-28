@@ -162,7 +162,7 @@ class FrozenDict(frozendict[str, HALLinkType]):
 HALLinks = Annotated[Union[FrozenDict, None], Field(alias="_links")]
 
 
-class HalHyperModel(HyperModel):
+class HALHyperModel(HyperModel):
     curies_: ClassVar[Optional[Sequence[HALForType]]] = None
     links: HALLinks = None
     embedded: Mapping[str, Union[Self, Sequence[Self]]] = Field(
@@ -204,7 +204,7 @@ class HalHyperModel(HyperModel):
                 first_link, *_ = valid_links
                 validated_links[link_name] = valid_links if is_sequence else first_link
 
-            validated_links["curies"] = HalHyperModel.curies()  # type: ignore
+            validated_links["curies"] = HALHyperModel.curies()  # type: ignore
 
             self.links = frozendict(validated_links)
 
@@ -218,7 +218,7 @@ class HalHyperModel(HyperModel):
                 field if isinstance(field, Sequence) else [field]
             )
 
-            if not all(isinstance(element, HalHyperModel) for element in value):
+            if not all(isinstance(element, HALHyperModel) for element in value):
                 continue
 
             key = self.model_fields[name].alias or name

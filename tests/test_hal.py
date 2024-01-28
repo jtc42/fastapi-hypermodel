@@ -11,14 +11,14 @@ from fastapi_hypermodel import (
     FrozenDict,
     HALFor,
     HALForType,
-    HalHyperModel,
+    HALHyperModel,
     HALLinks,
     HALResponse,
     UrlType,
 )
 
 
-class MockClass(HalHyperModel):
+class MockClass(HALHyperModel):
     id_: str
 
     links: HALLinks = FrozenDict({
@@ -26,38 +26,38 @@ class MockClass(HalHyperModel):
     })
 
 
-class MockClassWithEmbedded(HalHyperModel):
+class MockClassWithEmbedded(HALHyperModel):
     id_: str
 
     test: MockClass
 
 
-class MockClassWithMultipleEmbedded(HalHyperModel):
+class MockClassWithMultipleEmbedded(HALHyperModel):
     id_: str
 
     test: MockClass
     test2: MockClass
 
 
-class MockClassWithEmbeddedAliased(HalHyperModel):
+class MockClassWithEmbeddedAliased(HALHyperModel):
     id_: str
 
     test: MockClass = Field(alias="sc:test")
 
 
-class MockClassWithEmbeddedList(HalHyperModel):
+class MockClassWithEmbeddedList(HALHyperModel):
     id_: str
 
     test: Sequence[MockClass]
 
 
-class MockClassWithEmbeddedListAliased(HalHyperModel):
+class MockClassWithEmbeddedListAliased(HALHyperModel):
     id_: str
 
     test: Sequence[MockClass] = Field(alias="sc:test")
 
 
-class MockClassWithCuries(HalHyperModel):
+class MockClassWithCuries(HALHyperModel):
     id_: str
 
     links: HALLinks = FrozenDict({
@@ -66,7 +66,7 @@ class MockClassWithCuries(HalHyperModel):
     })
 
 
-class MockClassWithMissingCuries(HalHyperModel):
+class MockClassWithMissingCuries(HALHyperModel):
     id_: str
 
     links: HALLinks = FrozenDict({
@@ -81,7 +81,7 @@ def hal_app(app: FastAPI) -> FastAPI:
     def mock_read_with_path_hal() -> Any:  # pragma: no cover
         return {}
 
-    HalHyperModel.init_app(app)
+    HALHyperModel.init_app(app)
 
     return app
 
@@ -213,9 +213,9 @@ def curies() -> List[HALForType]:
 
 @pytest.fixture()
 def _set_curies(curies: Sequence[HALForType]) -> Generator[None, None, None]:
-    HalHyperModel.register_curies(curies)
+    HALHyperModel.register_curies(curies)
     yield
-    HalHyperModel.register_curies([])
+    HALHyperModel.register_curies([])
 
 
 @pytest.fixture()

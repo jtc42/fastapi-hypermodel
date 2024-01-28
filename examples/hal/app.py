@@ -10,13 +10,13 @@ from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
     FrozenDict,
     HALFor,
-    HalHyperModel,
+    HALHyperModel,
     HALResponse,
 )
 from fastapi_hypermodel.hal.hal_hypermodel import HALLinks
 
 
-class ItemSummary(HalHyperModel):
+class ItemSummary(HALHyperModel):
     name: str
     id_: str
 
@@ -41,7 +41,7 @@ class ItemCreate(ItemUpdate):
     id_: str
 
 
-class ItemCollection(HalHyperModel):
+class ItemCollection(HALHyperModel):
     items: Sequence[Item] = Field(alias="sc:items")
 
     links: HALLinks = FrozenDict({
@@ -51,7 +51,7 @@ class ItemCollection(HalHyperModel):
     })
 
 
-class Person(HalHyperModel):
+class Person(HALHyperModel):
     name: str
     id_: str
     is_locked: bool
@@ -70,7 +70,7 @@ class Person(HalHyperModel):
     })
 
 
-class PersonCollection(HalHyperModel):
+class PersonCollection(HALHyperModel):
     people: Sequence[Person]
 
     links: HALLinks = FrozenDict({
@@ -92,8 +92,8 @@ class PersonUpdate(BaseModel):
 
 
 app = FastAPI()
-HalHyperModel.init_app(app)
-HalHyperModel.register_curies(curies)
+HALHyperModel.init_app(app)
+HALHyperModel.register_curies(curies)
 
 
 @app.get("/items", response_model=ItemCollection, response_class=HALResponse)

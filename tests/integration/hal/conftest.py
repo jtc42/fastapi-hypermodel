@@ -15,13 +15,13 @@ from examples.hal import (
 from examples.hal import (
     people as people_,
 )
-from fastapi_hypermodel import HalHyperModel
+from fastapi_hypermodel import HALHyperModel
 
 
 @pytest.fixture()
 def hal_client() -> TestClient:
-    HalHyperModel.init_app(app)
-    HalHyperModel.register_curies(curies)
+    HALHyperModel.init_app(app)
+    HALHyperModel.register_curies(curies)
 
     return TestClient(app=app, base_url="http://haltestserver")
 
