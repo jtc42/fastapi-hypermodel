@@ -193,16 +193,15 @@ class HALHyperModel(HyperModel):
 
             links = cast(Mapping[str, HALLinkType], value)
             for link_name, link_ in links.items():
-                is_sequence = isinstance(link_, Sequence)
-
-                link_sequence = link_ if is_sequence else [link_]
-                valid_links = self._validate_factory(link_sequence, vars(self))
+                valid_links = self._validate_factory(link_, vars(self))
 
                 if not valid_links:
                     continue
 
                 first_link, *_ = valid_links
-                validated_links[link_name] = valid_links if is_sequence else first_link
+                validated_links[link_name] = (
+                    valid_links if isinstance(link_, Sequence) else first_link
+                )
 
             validated_links["curies"] = HALHyperModel.curies()  # type: ignore
 

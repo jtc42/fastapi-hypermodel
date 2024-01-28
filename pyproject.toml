@@ -55,6 +55,9 @@ exclude_also = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+disable_error_code = [
+    "unused-ignore",  # To use names in Pydantic Init
+]
 
 #########################################
 # Ruff

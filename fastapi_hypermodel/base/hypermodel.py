@@ -13,6 +13,7 @@ from typing import (
     Sequence,
     Type,
     TypeVar,
+    Union,
     cast,
     runtime_checkable,
 )
@@ -97,8 +98,11 @@ class HyperModel(BaseModel):
         return self._parse_uri(self, uri_template)
 
     def _validate_factory(
-        self: Self, elements: Sequence[R], properties: Mapping[str, str]
+        self: Self, elements: Union[R, Sequence[R]], properties: Mapping[str, str]
     ) -> List[R]:
+        if not isinstance(elements, Sequence):
+            elements = [elements]
+
         validated_elements: List[R] = []
         for element_factory in elements:
             if not callable(element_factory):
