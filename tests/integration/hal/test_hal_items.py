@@ -1,11 +1,10 @@
-from fastapi.testclient import TestClient
-from examples.hal import Item
+import uuid
 
 import pytest
+from fastapi.testclient import TestClient
 
+from examples.hal import Item
 from fastapi_hypermodel import get_hal_link_href
-
-import uuid
 
 
 @pytest.fixture()
@@ -27,6 +26,12 @@ def update_uri_template(hal_client: TestClient, item_uri: str) -> str:
     return update_uri
 
 
+def test_items_content_type(hal_client: TestClient, item_uri: str) -> None:
+    response = hal_client.get(item_uri)
+    content_type = response.headers.get("content-type")
+    assert content_type == "application/hal+json"
+
+
 def test_get_items(hal_client: TestClient, item_uri: str) -> None:
     response = hal_client.get(item_uri).json()
 
@@ -36,6 +41,10 @@ def test_get_items(hal_client: TestClient, item_uri: str) -> None:
     find_uri = response.get("_links", {}).get("find", {})
     assert find_uri.get("templated")
     assert item_uri in find_uri.get("href")
+
+    items = response.get("_embedded", {}).get("sc:items", [])
+    assert items
+    assert len(items) == 4
 
 
 def test_get_item(
@@ -49,7 +58,8 @@ def test_get_item(
 
     item_href = get_hal_link_href(item_response, "self")
 
-    assert item_uri in item_href and item.id_ in item_href
+    assert item_uri in item_href
+    assert item.id_ in item_href
     assert item_response.get("id_") == item.id_
 
 

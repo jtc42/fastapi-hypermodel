@@ -1,4 +1,5 @@
 from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -6,7 +7,11 @@ from examples.url_for import (
     ItemSummary,
     Person,
     app,
+)
+from examples.url_for import (
     items as items_,
+)
+from examples.url_for import (
     people as people_,
 )
 from fastapi_hypermodel import HyperModel
@@ -24,7 +29,7 @@ def items() -> Any:
     return items_.values()
 
 
-@pytest.fixture(params=list(items_.values()))
+@pytest.fixture(params=items_["items"])
 def item(request: Any) -> ItemSummary:
     return ItemSummary(**request.param)
 
@@ -34,20 +39,15 @@ def people() -> Any:
     return people_.values()
 
 
-@pytest.fixture(params=list(people_.values()))
-def locked_person(request: Any) -> Person:
-    return Person(**request.param)
-
-
 @pytest.fixture(
-    params=[person for person in people_.values() if person.get("is_locked")]
+    params=[person for person in people_["people"] if person.get("is_locked")]
 )
 def locked_person(request: Any) -> Person:
     return Person(**request.param)
 
 
 @pytest.fixture(
-    params=[person for person in people_.values() if not person.get("is_locked")]
+    params=[person for person in people_["people"] if not person.get("is_locked")]
 )
 def unlocked_person(request: Any) -> Person:
     return Person(**request.param)

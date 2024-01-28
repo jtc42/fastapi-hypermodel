@@ -11,6 +11,7 @@ from typing import (
     Protocol,
     Type,
     TypeVar,
+    cast,
     runtime_checkable,
 )
 
@@ -58,14 +59,12 @@ class AbstractHyperField(ABC, Generic[T]):
         return subclasses_schemas
 
     @abstractmethod
-    def __build_hypermedia__(
-        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
-    ) -> T:
+    def __call__(self: Self, app: Optional[Starlette], values: Mapping[str, Any]) -> T:
         raise NotImplementedError
 
 
 class HyperModel(BaseModel):
-    _hypermodel_bound_app: ClassVar[Optional[Starlette]] = None
+    _app: ClassVar[Optional[Starlette]] = None
 
     @model_validator(mode="after")
     def _build_hypermedia(self: Self) -> Self:
@@ -74,10 +73,15 @@ class HyperModel(BaseModel):
                 setattr(self, key, value)
                 continue
 
-            hypermedia = value.__build_hypermedia__(
-                self._hypermodel_bound_app, vars(self)
-            )
-            setattr(self, key, hypermedia)
+            hyper_field = cast(AbstractHyperField[BaseModel], value)
+
+            hypermedia = hyper_field(self._app, vars(self))
+
+            if hypermedia:
+                setattr(self, key, hypermedia)
+                continue
+
+            delattr(self, key)
 
         return self
 
@@ -91,7 +95,7 @@ class HyperModel(BaseModel):
         Args:
             app (FastAPI): Application to generate URLs from
         """
-        cls._hypermodel_bound_app = app
+        cls._app = app
 
     def parse_uri(self: Self, uri_template: str) -> str:
         parameters: Dict[str, str] = {}

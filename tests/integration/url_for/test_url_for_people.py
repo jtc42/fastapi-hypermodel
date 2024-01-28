@@ -1,10 +1,10 @@
+import uuid
 from typing import Any
-from fastapi.testclient import TestClient
-from examples.url_for import Person
 
 import pytest
+from fastapi.testclient import TestClient
 
-import uuid
+from examples.url_for import Person
 
 
 @pytest.fixture()
@@ -50,7 +50,8 @@ def test_get_person(
 
     person_href = person_response.get("href")
 
-    assert people_uri in person_href and locked_person.id_ in person_href
+    assert people_uri in person_href
+    assert locked_person.id_ in person_href
     assert person_response.get("id_") == locked_person.id_
 
     items = person_response.get("items")
@@ -107,7 +108,8 @@ def test_get_person_items(
 
     person_items = person_response.get("items")
 
-    assert isinstance(person_items, list) and person_items
+    assert isinstance(person_items, list)
+    assert person_items
 
     first_item, *_ = person_items
     first_item_uri = first_item.get("href")

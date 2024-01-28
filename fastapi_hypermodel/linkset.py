@@ -3,7 +3,9 @@ from typing import (
     Dict,
     Mapping,
     Optional,
+    Sequence,
     Type,
+    Union,
 )
 
 from pydantic import (
@@ -20,21 +22,23 @@ from typing_extensions import Self
 
 from fastapi_hypermodel.hypermodel import AbstractHyperField
 
+LinkType = Union[AbstractHyperField[Any], Sequence[AbstractHyperField[Any]]]
+
 
 class LinkSetType(BaseModel):
-    mapping: Mapping[str, AbstractHyperField[Any]] = Field(default_factory=dict)
+    mapping: Mapping[str, LinkType] = Field(default_factory=dict)
 
     @model_serializer
-    def serialize(self: Self) -> Mapping[str, AbstractHyperField[Any]]:
+    def serialize(self: Self) -> Mapping[str, LinkType]:
         return self if isinstance(self, Mapping) else self.mapping
 
 
 class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
-    _mapping: Mapping[str, AbstractHyperField[Any]] = PrivateAttr(default_factory=dict)
+    _mapping: Mapping[str, LinkType] = PrivateAttr(default_factory=dict)
 
     def __init__(
         self: Self,
-        mapping: Optional[Mapping[str, AbstractHyperField[Any]]] = None,
+        mapping: Optional[Mapping[str, LinkType]] = None,
     ) -> None:
         super().__init__()
         self._mapping = mapping or {}
@@ -56,13 +60,16 @@ class LinkSet(LinkSetType, AbstractHyperField[LinkSetType]):
 
         return json_schema
 
-    def __build_hypermedia__(
+    def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> LinkSetType:
-        links: Dict[str, AbstractHyperField[Any]] = {}
+        links: Dict[str, LinkType] = {}
 
-        for key, value in self._mapping.items():
-            hypermedia = value.__build_hypermedia__(app, values)
+        for key, hyperfields in self._mapping.items():
+            if isinstance(hyperfields, Sequence):
+                hypermedia = [hyperfield(app, values) for hyperfield in hyperfields]
+            else:
+                hypermedia = hyperfields(app, values)
 
             if not hypermedia:
                 continue

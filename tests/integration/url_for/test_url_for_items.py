@@ -1,10 +1,9 @@
+import uuid
+
+import pytest
 from fastapi.testclient import TestClient
 
 from examples.url_for import Item
-
-import pytest
-
-import uuid
 
 
 @pytest.fixture()
@@ -50,7 +49,8 @@ def test_get_item(
 
     item_href = item_response.get("href")
 
-    assert item_uri in item_href and item.id_ in item_href
+    assert item_uri in item_href
+    assert item.id_ in item_href
     assert item_response.get("id_") == item.id_
 
 
