@@ -28,6 +28,7 @@ from .utils import (
 )
 
 __all__ = [
+    "URL_TYPE_SCHEMA",
     "AbstractHyperField",
     "HALFor",
     "HALForType",
@@ -46,7 +47,6 @@ __all__ = [
     "SirenLinkFor",
     "SirenLinkType",
     "SirenResponse",
-    "URL_TYPE_SCHEMA",
     "UrlFor",
     "UrlType",
     "extract_value_by_name",
