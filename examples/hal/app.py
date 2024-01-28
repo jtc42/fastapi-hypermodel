@@ -1,4 +1,4 @@
-from typing import Any, Optional, Sequence, cast
+from typing import Any, Dict, Optional, Sequence, cast
 
 from fastapi import FastAPI, HTTPException
 from pydantic import Field
@@ -10,8 +10,8 @@ from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
     HALFor,
     HalHyperModel,
+    HALLinkType,
     HALResponse,
-    LinkSet,
 )
 
 
@@ -19,11 +19,11 @@ class ItemSummary(HalHyperModel):
     name: str
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("read_item", {"id_": "<id_>"}),
             "update": HALFor("update_item", {"id_": "<id_>"}),
-        }),
+        },
         alias="_links",
     )
 
@@ -46,12 +46,12 @@ class ItemCreate(ItemUpdate):
 class ItemCollection(HalHyperModel):
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("read_items"),
             "find": HALFor("read_item", templated=True),
             "update": HALFor("update_item", templated=True),
-        }),
+        },
         alias="_links",
     )
 
@@ -63,8 +63,8 @@ class Person(HalHyperModel):
 
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("read_person", {"id_": "<id_>"}),
             "update": HALFor("update_person", {"id_": "<id_>"}),
             "add_item": HALFor(
@@ -73,7 +73,7 @@ class Person(HalHyperModel):
                 description="Add an item to this person and the items list",
                 condition=lambda values: not values["is_locked"],
             ),
-        }),
+        },
         alias="_links",
     )
 
@@ -81,8 +81,8 @@ class Person(HalHyperModel):
 class PersonCollection(HalHyperModel):
     people: Sequence[Person]
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("read_people"),
             "find": HALFor(
                 "read_person", description="Get a particular person", templated=True
@@ -92,7 +92,7 @@ class PersonCollection(HalHyperModel):
                 description="Update a particular person",
                 templated=True,
             ),
-        }),
+        },
         alias="_links",
     )
 

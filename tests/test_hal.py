@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Generator, List, Mapping, Sequence
+from typing import Any, Dict, Generator, List, Mapping, Sequence
 
 import pytest
 from fastapi import FastAPI
@@ -11,8 +11,8 @@ from fastapi_hypermodel import (
     HALFor,
     HALForType,
     HalHyperModel,
+    HALLinkType,
     HALResponse,
-    LinkSet,
     UrlType,
 )
 
@@ -20,10 +20,10 @@ from fastapi_hypermodel import (
 class MockClass(HalHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
+        },
         alias="_links",
     )
 
@@ -62,11 +62,11 @@ class MockClassWithEmbeddedListAliased(HalHyperModel):
 class MockClassWithCuries(HalHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
             "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
+        },
         alias="_links",
     )
 
@@ -74,11 +74,11 @@ class MockClassWithCuries(HalHyperModel):
 class MockClassWithMissingCuries(HalHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
+    links: Dict[str, HALLinkType] = Field(
+        default={
             "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
             "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
+        },
         alias="_links",
     )
 
@@ -500,12 +500,7 @@ def test_build_hypermedia_with_href(app: FastAPI) -> None:
 def test_openapi_schema(hal_for_schema: Mapping[str, Any]) -> None:
     mock = MockClass(id_="test")
     schema = mock.model_json_schema()
-    link_set_definition = schema["$defs"]["LinkSet"]["additionalProperties"]["anyOf"]
-    hal_for_definition = next(
-        definition
-        for definition in link_set_definition
-        if definition.get("title") == "HALFor"
-    )
+    hal_for_definition = schema["$defs"]["HALFor"]
 
     assert all(hal_for_definition.get(k) == v for k, v in hal_for_schema.items())
 
