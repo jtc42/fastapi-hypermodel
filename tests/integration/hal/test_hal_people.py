@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from examples.hal import Person
-from fastapi_hypermodel import get_hal_link_href
+from fastapi_hypermodel import UrlType, get_hal_link_href
 
 
 @pytest.fixture()
@@ -14,17 +14,17 @@ def people_uri() -> str:
 
 
 @pytest.fixture()
-def find_uri_template(hal_client: TestClient, people_uri: str) -> str:
+def find_uri_template(hal_client: TestClient, people_uri: str) -> UrlType:
     find_uri = get_hal_link_href(hal_client.get(people_uri).json(), "find")
     assert find_uri
-    return find_uri
+    return find_uri.href
 
 
 @pytest.fixture()
-def update_uri_template(hal_client: TestClient, people_uri: str) -> str:
+def update_uri_template(hal_client: TestClient, people_uri: str) -> UrlType:
     update_uri = get_hal_link_href(hal_client.get(people_uri).json(), "update")
     assert update_uri
-    return update_uri
+    return update_uri.href
 
 
 def test_people_content_type(hal_client: TestClient, people_uri: str) -> None:
@@ -36,8 +36,9 @@ def test_people_content_type(hal_client: TestClient, people_uri: str) -> None:
 def test_get_people(hal_client: TestClient, people_uri: str) -> None:
     response = hal_client.get(people_uri).json()
 
-    self_uri = get_hal_link_href(response, "self")
-    assert self_uri == people_uri
+    self_link = get_hal_link_href(response, "self")
+    assert self_link
+    assert self_link.href == people_uri
 
     find_uri = response.get("_links", {}).get("find", {})
     assert find_uri.get("templated")
@@ -50,10 +51,11 @@ def test_get_person(
     find_uri = person.parse_uri(find_uri_template)
     person_response = hal_client.get(find_uri).json()
 
-    person_href = get_hal_link_href(person_response, "self")
+    self_link = get_hal_link_href(person_response, "self")
 
-    assert people_uri in person_href
-    assert person.id_ in person_href
+    assert self_link
+    assert people_uri in self_link.href
+    assert person.id_ in self_link.href
     assert person_response.get("id_") == person.id_
 
     embedded = person_response.get("_embedded")
@@ -93,8 +95,9 @@ def test_update_person_from_update_uri(
 
     new_data = {"name": f"updated_{uuid.uuid4().hex}"}
 
-    update_uri = get_hal_link_href(before, "update")
-    response = hal_client.put(update_uri, json=new_data).json()
+    update_link = get_hal_link_href(before, "update")
+    assert update_link
+    response = hal_client.put(update_link.href, json=new_data).json()
 
     assert response.get("name") == new_data.get("name")
     assert response.get("name") != before.get("name")
@@ -117,8 +120,9 @@ def test_get_person_items(
     assert isinstance(person_items, list)
 
     first_item, *_ = person_items
-    first_item_uri = get_hal_link_href(first_item, "self")
-    first_item_response = hal_client.get(first_item_uri).json()
+    first_item_link = get_hal_link_href(first_item, "self")
+    assert first_item_link
+    first_item_response = hal_client.get(first_item_link.href).json()
 
     assert first_item == first_item_response
 
@@ -142,11 +146,11 @@ def test_add_item_to_unlocked_person(
     find_uri = unlocked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
     before_items = before.get("_embedded", {}).get("sc:items", [])
-    add_item_uri = get_hal_link_href(before, "add_item")
+    add_item_link = get_hal_link_href(before, "add_item")
 
-    assert add_item_uri
+    assert add_item_link
 
-    after = hal_client.put(add_item_uri, json=existing_item).json()
+    after = hal_client.put(add_item_link.href, json=existing_item).json()
     after_items = after.get("_embedded", {}).get("sc:items", [])
     assert after_items
 
@@ -165,11 +169,11 @@ def test_add_item_to_unlocked_person_nonexisting_item(
 ) -> None:
     find_uri = unlocked_person.parse_uri(find_uri_template)
     before = hal_client.get(find_uri).json()
-    add_item_uri = get_hal_link_href(before, "add_item")
+    add_item_link = get_hal_link_href(before, "add_item")
 
-    assert add_item_uri
+    assert add_item_link
 
-    response = hal_client.put(add_item_uri, json=non_existing_item)
+    response = hal_client.put(add_item_link.href, json=non_existing_item)
     assert response.status_code == 404
     assert response.json() == {"detail": "No item found with id item05"}
 

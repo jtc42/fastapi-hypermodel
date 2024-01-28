@@ -113,14 +113,14 @@ def test_get_hal_link_href(hal_response: Any) -> None:
     actual = get_hal_link_href(hal_response, "self")
     expected = "/self"
 
-    assert actual == expected
+    assert actual
+    assert actual.href == expected
 
 
 def test_get_hal_link_href_not_found(hal_response: Any) -> None:
     actual = get_hal_link_href(hal_response, "update")
-    expected = ""
 
-    assert actual == expected
+    assert not actual
 
 
 class MockModel(HyperModel):

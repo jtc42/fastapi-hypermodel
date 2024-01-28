@@ -6,11 +6,18 @@ from .base import (
     InvalidAttribute,
     UrlType,
     extract_value_by_name,
-    get_hal_link_href,
     get_route_from_app,
     resolve_param_values,
 )
-from .hal import FrozenDict, HALFor, HALForType, HalHyperModel, HALLinks, HALResponse
+from .hal import (
+    FrozenDict,
+    HALFor,
+    HALForType,
+    HalHyperModel,
+    HALLinks,
+    HALResponse,
+    get_hal_link_href,
+)
 from .siren import (
     SirenActionFor,
     SirenActionType,
