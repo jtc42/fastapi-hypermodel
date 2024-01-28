@@ -34,8 +34,6 @@ class HALForType(BaseModel):
     hreflang: Optional[str] = None
     profile: Optional[str] = None
     deprecation: Optional[str] = None
-    method: Optional[str] = None
-    description: Optional[str] = None
 
     def __bool__(self: Self) -> bool:
         return bool(self.href)
@@ -45,7 +43,6 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
     # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
-    _description: Optional[str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
     _templated: Optional[bool] = PrivateAttr()
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
@@ -104,14 +101,11 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             return HALForType()
 
         route = get_route_from_app(app, self._endpoint)
-        method = next(iter(route.methods), "GET") if route.methods else "GET"
 
         uri_path = self._get_uri_path(app, values, route)
 
         return HALForType(
             href=uri_path,
-            method=method,
-            description=self._description,
             templated=self._templated,
             title=self._title,
             name=self._name,

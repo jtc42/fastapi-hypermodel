@@ -140,16 +140,6 @@ def hal_for_properties() -> Any:
             "default": None,
             "title": "Deprecation",
         },
-        "method": {
-            "anyOf": [{"type": "string"}, {"type": "null"}],
-            "default": None,
-            "title": "Method",
-        },
-        "description": {
-            "anyOf": [{"type": "string"}, {"type": "null"}],
-            "default": None,
-            "title": "Description",
-        },
     }
 
 
