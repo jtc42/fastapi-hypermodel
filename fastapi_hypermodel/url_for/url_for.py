@@ -18,12 +18,14 @@ from pydantic_core import CoreSchema
 from starlette.applications import Starlette
 from typing_extensions import Self
 
-from fastapi_hypermodel.hypermodel import (
+from fastapi_hypermodel.base import (
+    URL_TYPE_SCHEMA,
     AbstractHyperField,
     HasName,
+    UrlType,
+    get_route_from_app,
+    resolve_param_values,
 )
-from fastapi_hypermodel.url_type import URL_TYPE_SCHEMA, UrlType
-from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
 class UrlForType(BaseModel):

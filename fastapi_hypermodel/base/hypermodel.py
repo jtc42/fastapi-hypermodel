@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
     Any,
+    Callable,
     ClassVar,
     Dict,
     Generic,
@@ -10,6 +11,7 @@ from typing import (
     Mapping,
     Optional,
     Protocol,
+    Sequence,
     Type,
     TypeVar,
     cast,
@@ -25,7 +27,7 @@ from pydantic import (
 from starlette.applications import Starlette
 from typing_extensions import Self
 
-from fastapi_hypermodel.utils import extract_value_by_name
+from fastapi_hypermodel.base.utils import extract_value_by_name
 
 
 @runtime_checkable
@@ -68,6 +70,9 @@ class AbstractHyperField(ABC, Generic[T]):
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> Optional[T]:
         raise NotImplementedError
+
+
+T2 = TypeVar("T2", bound=Callable[..., Any])
 
 
 class HyperModel(BaseModel):
@@ -119,3 +124,17 @@ class HyperModel(BaseModel):
 
     def parse_uri(self: Self, uri_template: str) -> str:
         return self._parse_uri(self, uri_template)
+
+    def _validate_factory(
+        self: Self, elements: Sequence[T2], properties: Mapping[str, str]
+    ) -> List[T2]:
+        validated_elements: List[T2] = []
+        for element_factory in elements:
+            if not callable(element_factory):
+                validated_elements.append(element_factory)
+                continue
+            element = element_factory(self._app, properties)
+            if not element:
+                continue
+            validated_elements.append(element)
+        return validated_elements
