@@ -10,7 +10,7 @@ from .base import (
     get_route_from_app,
     resolve_param_values,
 )
-from .hal import HALFor, HALForType, HalHyperModel, HALLinkType, HALResponse
+from .hal import HALFor, HALForType, HalHyperModel, HALLinks, HALResponse
 from .siren import (
     SirenActionFor,
     SirenActionType,
@@ -30,7 +30,7 @@ __all__ = [
     "AbstractHyperField",
     "HALFor",
     "HALForType",
-    "HALLinkType",
+    "HALLinks",
     "HALResponse",
     "HalHyperModel",
     "HasName",

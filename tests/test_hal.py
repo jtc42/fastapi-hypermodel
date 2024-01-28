@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, Generator, List, Mapping, Sequence
+from typing import Any, Generator, List, Mapping, Sequence
 
 import pytest
 from fastapi import FastAPI
@@ -11,7 +11,7 @@ from fastapi_hypermodel import (
     HALFor,
     HALForType,
     HalHyperModel,
-    HALLinkType,
+    HALLinks,
     HALResponse,
     UrlType,
 )
@@ -20,12 +20,9 @@ from fastapi_hypermodel import (
 class MockClass(HalHyperModel):
     id_: str
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    }
 
 
 class MockClassWithEmbedded(HalHyperModel):
@@ -62,25 +59,19 @@ class MockClassWithEmbeddedListAliased(HalHyperModel):
 class MockClassWithCuries(HalHyperModel):
     id_: str
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-            "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+        "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    }
 
 
 class MockClassWithMissingCuries(HalHyperModel):
     id_: str
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-            "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+        "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    }
 
 
 @pytest.fixture()

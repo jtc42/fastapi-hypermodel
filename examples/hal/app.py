@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Sequence, cast
+from typing import Any, Optional, Sequence, cast
 
 from fastapi import FastAPI, HTTPException
 from pydantic import Field
@@ -10,22 +10,19 @@ from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
     HALFor,
     HalHyperModel,
-    HALLinkType,
     HALResponse,
 )
+from fastapi_hypermodel.hal.hal_hypermodel import HALLinks
 
 
 class ItemSummary(HalHyperModel):
     name: str
     id_: str
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("read_item", {"id_": "<id_>"}),
-            "update": HALFor("update_item", {"id_": "<id_>"}),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("read_item", {"id_": "<id_>"}),
+        "update": HALFor("update_item", {"id_": "<id_>"}),
+    }
 
 
 class Item(ItemSummary):
@@ -46,14 +43,11 @@ class ItemCreate(ItemUpdate):
 class ItemCollection(HalHyperModel):
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("read_items"),
-            "find": HALFor("read_item", templated=True),
-            "update": HALFor("update_item", templated=True),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("read_items"),
+        "find": HALFor("read_item", templated=True),
+        "update": HALFor("update_item", templated=True),
+    }
 
 
 class Person(HalHyperModel):
@@ -63,38 +57,32 @@ class Person(HalHyperModel):
 
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("read_person", {"id_": "<id_>"}),
-            "update": HALFor("update_person", {"id_": "<id_>"}),
-            "add_item": HALFor(
-                "put_person_items",
-                {"id_": "<id_>"},
-                description="Add an item to this person and the items list",
-                condition=lambda values: not values["is_locked"],
-            ),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("read_person", {"id_": "<id_>"}),
+        "update": HALFor("update_person", {"id_": "<id_>"}),
+        "add_item": HALFor(
+            "put_person_items",
+            {"id_": "<id_>"},
+            description="Add an item to this person and the items list",
+            condition=lambda values: not values["is_locked"],
+        ),
+    }
 
 
 class PersonCollection(HalHyperModel):
     people: Sequence[Person]
 
-    links: Dict[str, HALLinkType] = Field(
-        default={
-            "self": HALFor("read_people"),
-            "find": HALFor(
-                "read_person", description="Get a particular person", templated=True
-            ),
-            "update": HALFor(
-                "update_person",
-                description="Update a particular person",
-                templated=True,
-            ),
-        },
-        alias="_links",
-    )
+    links: HALLinks = {
+        "self": HALFor("read_people"),
+        "find": HALFor(
+            "read_person", description="Get a particular person", templated=True
+        ),
+        "update": HALFor(
+            "update_person",
+            description="Update a particular person",
+            templated=True,
+        ),
+    }
 
 
 class PersonUpdate(BaseModel):

@@ -11,10 +11,11 @@ from typing import (
     cast,
 )
 
+from frozendict import frozendict
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr, model_validator
 from starlette.applications import Starlette
 from starlette.routing import Route
-from typing_extensions import Self
+from typing_extensions import Annotated, Self
 
 from fastapi_hypermodel.base import (
     AbstractHyperField,
@@ -123,10 +124,12 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
 
 HALLinkType = Union[HALFor, Sequence[HALFor]]
 
+HALLinks = Annotated[Union[Dict[str, HALLinkType], None], Field(alias="_links")]
+
 
 class HalHyperModel(HyperModel):
     curies_: ClassVar[Optional[Sequence[HALForType]]] = None
-    links: Dict[str, HALLinkType] = Field(default_factory=dict, alias="_links")
+    links: HALLinks = None
     embedded: Mapping[str, Union[Self, Sequence[Self]]] = Field(
         default_factory=dict, alias="_embedded"
     )
@@ -145,6 +148,9 @@ class HalHyperModel(HyperModel):
     @model_validator(mode="after")
     def add_links(self: Self) -> Self:
         links_key = "_links"
+        if not self.links:
+            self.links = {}
+
         for name, value in self:
             alias = self.model_fields[name].alias or name
 
