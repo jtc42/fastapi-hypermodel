@@ -26,7 +26,7 @@ pytest-lazy-fixtures = ">=1.0.1"
 requests = "^2.25.1"
 ruff = "^0.1.8"
 tox = "^4.4"
-uvicorn = ">=0.17.6,<0.26.0"
+uvicorn = ">=0.17.6,<0.28.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
