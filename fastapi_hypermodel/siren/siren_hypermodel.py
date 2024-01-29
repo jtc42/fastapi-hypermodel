@@ -5,6 +5,7 @@ from typing import (
     Dict,
     List,
     Mapping,
+    Optional,
     Sequence,
     Union,
     cast,
@@ -25,10 +26,10 @@ from .siren_link import SirenLinkFor, SirenLinkType
 
 
 class SirenEntityType(SirenBase):
-    properties: Union[Mapping[str, Any], None] = None
-    entities: Union[Sequence[Union[SirenEmbeddedType, SirenLinkType]], None] = None
-    links: Union[Sequence[SirenLinkType], None] = None
-    actions: Union[Sequence[SirenActionType], None] = None
+    properties: Optional[Mapping[str, Any]] = None
+    entities: Optional[Sequence[Union[SirenEmbeddedType, SirenLinkType]]] = None
+    links: Optional[Sequence[SirenLinkType]] = None
+    actions: Optional[Sequence[SirenActionType]] = None
 
 
 class SirenEmbeddedType(SirenEntityType):

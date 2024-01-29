@@ -32,13 +32,13 @@ from .siren_base import SirenBase
 class SirenLinkType(SirenBase):
     rel: Sequence[str] = Field(default_factory=list)
     href: UrlType = Field(default=UrlType())
-    type_: Union[str, None] = Field(default=None, alias="type")
+    type_: Optional[str] = Field(default=None, alias="type")
 
     model_config = ConfigDict(populate_by_name=True)
 
     @field_validator("rel", "href")
     @classmethod
-    def mandatory(cls: Type[Self], value: Union[str, None]) -> str:
+    def mandatory(cls: Type[Self], value: Optional[str]) -> str:
         if not value:
             error_message = "Field rel and href are mandatory"
             raise ValueError(error_message)
@@ -50,24 +50,24 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _templated: Optional[bool] = PrivateAttr()
-    _condition: Union[Callable[[Mapping[str, Any]], bool], None] = PrivateAttr()
+    _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
 
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
-    _title: Union[str, None] = PrivateAttr()
-    _type: Union[str, None] = PrivateAttr()
+    _title: Optional[str] = PrivateAttr()
+    _type: Optional[str] = PrivateAttr()
     _rel: Sequence[str] = PrivateAttr()
-    _class: Union[Sequence[str], None] = PrivateAttr()
+    _class: Optional[Sequence[str]] = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
-        param_values: Union[Mapping[str, str], None] = None,
+        param_values: Optional[Mapping[str, str]] = None,
         templated: Optional[bool] = None,
-        condition: Union[Callable[[Mapping[str, Any]], bool], None] = None,
-        title: Union[str, None] = None,
-        type_: Union[str, None] = None,
-        rel: Union[Sequence[str], None] = None,
-        class_: Union[Sequence[str], None] = None,
+        condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
+        title: Optional[str] = None,
+        type_: Optional[str] = None,
+        rel: Optional[Sequence[str]] = None,
+        class_: Optional[Sequence[str]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -83,8 +83,8 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         self._class = class_
 
     def __call__(
-        self: Self, app: Union[Starlette, None], values: Mapping[str, Any]
-    ) -> Union[SirenLinkType, None]:
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> Optional[SirenLinkType]:
         if app is None:
             return None
 

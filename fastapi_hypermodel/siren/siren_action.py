@@ -41,8 +41,8 @@ class SirenActionType(SirenBase):
     name: str = Field(default="")
     method: str = Field(default="GET")
     href: UrlType = Field(default=UrlType())
-    type_: Union[str, None] = Field(default=None, alias="type")
-    fields: Union[Sequence[SirenFieldType], None] = Field(default=None)
+    type_: Optional[str] = Field(default=None, alias="type")
+    fields: Optional[Sequence[SirenFieldType]] = Field(default=None)
     templated: Optional[bool] = Field(default=None)
 
     model_config = ConfigDict(
@@ -51,7 +51,7 @@ class SirenActionType(SirenBase):
 
     @field_validator("name", "href")
     @classmethod
-    def mandatory(cls: Type[Self], value: Union[str, None]) -> str:
+    def mandatory(cls: Type[Self], value: Optional[str]) -> str:
         if not value:
             error_message = f"Field name and href are mandatory, {value}"
             raise ValueError(error_message)
@@ -62,29 +62,29 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _templated: Optional[bool] = PrivateAttr()
-    _condition: Union[Callable[[Mapping[str, Any]], bool], None] = PrivateAttr()
+    _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
     _populate_fields: bool = PrivateAttr()
 
     # For details on the folllowing fields, check https://github.com/kevinswiber/siren
-    _class: Union[Sequence[str], None] = PrivateAttr()
-    _title: Union[str, None] = PrivateAttr()
+    _class: Optional[Sequence[str]] = PrivateAttr()
+    _title: Optional[str] = PrivateAttr()
     _name: str = PrivateAttr()
-    _method: Union[str, None] = PrivateAttr()
-    _type: Union[str, None] = PrivateAttr()
-    _fields: Union[Sequence[SirenFieldType], None] = PrivateAttr()
+    _method: Optional[str] = PrivateAttr()
+    _type: Optional[str] = PrivateAttr()
+    _fields: Optional[Sequence[SirenFieldType]] = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
-        param_values: Union[Mapping[str, str], None] = None,
+        param_values: Optional[Mapping[str, str]] = None,
         templated: Optional[bool] = None,
-        condition: Union[Callable[[Mapping[str, Any]], bool], None] = None,
+        condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
         populate_fields: bool = True,
-        title: Union[str, None] = None,
-        type_: Union[str, None] = None,
-        class_: Union[Sequence[str], None] = None,
-        fields: Union[Sequence[SirenFieldType], None] = None,
-        method: Union[str, None] = None,
+        title: Optional[str] = None,
+        type_: Optional[str] = None,
+        class_: Optional[Sequence[str]] = None,
+        fields: Optional[Sequence[SirenFieldType]] = None,
+        method: Optional[str] = None,
         name: str = "",
         **kwargs: Any,
     ) -> None:
@@ -133,8 +133,8 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         return self._prepopulate_fields(fields, values)
 
     def __call__(
-        self: Self, app: Union[Starlette, None], values: Mapping[str, Any]
-    ) -> Union[SirenActionType, None]:
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> Optional[SirenActionType]:
         if app is None:
             return None
 

@@ -41,7 +41,7 @@ class HALForType(BaseModel):
     templated: Optional[bool] = None
     title: Optional[str] = None
     name: Optional[str] = None
-    type_: Union[str, None] = Field(default=None, alias="type")
+    type_: Optional[str] = Field(default=None, alias="type")
     hreflang: Optional[str] = None
     profile: Optional[str] = None
     deprecation: Optional[str] = None
@@ -157,7 +157,7 @@ class FrozenDict(frozendict):  # type: ignore
         )
 
 
-HALLinks = Annotated[Union[FrozenDict, None], Field(alias="_links")]
+HALLinks = Annotated[Optional[FrozenDict], Field(alias="_links")]
 
 
 class HALHyperModel(HyperModel):

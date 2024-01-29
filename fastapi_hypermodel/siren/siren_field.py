@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import (
     Any,
+    Optional,
     Type,
-    Union,
 )
 
 from pydantic import (
@@ -18,8 +18,8 @@ from .siren_base import SirenBase
 
 class SirenFieldType(SirenBase):
     name: str
-    type_: Union[str, None] = Field(default=None, alias="type")
-    value: Union[Any, None] = None
+    type_: Optional[str] = Field(default=None, alias="type")
+    value: Optional[Any] = None
 
     model_config = ConfigDict(populate_by_name=True)
 
@@ -32,7 +32,7 @@ class SirenFieldType(SirenBase):
         )
 
     @staticmethod
-    def parse_type(python_type: Union[Type[Any], None]) -> str:
+    def parse_type(python_type: Optional[Type[Any]]) -> str:
         type_repr = repr(python_type)
 
         text_types = ("str",)

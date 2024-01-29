@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import (
     Any,
-    Union,
+    Optional,
 )
 
 import jsonschema
@@ -26,13 +26,13 @@ class SirenResponse(JSONResponse):
         return super().render(content)
 
 
-def get_siren_link(response: Any, link_name: str) -> Union[SirenLinkType, None]:
+def get_siren_link(response: Any, link_name: str) -> Optional[SirenLinkType]:
     links = response.get("links", [])
     link = next((link for link in links if link_name in link.get("rel")), None)
     return SirenLinkType.model_validate(link) if link else None
 
 
-def get_siren_action(response: Any, action_name: str) -> Union[SirenActionType, None]:
+def get_siren_action(response: Any, action_name: str) -> Optional[SirenActionType]:
     actions = response.get("actions", [])
     action = next(
         (action for action in actions if action_name in action.get("name")), None
