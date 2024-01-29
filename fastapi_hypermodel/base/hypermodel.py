@@ -48,7 +48,7 @@ class AbstractHyperField(ABC, Generic[T]):
     @staticmethod
     def _get_uri_path(
         *,
-        templated: bool,
+        templated: Optional[bool],
         app: Starlette,
         values: Mapping[str, Any],
         route: Union[Route, str],

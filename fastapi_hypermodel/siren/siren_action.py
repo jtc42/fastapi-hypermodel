@@ -7,6 +7,7 @@ from typing import (
     Dict,
     List,
     Mapping,
+    Optional,
     Sequence,
     Type,
     Union,
@@ -42,7 +43,7 @@ class SirenActionType(SirenBase):
     href: UrlType = Field(default=UrlType())
     type_: Union[str, None] = Field(default=None, alias="type")
     fields: Union[Sequence[SirenFieldType], None] = Field(default=None)
-    templated: bool = Field(default=False)
+    templated: Optional[bool] = Field(default=None)
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -60,7 +61,7 @@ class SirenActionType(SirenBase):
 class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
-    _templated: bool = PrivateAttr()
+    _templated: Optional[bool] = PrivateAttr()
     _condition: Union[Callable[[Mapping[str, Any]], bool], None] = PrivateAttr()
     _populate_fields: bool = PrivateAttr()
 
@@ -76,7 +77,7 @@ class SirenActionFor(SirenActionType, AbstractHyperField[SirenActionType]):  # p
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Union[Mapping[str, str], None] = None,
-        templated: bool = False,
+        templated: Optional[bool] = None,
         condition: Union[Callable[[Mapping[str, Any]], bool], None] = None,
         populate_fields: bool = True,
         title: Union[str, None] = None,

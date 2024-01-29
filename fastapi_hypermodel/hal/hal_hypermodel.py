@@ -59,7 +59,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
-    _templated: bool = PrivateAttr()
+    _templated: Optional[bool] = PrivateAttr()
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
     _title: Optional[str] = PrivateAttr()
     _name: Optional[str] = PrivateAttr()
@@ -74,7 +74,7 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         param_values: Optional[Mapping[str, str]] = None,
         description: Optional[str] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        templated: bool = False,
+        templated: Optional[bool] = None,
         title: Optional[str] = None,
         name: Optional[str] = None,
         type_: Optional[str] = None,

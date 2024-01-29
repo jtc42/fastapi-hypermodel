@@ -4,6 +4,7 @@ from typing import (
     Any,
     Callable,
     Mapping,
+    Optional,
     Sequence,
     Type,
     Union,
@@ -48,7 +49,7 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
     # pylint: disable=too-many-instance-attributes
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
-    _templated: bool = PrivateAttr()
+    _templated: Optional[bool] = PrivateAttr()
     _condition: Union[Callable[[Mapping[str, Any]], bool], None] = PrivateAttr()
 
     # For details on the folllowing fields, check https://datatracker.ietf.org/doc/html/draft-kelly-json-hal
@@ -61,7 +62,7 @@ class SirenLinkFor(SirenLinkType, AbstractHyperField[SirenLinkType]):
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Union[Mapping[str, str], None] = None,
-        templated: bool = False,
+        templated: Optional[bool] = None,
         condition: Union[Callable[[Mapping[str, Any]], bool], None] = None,
         title: Union[str, None] = None,
         type_: Union[str, None] = None,
