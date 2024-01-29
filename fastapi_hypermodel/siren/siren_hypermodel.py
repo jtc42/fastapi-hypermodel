@@ -5,7 +5,6 @@ from typing import (
     Dict,
     List,
     Mapping,
-    Optional,
     Sequence,
     Union,
     cast,
@@ -14,6 +13,7 @@ from typing import (
 from pydantic import (
     ConfigDict,
     Field,
+    model_serializer,
     model_validator,
 )
 from typing_extensions import Self
@@ -26,10 +26,10 @@ from .siren_link import SirenLinkFor, SirenLinkType
 
 
 class SirenEntityType(SirenBase):
-    properties: Optional[Mapping[str, Any]] = None
-    entities: Optional[Sequence[Union[SirenEmbeddedType, SirenLinkType]]] = None
-    links: Optional[Sequence[SirenLinkType]] = None
-    actions: Optional[Sequence[SirenActionType]] = None
+    properties: Union[Mapping[str, Any], None] = None
+    entities: Union[Sequence[Union[SirenEmbeddedType, SirenLinkType]], None] = None
+    links: Union[Sequence[SirenLinkType], None] = None
+    actions: Union[Sequence[SirenActionType], None] = None
 
 
 class SirenEmbeddedType(SirenEntityType):
@@ -176,6 +176,10 @@ class SirenHyperModel(HyperModel):
             raise ValueError(error_message)
 
         return self
+
+    @model_serializer
+    def serialize(self: Self) -> Mapping[str, Any]:
+        return {self.model_fields[k].alias or k: v for k, v in self if v}
 
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:
