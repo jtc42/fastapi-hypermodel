@@ -13,7 +13,6 @@ from typing import (
 from pydantic import (
     ConfigDict,
     Field,
-    model_serializer,
     model_validator,
 )
 from typing_extensions import Self
@@ -176,10 +175,6 @@ class SirenHyperModel(HyperModel):
             raise ValueError(error_message)
 
         return self
-
-    @model_serializer
-    def serialize(self: Self) -> Mapping[str, Any]:
-        return {self.model_fields[k].alias or k: v for k, v in self if v}
 
     @staticmethod
     def as_embedded(field: SirenHyperModel, rel: str) -> SirenEmbeddedType:

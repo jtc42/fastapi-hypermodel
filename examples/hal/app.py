@@ -11,9 +11,9 @@ from fastapi_hypermodel import (
     FrozenDict,
     HALFor,
     HALHyperModel,
+    HALLinks,
     HALResponse,
 )
-from fastapi_hypermodel.hal.hal_hypermodel import HALLinks
 
 
 class ItemSummary(HALHyperModel):
@@ -96,17 +96,32 @@ HALHyperModel.init_app(app)
 HALHyperModel.register_curies(curies)
 
 
-@app.get("/items", response_model=ItemCollection, response_class=HALResponse)
+@app.get(
+    "/items",
+    response_model=ItemCollection,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_items() -> Any:
     return items
 
 
-@app.get("/items/{id_}", response_model=Item, response_class=HALResponse)
+@app.get(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_item(id_: str) -> Any:
     return next(item for item in items["sc:items"] if item["id_"] == id_)
 
 
-@app.put("/items/{id_}", response_model=Item, response_class=HALResponse)
+@app.put(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def update_item(id_: str, item: ItemUpdate) -> Any:
     base_item = next(item for item in items["sc:items"] if item["id_"] == id_)
     update_item = cast(ItemData, item.model_dump(exclude_none=True))
@@ -114,17 +129,32 @@ def update_item(id_: str, item: ItemUpdate) -> Any:
     return base_item
 
 
-@app.get("/people", response_model=PersonCollection, response_class=HALResponse)
+@app.get(
+    "/people",
+    response_model=PersonCollection,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_people() -> Any:
     return people
 
 
-@app.get("/people/{id_}", response_model=Person, response_class=HALResponse)
+@app.get(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_person(id_: str) -> Any:
     return next(person for person in people["people"] if person["id_"] == id_)
 
 
-@app.put("/people/{id_}", response_model=Person, response_class=HALResponse)
+@app.put(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def update_person(id_: str, person: PersonUpdate) -> Any:
     base_person = next(person for person in people["people"] if person["id_"] == id_)
     update_person = cast(PersonData, person.model_dump(exclude_none=True))
@@ -132,7 +162,12 @@ def update_person(id_: str, person: PersonUpdate) -> Any:
     return base_person
 
 
-@app.put("/people/{id_}/items", response_model=Person, response_class=HALResponse)
+@app.put(
+    "/people/{id_}/items",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
         (item_ for item_ in items["sc:items"] if item_["id_"] == item.id_),
