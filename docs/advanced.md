@@ -98,6 +98,7 @@ In this example, we use a lambda function that returns `True` or `False` dependi
         id_: str
         name: str
         is_locked: bool
+
         items: Sequence[Item]
 
         href: UrlFor = UrlFor("read_person", {"id_": "<id_>"})
@@ -165,6 +166,7 @@ In this example, we use a lambda function that returns `True` or `False` dependi
         "id_": "person01",
         "name": "Alice",
         "is_locked": false,
+
         "items": [
             {
                 "id_": "item01",
@@ -409,6 +411,7 @@ In this example, we use a lambda function that returns `True` or `False` dependi
         "id_": "person02",
         "name": "Bob",
         "is_locked": true,
+
         "items": [
             {
                 "id_": "item03",
@@ -427,6 +430,7 @@ In this example, we use a lambda function that returns `True` or `False` dependi
                 "price": 5.0
             }
         ],
+
         "href": "/people/person02",
         "update": "/people/person02"
     }

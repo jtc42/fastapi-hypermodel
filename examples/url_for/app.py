@@ -44,6 +44,7 @@ class Person(HyperModel):
     id_: str
     name: str
     is_locked: bool
+
     items: Sequence[Item]
 
     href: UrlFor = UrlFor("read_person", {"id_": "<id_>"})
