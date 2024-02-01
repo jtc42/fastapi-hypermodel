@@ -1,6 +1,8 @@
 site_name: FastAPI HyperModel
 theme:
   name: material
+  features:
+    - content.code.copy
 
 repo_name: jtc42/fastapi-hypermodel
 repo_url: https://github.com/jtc42/fastapi-hypermodel
@@ -12,6 +14,9 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+      combine_header_slug: true
 
 docs_dir: './docs'
 
