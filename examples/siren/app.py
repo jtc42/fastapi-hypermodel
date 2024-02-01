@@ -15,8 +15,8 @@ from fastapi_hypermodel import (
 
 
 class ItemSummary(SirenHyperModel):
-    name: str
     id_: str
+    name: str
 
     links: Sequence[SirenLinkFor] = (
         SirenLinkFor("read_item", {"id_": "<id_>"}, rel=["self"]),
@@ -54,8 +54,8 @@ class ItemCollection(SirenHyperModel):
 
 
 class Person(SirenHyperModel):
-    name: str
     id_: str
+    name: str
     is_locked: bool
 
     items: Sequence[Item]

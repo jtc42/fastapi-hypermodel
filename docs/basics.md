@@ -158,7 +158,11 @@ our item list, and `ItemDetail` for full item information.
 
     items: Items = {
         "items": [
-            {"id_": "item01", "name": "Foo", "price": 50.2},
+            {
+                "id_": "item01",
+                "name": "Foo",
+                "price": 10.2
+            },
             {
                 "id_": "item02",
                 "name": "Bar",
@@ -202,7 +206,11 @@ our item list, and `ItemDetail` for full item information.
 
     items: Items = {
         "sc:items": [
-            {"id_": "item01", "name": "Foo", "price": 10.2},
+            {
+                "id_": "item01",
+                "name": "Foo",
+                "price": 10.2
+            },
             {
                 "id_": "item02",
                 "name": "Bar",
@@ -254,7 +262,11 @@ our item list, and `ItemDetail` for full item information.
 
     items: Items = {
         "items": [
-            {"id_": "item01", "name": "Foo", "price": 10.2},
+            {
+                "id_": "item01",
+                "name": "Foo",
+                "price": 10.2
+            },
             {
                 "id_": "item02",
                 "name": "Bar",

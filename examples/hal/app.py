@@ -17,8 +17,8 @@ from fastapi_hypermodel import (
 
 
 class ItemSummary(HALHyperModel):
-    name: str
     id_: str
+    name: str
 
     links: HALLinks = FrozenDict({
         "self": HALFor("read_item", {"id_": "<id_>"}),
@@ -52,8 +52,8 @@ class ItemCollection(HALHyperModel):
 
 
 class Person(HALHyperModel):
-    name: str
     id_: str
+    name: str
     is_locked: bool
 
     items: Sequence[Item] = Field(alias="sc:items")

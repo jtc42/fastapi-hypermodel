@@ -22,6 +22,7 @@ from pydantic import (
     GetCoreSchemaHandler,
     PrivateAttr,
     field_serializer,
+    model_serializer,
     model_validator,
 )
 from starlette.applications import Starlette
@@ -52,6 +53,15 @@ class HALForType(BaseModel):
 
     def __bool__(self: Self) -> bool:
         return bool(self.href)
+
+    @model_serializer
+    def serialize(self: Self) -> Union[Mapping[str, Any], Sequence[Mapping[str, Any]]]:
+        if isinstance(self, Sequence):
+            return [
+                {value.model_fields[k].alias or k: v for k, v in value if v}  # type: ignore
+                for value in self
+            ]
+        return {self.model_fields[k].alias or k: v for k, v in self if v}
 
 
 class HALFor(HALForType, AbstractHyperField[HALForType]):

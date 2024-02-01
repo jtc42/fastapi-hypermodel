@@ -10,8 +10,8 @@ from fastapi_hypermodel import HyperModel, UrlFor
 
 
 class ItemSummary(HyperModel):
-    name: str
     id_: str
+    name: str
 
     href: UrlFor = UrlFor("read_item", {"id_": "<id_>"})
     update: UrlFor = UrlFor("update_item", {"id_": "<id_>"})
@@ -41,8 +41,8 @@ class ItemCollection(HyperModel):
 
 
 class Person(HyperModel):
-    name: str
     id_: str
+    name: str
     is_locked: bool
     items: Sequence[Item]
 
