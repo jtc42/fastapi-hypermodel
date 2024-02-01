@@ -69,7 +69,6 @@ class Person(SirenHyperModel):
         SirenActionFor(
             "put_person_items",
             {"id_": "<id_>"},
-            description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
             name="add_item",
             populate_fields=False,
@@ -85,13 +84,11 @@ class PersonCollection(SirenHyperModel):
     actions: Sequence[SirenActionFor] = (
         SirenActionFor(
             "read_person",
-            description="Get a particular person",
             templated=True,
             name="find",
         ),
         SirenActionFor(
             "update_person",
-            description="Update a particular person",
             templated=True,
             name="update",
         ),

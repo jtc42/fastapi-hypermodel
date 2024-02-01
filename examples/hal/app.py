@@ -64,7 +64,6 @@ class Person(HALHyperModel):
         "add_item": HALFor(
             "put_person_items",
             {"id_": "<id_>"},
-            description="Add an item to this person and the items list",
             condition=lambda values: not values["is_locked"],
         ),
     })
@@ -80,7 +79,6 @@ class PersonCollection(HALHyperModel):
         ),
         "update": HALFor(
             "update_person",
-            description="Update a particular person",
             templated=True,
         ),
     })
