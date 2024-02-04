@@ -28,16 +28,21 @@ Hypermedia consist of enriching API responses by providing links to other URIs
 within the services to fetch related resources or perform certain actions. There
 are several levels according to the [Hypermedia Maturity Model
 Levels](https://8thlight.com/insights/the-hypermedia-maturity-model). Using
-Hypermedia makes APIs reach Level 3 of the Richardson Maturity Model (RMM),
-which involves leveraging Hypertext As The Engine Of Application State
-(HATEOAS), that is, Hypermedia.
+Hypermedia makes APIs reach Level 3 of the [Richardson Maturity Model
+(RMM)](https://en.wikipedia.org/wiki/Richardson_Maturity_Model), which involves
+leveraging [Hypertext As The Engine Of Application State
+(HATEOAS)](https://en.wikipedia.org/wiki/HATEOAS), that is, Hypermedia.
+
+Below are two examples of how implementing hypermedia changes the responses in
+different formats. The first example is for singular elements whereas the second
+is for collections.
 
 
 ## Single Item Example
 
 === "No Hypermedia"
 
-    ```json
+    ```json linenums="1"
     {
         "id_": "item01",
         "name": "Foo",
@@ -47,7 +52,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 0 (URLFor)"
 
-    ```json
+    ```json linenums="1"
     {
         "id_": "item01",
         "name": "Foo",
@@ -60,7 +65,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 1 (HAL)"
 
-    ```json
+    ```json linenums="1"
     {
         "id_": "item01",
         "name": "Foo",
@@ -82,7 +87,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 2 (Siren)"
 
-    ```json
+    ```json linenums="1"
     {
         "properties": {
             "id_": "item01",
@@ -128,7 +133,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "No Hypermedia"
 
-    ```json
+    ```json linenums="1"
     {
         "items": [
             {
@@ -161,7 +166,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 0 (URLFor)"
 
-    ```json
+    ```json linenums="1"
     {
         "items": [
             {
@@ -210,7 +215,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 1 (HAL)"
 
-    ```json
+    ```json linenums="1"
     {
         "_embedded": {
             "sc:items": [
@@ -330,7 +335,7 @@ which involves leveraging Hypertext As The Engine Of Application State
 
 === "Level 2 (Siren)"
 
-    ```json
+    ```json linenums="1"
     {
         "entities": [
             {
@@ -547,10 +552,3 @@ parameters.
 
 This is an upstream issue, being tracked
 [here](https://github.com/encode/starlette/issues/560).
-
-## Attributions
-
-Some functionality is based on
-[Flask-Marshmallow](https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py)
-`URLFor` class.
-

@@ -9,14 +9,15 @@ Levels](https://8thlight.com/insights/the-hypermedia-maturity-model):
 - Level 1: [Hypertext Application Language (HAL)](https://datatracker.ietf.org/doc/html/draft-kelly-json-hal)
 - Level 2: [Siren](https://github.com/kevinswiber/siren)
 
-There is a fully working example for each format in the [examples](../examples)
+There is a fully working example for each format in the
+[examples](https://github.com/jtc42/fastapi-hypermodel/tree/main/examples)
 directory.
 
 ## Initialization
 
 === "URLFor"
 
-    ```python
+    ```python linenums="1"
     from fastapi import FastAPI
 
     from fastapi_hypermodel import HyperModel, UrlFor
@@ -24,7 +25,7 @@ directory.
 
 === "HAL"
 
-    ```python
+    ```python linenums="1"
     from fastapi import FastAPI
 
     from fastapi_hypermodel import (
@@ -38,7 +39,7 @@ directory.
 
 === "Siren"
 
-    ```python
+    ```python linenums="1"
     from fastapi import FastAPI
 
     from fastapi_hypermodel import (
@@ -49,19 +50,34 @@ directory.
     )
     ```
 
-## Create your basic models
+## Create Basic Models
 
-We'll create two models, a brief item summary including ID, name, and a link,
-and a full model containing additional information. We'll use `ItemSummary` in
-our item list, and `ItemDetail` for full item information.
+Two showcase the hypermedia feature, an `Item` model will be used. Each item
+will have an `id_`, a `name`, an optional `description` and a `price`. Moreover
+a `ItemCollection` will also be defined to return multiple items. Two hypermedia
+references will be used, one called `self` (`href` in the case of `URLFor`) and
+an `update`.
+
+All formats support "links", that is, plain references of HTTP URIs fetchable
+via GET. Moreover, Level 2 formats (SIREN) support "actions", which also specify
+the HTTP method and the fields needed.
+
+Even though not part of the standard, fastapi-hypermodel provides support for
+"templated URIs". Allowing the client to form the URI with information from the
+selected resource. This is useful when returning collections.
+
+!!! info
+
+    The reason to define two classes `ItemSummary` and `Item` is to enable using
+    a lightweight version (`ItemSummary`) for nested objects 
 
 
 === "URLFor"
 
-    ```python
+    ```python linenums="1"
     class ItemSummary(HyperModel):
-        name: str
         id_: str
+        name: str
 
         href: UrlFor = UrlFor("read_item", {"id_": "<id_>"})
         update: UrlFor = UrlFor("update_item", {"id_": "<id_>"})
@@ -80,10 +96,10 @@ our item list, and `ItemDetail` for full item information.
 
 === "HAL"
 
-    ```python
+    ```python linenums="1"
     class ItemSummary(HALHyperModel):
-        name: str
         id_: str
+        name: str
 
         links: HALLinks = FrozenDict({
             "self": HALFor("read_item", {"id_": "<id_>"}),
@@ -106,10 +122,10 @@ our item list, and `ItemDetail` for full item information.
 
 === "Siren"
 
-    ```python
+    ```python linenums="1"
     class ItemSummary(SirenHyperModel):
-        name: str
         id_: str
+        name: str
 
         links: Sequence[SirenLinkFor] = (
             SirenLinkFor("read_item", {"id_": "<id_>"}, rel=["self"]),
@@ -137,9 +153,20 @@ our item list, and `ItemDetail` for full item information.
 
 ## Define your data
 
+Before defining the app and the endpoints, sample data should be defined. In
+this case all formats will use the same data.
+
+In the case of HAL, to showcase the "cURIes" feature the data will change and
+use `sc:items` instead of `items` as the key. At the moment only HAL supports
+"cURIes" as part of the standard.
+
+It is important to note that none of the additional fields added to the response
+at runtime are leaked into the data implementation. Therefore, the hypermedia
+format and the data model are totally decoupled, granting great flexibility.
+
 === "URLFor"
 
-    ```python
+    ```python linenums="1"
     from typing import List
 
     from typing_extensions import NotRequired, TypedDict
@@ -187,7 +214,7 @@ our item list, and `ItemDetail` for full item information.
 
 === "HAL"
 
-    ```python
+    ```python linenums="1"
     from typing import List
 
     from typing_extensions import NotRequired, TypedDict
@@ -243,7 +270,7 @@ our item list, and `ItemDetail` for full item information.
 
 === "Siren"
 
-    ```python
+    ```python linenums="1"
     from typing import List
 
     from typing_extensions import NotRequired, TypedDict
@@ -290,20 +317,26 @@ our item list, and `ItemDetail` for full item information.
     ```
 
 
-## Create and attach your app
+## Create and Attach App
 
-We'll now create our FastAPI app, and bind it to our `HyperModel` base class.
+To make the app "hypermedia-aware", it is enough to initiliaze the format's
+HyperModel class with the app object. 
+
+!!! warning
+
+    At the moment this is handled by class variables so it is not thread-safe to
+    have multiple apps.
 
 === "URLFor"
 
-    ```python
+    ```python linenums="1"
     app = FastAPI()
     HyperModel.init_app(app)
     ```
 
 === "HAL"
 
-    ```python
+    ```python linenums="1"
     app = FastAPI()
     HALHyperModel.init_app(app)
     HALHyperModel.register_curies(curies)
@@ -311,20 +344,23 @@ We'll now create our FastAPI app, and bind it to our `HyperModel` base class.
 
 === "Siren"
 
-    ```python
+    ```python linenums="1"
     app = FastAPI()
     SirenHyperModel.init_app(app)
     ```
 
-## Add some API views
+## Add API Endpoints
 
-We'll create an API view for a list of items, as well as details about an
-individual item. Note that we pass the item ID with our `{item_id}` URL
-variable.
+To expose the data via endpoints, they are defined as usual in any FastAPI app.
+The `response_model` and `response_class` need to be defined when appropiate.
+
+All formats are compatible with path parameters. In the case of Level 2 formats
+(SIREN), it can auto detect path and body parameters as well. Query parameters
+are not well supported yet.
 
 === "URLFor"
 
-    ```python
+    ```python linenums="1"
     @app.get("/items", response_model=ItemCollection)
     def read_items() -> Any:
         return items
@@ -336,7 +372,7 @@ variable.
 
 === "HAL"
 
-    ```python
+    ```python linenums="1"
     @app.get("/items", response_model=ItemCollection, response_class=HALResponse)
     def read_items() -> Any:
         return items
@@ -348,7 +384,7 @@ variable.
 
 === "Siren"
 
-    ```python
+    ```python linenums="1" 
     @app.get("/items", response_model=ItemCollection, response_class=SirenResponse)
     def read_items() -> Any:
         return items
@@ -358,109 +394,478 @@ variable.
         return next(item for item in items["items"] if item["id_"] == id_)
     ```
 
-## Create a model `href`
 
-We'll now go back and add an `href` field with a special `UrlFor` value. This
-`UrlFor` class defines how our href elements will be generated. We'll change our
-`ItemSummary` class to:
+## Responses
 
-```python
-class ItemSummary(HyperModel):
-    name: str
-    id: str
-    href = UrlFor("read_item", {"item_id": "<id>"})
-```
+The response generated by each format varies based on their specification. Using
+hypermedia usually results in heavier responses because of all the additional
+information provided.
 
-The `UrlFor` class takes two arguments:
+!!! warning
 
-### `endpoint`
+    At the moment no optimizations are done under the hood to minimize the size 
+    of the response. For instance, one such optimization could be removing 
+    cURIes in HAL if they are already defined in a parent.
 
-Name of your FastAPI endpoint function you want to link to. In our example, we
-want our item summary to link to the corresponding item detail page, which maps
-to our `read_item` function.
-
-Alternatively, rather than providing the endpoint name, you can provide a
-reference to the endpoint function itself, for example `UrlFor(read_item,
-{"item_id": "<id>"})`. This can help with larger projects where function names
-may be refactored.
-
-### `values` (optional depending on endpoint)
-
-Same keyword arguments as FastAPI's url_path_for, except string arguments
-enclosed in < > will be interpreted as attributes to pull from the object. For
-example, here we need to pass an `item_id` argument as required by our endpoint
-function, and we want to populate that with our item object's `id` attribute.
-
-## Create a link set
-
-In some cases we want to create a map of relational links. In these cases we can
-create a `LinkSet` field describing each link and it's relationship to the
-object. The `LinkSet` class is really just a spicy dictionary that tells the
-parent `HyperModel` to "render" each link in the link set, and includes some
-extra OpenAPI schema stuff.
-
-```python
-class Person(HyperModel):
-    id: str
-    name: str
-    items: List[ItemSummary]
-
-    href = UrlFor("read_person", {"person_id": "<id>"})
-    links = LinkSet(
-        {
-            "self": UrlFor("read_person", {"person_id": "<id>"}),
-            "items": UrlFor("read_person_items", {"person_id": "<id>"}),
-        }
-    )
-```
-
-## Putting it all together
-
-For this example, we can make a dictionary containing some fake data, and add
-extra models, even nesting models if we want. A complete example based on this
-documentation can be found
-[here](https://github.com/jtc42/fastapi-hypermodel/blob/main/examples/simple_app.py).
-
-If we run the example application and go to our `/items` URL, we should get a
-response like:
-
-```json
-[
-  {
-    "name": "Foo",
-    "id": "item01",
-    "href": "/items/item01"
-  },
-  {
-    "name": "Bar",
-    "id": "item02",
-    "href": "/items/item02"
-  },
-  {
-    "name": "Baz",
-    "id": "item03",
-    "href": "/items/item03"
-  }
-]
-```
+    Beware of highly nested objects.
 
 
+### Fetching /items/item01
 
 
 === "URLFor"
 
-    ```python
+    ```json linenums="1"
+    {
+        "id_": "item01",
+        "name": "Foo",
+        "price": 10.2,
 
+        "href": "/items/item01",
+        "update": "/items/item01"
+    }
     ```
 
 === "HAL"
 
-    ```python
+    ```json linenums="1"
+    {
+        "id_": "item01",
+        "name": "Foo",
+        "price": 10.2,
 
+        "_links": {
+            "self": {"href": "/items/item01"},
+            "update": {"href": "/items/item01"},
+            "curies": [
+                {
+                    "href": "https://schema.org/{rel}",
+                    "templated": true,
+                    "name": "sc"
+                }
+            ],
+        },
+    }
     ```
 
 === "Siren"
 
-    ```python
+    ```json linenums="1"
+    {
+        "properties": {
+            "id_": "item01",
+            "name": "Foo",
+            "price": 10.2
+        },
+        "links": [
+            {
+                "rel": ["self"],
+                "href": "/items/item01"
+            }
+        ],
+        "actions": [
+            {
+                "name": "update",
+                "method": "PUT",
+                "href": "/items/item01",
+                "type": "application/x-www-form-urlencoded",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "text",
+                        "value": "Foo"
+                    },
+                    {
+                        "name": "description",
+                        "type": "text",
+                        "value": "None"
+                    },
+                    {
+                        "name": "price",
+                        "type": "number",
+                        "value": "10.2"
+                    }
+                ]
+            }
+        ]
+    }
+    ```
 
+### Fetching /items
+
+
+=== "URLFor"
+
+    ```json linenums="1"
+    {
+        "items": [
+            {
+                "id_": "item01",
+                "name": "Foo",
+                "description": null,
+                "price": 50.2,
+
+                "href": "/items/item01",
+                "update": "/items/item01"
+            },
+            {
+                "id_": "item02",
+                "name": "Bar",
+                "description": "The Bar fighters",
+                "price": 62.0,
+
+                "href": "/items/item02",
+                "update": "/items/item02"
+            },
+            {
+                "id_": "item03",
+                "name": "Baz",
+                "description": "There goes my baz",
+                "price": 50.2,
+
+                "href": "/items/item03",
+                "update": "/items/item03"
+            },
+            {
+                "id_": "item04",
+                "name": "Doe",
+                "description": "There goes my Doe",
+                "price": 5.0,
+
+                "href": "/items/item04",
+                "update": "/items/item04"
+            }
+        ],
+
+        "href": "/items",
+        "find": "/items/{id_}",
+        "update": "/items/{id_}"
+    }
+    ```
+
+=== "HAL"
+
+    ```json linenums="1"
+    {
+        "_embedded": {
+            "sc:items": [
+                {
+                    "id_": "item01",
+                    "name": "Foo",
+                    "description": null,
+                    "price": 10.2,
+
+                    "_links": {
+                        "self": {
+                            "href": "/items/item01"
+                        },
+                        "update": {
+                            "href": "/items/item01"
+                        },
+                        "curies": [
+                            {
+                                "href": "https://schema.org/{rel}",
+                                "templated": true,
+                                "name": "sc"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_": "item02",
+                    "name": "Bar",
+                    "description": "The Bar fighters",
+                    "price": 62.0,
+
+                    "_links": {
+                        "self": {
+                            "href": "/items/item02"
+                        },
+                        "update": {
+                            "href": "/items/item02"
+                        },
+                        "curies": [
+                            {
+                                "href": "https://schema.org/{rel}",
+                                "templated": true,
+                                "name": "sc"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_": "item03",
+                    "name": "Baz",
+                    "description": "There goes my baz",
+                    "price": 50.2,
+
+                    "_links": {
+                        "self": {
+                            "href": "/items/item03"
+                        },
+                        "update": {
+                            "href": "/items/item03"
+                        },
+                        "curies": [
+                            {
+                                "href": "https://schema.org/{rel}",
+                                "templated": true,
+                                "name": "sc"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "id_": "item04",
+                    "name": "Doe",
+                    "description": "There goes my Doe",
+                    "price": 5.0,
+                    
+                    "_links": {
+                        "self": {
+                            "href": "/items/item04"
+                        },
+                        "update": {
+                            "href": "/items/item04"
+                        },
+                        "curies": [
+                            {
+                                "href": "https://schema.org/{rel}",
+                                "templated": true,
+                                "name": "sc"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+
+        "_links": {
+            "self": {
+                "href": "/items"
+            },
+            "find": {
+                "href": "/items/{id_}",
+                "templated": true
+            },
+            "update": {
+                "href": "/items/{id_}",
+                "templated": true
+            },
+            "curies": [
+                {
+                    "href": "https://schema.org/{rel}",
+                    "templated": true,
+                    "name": "sc"
+                }
+            ]
+        }
+    }
+    ```
+
+=== "Siren"
+
+    ```json linenums="1"
+    {
+        "entities": [
+            {
+                "properties": {
+                    "id_": "item01",
+                    "name": "Foo",
+                    "description": null,
+                    "price": 10.2
+                },
+                "links": [
+                    {
+                        "rel": ["self"],
+                        "href": "/items/item01"
+                    }
+                ],
+                "actions": [
+                    {
+                        "name": "update",
+                        "method": "PUT",
+                        "href": "/items/item01",
+                        "type": "application/x-www-form-urlencoded",
+                        "fields": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "value": "Foo"
+                            },
+                            {
+                                "name": "description",
+                                "type": "text",
+                                "value": "None"
+                            },
+                            {
+                                "name": "price",
+                                "type": "number",
+                                "value": "10.2"
+                            }
+                        ]
+                    }
+                ],
+                "rel": ["items"]
+            },
+            {
+                "properties": {
+                    "id_": "item02",
+                    "name": "Bar",
+                    "description": "The Bar fighters",
+                    "price": 62.0
+                },
+                "links": [
+                    {
+                        "rel": ["self"],
+                        "href": "/items/item02"
+                    }
+                ],
+                "actions": [
+                    {
+                        "name": "update",
+                        "method": "PUT",
+                        "href": "/items/item02",
+                        "type": "application/x-www-form-urlencoded",
+                        "fields": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "value": "Bar"
+                            },
+                            {
+                                "name": "description",
+                                "type": "text",
+                                "value": "The Bar fighters"
+                            },
+                            {
+                                "name": "price",
+                                "type": "number",
+                                "value": "62.0"
+                            }
+                        ]
+                    }
+                ],
+                "rel": ["items"]
+            },
+            {
+                "properties": {
+                    "id_": "item03",
+                    "name": "Baz",
+                    "description": "There goes my baz",
+                    "price": 50.2
+                },
+                "links": [
+                    {
+                        "rel": ["self"],
+                        "href": "/items/item03"
+                    }
+                ],
+                "actions": [
+                    {
+                        "name": "update",
+                        "method": "PUT",
+                        "href": "/items/item03",
+                        "type": "application/x-www-form-urlencoded",
+                        "fields": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "value": "Baz"
+                            },
+                            {
+                                "name": "description",
+                                "type": "text",
+                                "value": "There goes my baz"
+                            },
+                            {
+                                "name": "price",
+                                "type": "number",
+                                "value": "50.2"
+                            }
+                        ]
+                    }
+                ],
+                "rel": ["items"]
+            },
+            {
+                "properties": {
+                    "id_": "item04",
+                    "name": "Doe",
+                    "description": "There goes my Doe",
+                    "price": 5.0
+                },
+                "links": [
+                    {
+                        "rel": ["self"],
+                        "href": "/items/item04"
+                    }
+                ],
+                "actions": [
+                    {
+                        "name": "update",
+                        "method": "PUT",
+                        "href": "/items/item04",
+                        "type": "application/x-www-form-urlencoded",
+                        "fields": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "value": "Doe"
+                            },
+                            {
+                                "name": "description",
+                                "type": "text",
+                                "value": "There goes my Doe"
+                            },
+                            {
+                                "name": "price",
+                                "type": "number",
+                                "value": "5.0"
+                            }
+                        ]
+                    }
+                ],
+                "rel": ["items"]
+            }
+        ],
+        "links": [
+            {
+                "rel": ["self"],
+                "href": "/items"
+            }
+        ],
+        "actions": [
+            {
+                "name": "find",
+                "method": "GET",
+                "href": "/items/{id_}",
+                "templated": true
+            },
+            {
+                "name": "update",
+                "method": "PUT",
+                "href": "/items/{id_}",
+                "type": "application/x-www-form-urlencoded",
+                "fields": [
+                    {
+                        "name": "name",
+                        "type": "text",
+                        "value": "None"
+                    },
+                    {
+                        "name": "description",
+                        "type": "text",
+                        "value": "None"
+                    },
+                    {
+                        "name": "price",
+                        "type": "number",
+                        "value": "None"
+                    }
+                ],
+                "templated": true
+            }
+        ]
+    }
     ```

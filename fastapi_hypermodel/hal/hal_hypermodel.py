@@ -82,7 +82,6 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Mapping[str, str]] = None,
-        description: Optional[str] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
         templated: Optional[bool] = None,
         title: Optional[str] = None,
@@ -97,7 +96,6 @@ class HALFor(HALForType, AbstractHyperField[HALForType]):
             endpoint.__name__ if isinstance(endpoint, HasName) else endpoint
         )
         self._param_values = param_values or {}
-        self._description = description
         self._condition = condition
         self._templated = templated
         self._title = title
@@ -245,7 +243,3 @@ class HALHyperModel(HyperModel):
         if not links:
             return {}
         return dict(links.items())
-
-
-EmbeddedRawType = Union[Mapping[str, Union[Sequence[Any], Any]], Any]
-LinksRawType = Union[Mapping[str, Union[Any, Sequence[Any]]], Any]

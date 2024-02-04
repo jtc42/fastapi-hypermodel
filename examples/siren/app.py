@@ -69,9 +69,9 @@ class Person(SirenHyperModel):
         SirenActionFor(
             "put_person_items",
             {"id_": "<id_>"},
-            condition=lambda values: not values["is_locked"],
             name="add_item",
             populate_fields=False,
+            condition=lambda values: not values["is_locked"],
         ),
     )
 
