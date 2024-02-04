@@ -74,9 +74,7 @@ class PersonCollection(HALHyperModel):
 
     links: HALLinks = FrozenDict({
         "self": HALFor("read_people"),
-        "find": HALFor(
-            "read_person", description="Get a particular person", templated=True
-        ),
+        "find": HALFor("read_person", templated=True),
         "update": HALFor(
             "update_person",
             templated=True,
