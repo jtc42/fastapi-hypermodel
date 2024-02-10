@@ -140,16 +140,6 @@ def hal_for_properties() -> Any:
             "default": None,
             "title": "Deprecation",
         },
-        "method": {
-            "anyOf": [{"type": "string"}, {"type": "null"}],
-            "default": None,
-            "title": "Method",
-        },
-        "description": {
-            "anyOf": [{"type": "string"}, {"type": "null"}],
-            "default": None,
-            "title": "Description",
-        },
     }
 
 
@@ -448,7 +438,10 @@ def test_hal_for(hal_app: FastAPI) -> None:
     mock = MockClass(id_="test")
 
     hal_for = HALFor("mock_read_with_path_hal", {"id_": "<id_>"})
-    hal_for(hal_app, vars(mock))
+    hal_for_type = hal_for(hal_app, vars(mock))
+
+    assert isinstance(hal_for_type, HALForType)
+    assert hal_for_type.href == "/mock_read_with_path/test"
 
 
 @pytest.mark.usefixtures("hal_app")

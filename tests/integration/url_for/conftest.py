@@ -8,12 +8,8 @@ from examples.url_for import (
     Person,
     app,
 )
-from examples.url_for import (
-    items as items_,
-)
-from examples.url_for import (
-    people as people_,
-)
+from examples.url_for import items as items_
+from examples.url_for import people as people_
 from fastapi_hypermodel import HyperModel
 
 

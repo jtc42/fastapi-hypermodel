@@ -12,6 +12,8 @@ fastapi = ">=0.65.2"
 pydantic = ">=2.0,<3.0"
 typing_extensions = ">=4.0.0"
 python = ">=3.8,<4.0"
+jsonref = ">=1.1.0,<2.0.0"
+jsonschema = ">=4.0.0,<5.0.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
@@ -51,6 +53,7 @@ exclude_also = [
 
 [tool.mypy]
 strict = true
+ignore_missing_imports = true
 
 #########################################
 # Ruff
@@ -63,8 +66,11 @@ ignore = [
     "A003",   # FIXME
     "ANN401", # Ignore Anys
     "ISC001", # Disable for compatibility with ruff-format
+    "UP007",  # Not compatible with Python 3.8
+    "UP006",  # Not compatible with Python 3.8
 ]
-extend-exclude = ["tests"]
+extend-exclude = ["tests", "*_schema.py"]
+target-version = "py38"
 
 [tool.ruff.lint]
 extend-select = [
@@ -181,6 +187,7 @@ disable = [
     "too-many-arguments",
     "consider-using-assignment-expr", # Disabled until walrus operator is widely used
     "unused-variable",                # Too many false positives
+    "too-many-lines",                 # Disable until refactor
 ]
 enable = [
     "bad-inline-option",
@@ -214,7 +221,7 @@ check-str-concat-over-line-jumps = true
 ignore-comments = true
 ignore-docstrings = true
 ignore-signatures = true
-min-similarity-lines = 4
+min-similarity-lines = 7
 
 [tool.pylint.variables]
 allow-global-unused-variables = false

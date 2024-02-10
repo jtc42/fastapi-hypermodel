@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
@@ -15,6 +16,7 @@ from typing import (
     runtime_checkable,
 )
 
+import jsonref
 import pydantic_core
 from pydantic import (
     BaseModel,
@@ -54,12 +56,17 @@ class AbstractHyperField(ABC, Generic[T]):
                 continue
 
             schema = subclass.model_json_schema()
-            subclasses_schemas.append(schema)
+            schema_dict = json.dumps(schema)
+            deref_schema: Dict[str, Any] = jsonref.loads(schema_dict)
+
+            subclasses_schemas.append(deref_schema)
 
         return subclasses_schemas
 
     @abstractmethod
-    def __call__(self: Self, app: Optional[Starlette], values: Mapping[str, Any]) -> T:
+    def __call__(
+        self: Self, app: Optional[Starlette], values: Mapping[str, Any]
+    ) -> Optional[T]:
         raise NotImplementedError
 
 
@@ -97,7 +104,8 @@ class HyperModel(BaseModel):
         """
         cls._app = app
 
-    def parse_uri(self: Self, uri_template: str) -> str:
+    @staticmethod
+    def _parse_uri(values: Any, uri_template: str) -> str:
         parameters: Dict[str, str] = {}
 
         for _, field, *_ in Formatter().parse(uri_template):
@@ -105,6 +113,9 @@ class HyperModel(BaseModel):
                 error_message = "Empty Fields Cannot be Processed"
                 raise ValueError(error_message)
 
-            parameters[field] = extract_value_by_name(self, field)
+            parameters[field] = extract_value_by_name(values, field)
 
         return uri_template.format(**parameters)
+
+    def parse_uri(self: Self, uri_template: str) -> str:
+        return self._parse_uri(self, uri_template)
