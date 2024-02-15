@@ -1,5 +1,8 @@
 [tool.poetry]
-authors = ["Joel Collins <joel.collins@renalregistry.nhs.uk>"]
+authors = [
+    "Joel Collins <joel@jtcollins.net>",
+    "Ezequiel Leonardo Castaño <>"
+]
 description = "A FastAPI + Pydantic extension for simplifying hypermedia-driven API development."
 license = "MIT"
 name = "fastapi-hypermodel"
