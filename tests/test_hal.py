@@ -8,79 +8,71 @@ from pydantic import Field, ValidationError
 from pytest_lazy_fixtures import lf
 
 from fastapi_hypermodel import (
+    FrozenDict,
     HALFor,
     HALForType,
-    HalHyperModel,
+    HALHyperModel,
+    HALLinks,
     HALResponse,
-    LinkSet,
     UrlType,
 )
 
 
-class MockClass(HalHyperModel):
+class MockClass(HALHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    })
 
 
-class MockClassWithEmbedded(HalHyperModel):
+class MockClassWithEmbedded(HALHyperModel):
     id_: str
 
     test: MockClass
 
 
-class MockClassWithMultipleEmbedded(HalHyperModel):
+class MockClassWithMultipleEmbedded(HALHyperModel):
     id_: str
 
     test: MockClass
     test2: MockClass
 
 
-class MockClassWithEmbeddedAliased(HalHyperModel):
+class MockClassWithEmbeddedAliased(HALHyperModel):
     id_: str
 
     test: MockClass = Field(alias="sc:test")
 
 
-class MockClassWithEmbeddedList(HalHyperModel):
+class MockClassWithEmbeddedList(HALHyperModel):
     id_: str
 
     test: Sequence[MockClass]
 
 
-class MockClassWithEmbeddedListAliased(HalHyperModel):
+class MockClassWithEmbeddedListAliased(HALHyperModel):
     id_: str
 
     test: Sequence[MockClass] = Field(alias="sc:test")
 
 
-class MockClassWithCuries(HalHyperModel):
+class MockClassWithCuries(HALHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-            "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+        "sc:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    })
 
 
-class MockClassWithMissingCuries(HalHyperModel):
+class MockClassWithMissingCuries(HALHyperModel):
     id_: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-            "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+        "missing:item": HALFor("mock_read_with_path_hal", {"id_": "<id_>"}),
+    })
 
 
 @pytest.fixture()
@@ -89,7 +81,7 @@ def hal_app(app: FastAPI) -> FastAPI:
     def mock_read_with_path_hal() -> Any:  # pragma: no cover
         return {}
 
-    HalHyperModel.init_app(app)
+    HALHyperModel.init_app(app)
 
     return app
 
@@ -221,9 +213,9 @@ def curies() -> List[HALForType]:
 
 @pytest.fixture()
 def _set_curies(curies: Sequence[HALForType]) -> Generator[None, None, None]:
-    HalHyperModel.register_curies(curies)
+    HALHyperModel.register_curies(curies)
     yield
-    HalHyperModel.register_curies([])
+    HALHyperModel.register_curies([])
 
 
 @pytest.fixture()
@@ -451,7 +443,7 @@ def test_hal_for_no_app() -> None:
     hal_for = HALFor("mock_read_with_path_hal", {"id_": "<id_>"})
     hypermedia = hal_for(None, vars(mock))
 
-    assert hypermedia.href == ""
+    assert hypermedia is None
 
 
 def test_build_hypermedia_passing_condition(app: FastAPI) -> None:
@@ -462,6 +454,7 @@ def test_build_hypermedia_passing_condition(app: FastAPI) -> None:
         condition=lambda values: values["locked"],
     )
     uri = hal_for(app, {"id_": sample_id, "locked": True})
+    assert uri
     assert uri.href == f"/mock_read/{sample_id}"
 
 
@@ -471,6 +464,7 @@ def test_build_hypermedia_template(hal_app: FastAPI) -> None:
         templated=True,
     )
     uri = hal_for(hal_app, {})
+    assert uri
     assert uri.href == "/mock_read/{id_}"
 
 
@@ -482,7 +476,7 @@ def test_build_hypermedia_not_passing_condition(hal_app: FastAPI) -> None:
         condition=lambda values: values["locked"],
     )
     uri = hal_for(hal_app, {"id_": sample_id, "locked": False})
-    assert uri.href == ""
+    assert uri is None
 
 
 def test_build_hypermedia_with_href(app: FastAPI) -> None:
@@ -493,6 +487,7 @@ def test_build_hypermedia_with_href(app: FastAPI) -> None:
         condition=lambda values: values["locked"],
     )
     uri = hal_for(app, {"id_": sample_id, "locked": True})
+    assert uri
     assert uri.href == f"/mock_read/{sample_id}"
 
 
@@ -500,12 +495,7 @@ def test_build_hypermedia_with_href(app: FastAPI) -> None:
 def test_openapi_schema(hal_for_schema: Mapping[str, Any]) -> None:
     mock = MockClass(id_="test")
     schema = mock.model_json_schema()
-    link_set_definition = schema["$defs"]["LinkSet"]["additionalProperties"]["anyOf"]
-    hal_for_definition = next(
-        definition
-        for definition in link_set_definition
-        if definition.get("title") == "HALFor"
-    )
+    hal_for_definition = schema["$defs"]["HALFor"]
 
     assert all(hal_for_definition.get(k) == v for k, v in hal_for_schema.items())
 

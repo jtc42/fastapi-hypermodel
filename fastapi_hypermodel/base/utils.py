@@ -108,10 +108,6 @@ def extract_value_by_name(
     return _clean_attribute_value(attribute_value)
 
 
-def get_hal_link_href(response: Any, link_name: str) -> Union[str, Any]:
-    return response.get("_links", {}).get(link_name, {}).get("href", "")
-
-
 def get_route_from_app(app: Starlette, endpoint_function: str) -> Route:
     for route in app.routes:
         if isinstance(route, Route) and route.name == endpoint_function:

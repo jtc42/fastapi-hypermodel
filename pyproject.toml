@@ -14,6 +14,7 @@ typing_extensions = ">=4.0.0"
 python = ">=3.8,<4.0"
 jsonref = ">=1.1.0,<2.0.0"
 jsonschema = ">=4.0.0,<5.0.0"
+frozendict = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
@@ -22,13 +23,13 @@ mkdocs-material = ">=8.3.9,<10.0.0"
 pylint = ">=2.6.2,<4.0.0"
 pylint_pydantic = "^0.3.2"
 mypy = ">=0.991,<1.9"
-pytest = "^7.0"
+pytest = ">=7,<9"
 pytest-cov = ">=3,<5"
 pytest-lazy-fixtures = ">=1.0.1"
 requests = "^2.25.1"
-ruff = "^0.1.8"
+ruff = ">=0.1.8,<0.3.0"
 tox = "^4.4"
-uvicorn = "*"
+uvicorn = ">=0.17.6,<0.28.0"
 
 [build-system]
 build-backend = "poetry.core.masonry.api"
@@ -54,6 +55,9 @@ exclude_also = [
 [tool.mypy]
 strict = true
 ignore_missing_imports = true
+disable_error_code = [
+    "unused-ignore",  # To use names in Pydantic Init
+]
 
 #########################################
 # Ruff
@@ -221,7 +225,7 @@ check-str-concat-over-line-jumps = true
 ignore-comments = true
 ignore-docstrings = true
 ignore-signatures = true
-min-similarity-lines = 7
+min-similarity-lines = 12
 
 [tool.pylint.variables]
 allow-global-unused-variables = false

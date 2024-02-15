@@ -15,8 +15,8 @@ from fastapi_hypermodel import (
 
 
 class ItemSummary(SirenHyperModel):
-    name: str
     id_: str
+    name: str
 
     links: Sequence[SirenLinkFor] = (
         SirenLinkFor("read_item", {"id_": "<id_>"}, rel=["self"]),
@@ -54,8 +54,8 @@ class ItemCollection(SirenHyperModel):
 
 
 class Person(SirenHyperModel):
-    name: str
     id_: str
+    name: str
     is_locked: bool
 
     items: Sequence[Item]
@@ -69,10 +69,9 @@ class Person(SirenHyperModel):
         SirenActionFor(
             "put_person_items",
             {"id_": "<id_>"},
-            description="Add an item to this person and the items list",
-            condition=lambda values: not values["is_locked"],
             name="add_item",
             populate_fields=False,
+            condition=lambda values: not values["is_locked"],
         ),
     )
 
@@ -85,13 +84,11 @@ class PersonCollection(SirenHyperModel):
     actions: Sequence[SirenActionFor] = (
         SirenActionFor(
             "read_person",
-            description="Get a particular person",
             templated=True,
             name="find",
         ),
         SirenActionFor(
             "update_person",
-            description="Update a particular person",
             templated=True,
             name="update",
         ),
@@ -107,17 +104,32 @@ app = FastAPI()
 SirenHyperModel.init_app(app)
 
 
-@app.get("/items", response_model=ItemCollection, response_class=SirenResponse)
+@app.get(
+    "/items",
+    response_model=ItemCollection,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def read_items() -> Any:
     return items
 
 
-@app.get("/items/{id_}", response_model=Item, response_class=SirenResponse)
+@app.get(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def read_item(id_: str) -> Any:
     return next(item for item in items["items"] if item["id_"] == id_)
 
 
-@app.put("/items/{id_}", response_model=Item, response_class=SirenResponse)
+@app.put(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def update_item(id_: str, item: ItemUpdate) -> Any:
     base_item = next(item for item in items["items"] if item["id_"] == id_)
     update_item = cast(ItemData, item.model_dump(exclude_none=True))
@@ -125,17 +137,32 @@ def update_item(id_: str, item: ItemUpdate) -> Any:
     return base_item
 
 
-@app.get("/people", response_model=PersonCollection, response_class=SirenResponse)
+@app.get(
+    "/people",
+    response_model=PersonCollection,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def read_people() -> Any:
     return people
 
 
-@app.get("/people/{id_}", response_model=Person, response_class=SirenResponse)
+@app.get(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def read_person(id_: str) -> Any:
     return next(person for person in people["people"] if person["id_"] == id_)
 
 
-@app.put("/people/{id_}", response_model=Person, response_class=SirenResponse)
+@app.put(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def update_person(id_: str, person: PersonUpdate) -> Any:
     base_person = next(person for person in people["people"] if person["id_"] == id_)
     update_person = cast(PersonData, person.model_dump(exclude_none=True))
@@ -143,7 +170,12 @@ def update_person(id_: str, person: PersonUpdate) -> Any:
     return base_person
 
 
-@app.put("/people/{id_}/items", response_model=Person, response_class=SirenResponse)
+@app.put(
+    "/people/{id_}/items",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=SirenResponse,
+)
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
         (item_ for item_ in items["items"] if item_["id_"] == item.id_),

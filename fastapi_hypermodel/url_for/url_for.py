@@ -18,12 +18,13 @@ from pydantic_core import CoreSchema
 from starlette.applications import Starlette
 from typing_extensions import Self
 
-from fastapi_hypermodel.hypermodel import (
+from fastapi_hypermodel.base import (
+    URL_TYPE_SCHEMA,
     AbstractHyperField,
     HasName,
+    UrlType,
+    get_route_from_app,
 )
-from fastapi_hypermodel.url_type import URL_TYPE_SCHEMA, UrlType
-from fastapi_hypermodel.utils import get_route_from_app, resolve_param_values
 
 
 class UrlForType(BaseModel):
@@ -38,14 +39,14 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
     _endpoint: str = PrivateAttr()
     _param_values: Mapping[str, str] = PrivateAttr()
     _condition: Optional[Callable[[Mapping[str, Any]], bool]] = PrivateAttr()
-    _template: Optional[bool] = PrivateAttr()
+    _templated: bool = PrivateAttr()
 
     def __init__(
         self: Self,
         endpoint: Union[HasName, str],
         param_values: Optional[Mapping[str, Any]] = None,
         condition: Optional[Callable[[Mapping[str, Any]], bool]] = None,
-        template: Optional[bool] = None,
+        templated: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -54,7 +55,7 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
         )
         self._param_values = param_values or {}
         self._condition = condition
-        self._template = template
+        self._templated = templated
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -74,19 +75,22 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
         self: Self,
         app: Optional[Starlette],
         values: Mapping[str, Any],
-    ) -> UrlForType:
+    ) -> Optional[UrlForType]:
         if app is None:
-            return UrlForType()
+            return None
 
         if self._condition and not self._condition(values):
-            return UrlForType()
-
-        if not self._template:
-            resolved_params = resolve_param_values(self._param_values, values)
-            uri_for = app.url_path_for(self._endpoint, **resolved_params)
-            return UrlForType(hypermedia=UrlType(uri_for))
+            return None
 
         route = get_route_from_app(app, self._endpoint)
-        href = UrlType(route.path)
 
-        return UrlForType(hypermedia=href)
+        uri_path = self._get_uri_path(
+            templated=self._templated,
+            endpoint=self._endpoint,
+            app=app,
+            values=values,
+            params=self._param_values,
+            route=route,
+        )
+
+        return UrlForType(hypermedia=uri_path)

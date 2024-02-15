@@ -19,70 +19,137 @@
 
 ---
 
-FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying hypermedia-driven API development. 
+FastAPI-HyperModel is a FastAPI + Pydantic extension for simplifying
+hypermedia-driven API development. 
 
-This module adds a new Pydantic model base-class, supporting dynamic `href` generation based on object data.
+Hypermedia consist of enriching API responses by providing links to other URIs
+within the services to fetch related resources or perform certain actions. There
+are several levels according to the [Hypermedia Maturity Model
+Levels](https://8thlight.com/insights/the-hypermedia-maturity-model). Using
+Hypermedia makes APIs reach Level 3 of the [Richardson Maturity Model
+(RMM)](https://en.wikipedia.org/wiki/Richardson_Maturity_Model), which involves
+leveraging [Hypertext As The Engine Of Application State
+(HATEOAS)](https://en.wikipedia.org/wiki/HATEOAS), that is, Hypermedia.
+
+Below are some examples of responses using hypermedia. For detailed examples,
+check the docs.
 
 <table>
 <tbody>
 <tr>
-<th>Model</th>
+<th>Format</th>
 <th>Response</th>
 </tr>
 <tr>
 <td>
 
-```python
-class ItemSummary(HyperModel):
-    name: str
-    id: str
-    href = UrlFor(
-        "read_item", {"item_id": "<id>"}
-    )
-```
+No Hypermdia
 
 </td>
 <td>
 
-```json
+```json linenums="1"
 {
-  "name": "Foo",
-  "id": "item01",
-  "href": "/items/item01"
+    "id_": "item01",
+    "name": "Foo",
+    "price": 10.2,
 }
 ```
 
 </td>
 </tr>
-<tr></tr>
 <tr>
 <td>
 
-```python
-class ItemSummary(HyperModel):
-    name: str
-    id: str
-    link = HALFor(
-        "read_item", {"item_id": "<id>"}, 
-        description="Read an item"
-    )
-```
+Level 0 Hypermedia (URLFor)
 
 </td>
 <td>
 
-```json
+```json linenums="1"
 {
-  "name": "Foo",
-  "id": "item01",
-  "link": {
-      "href": "/items/item01",
-      "method": "GET",
-      "description": "Read an item"
-  }
+    "id_": "item01",
+    "name": "Foo",
+    "price": 10.2,
+
+    "href": "/items/item01",
+    "update": "/items/item01"
 }
 ```
 
+</td>
+</tr>
+<tr>
+<td>
+
+Level 1 Hypermedia (HAL)
+
+</td>
+<td>
+
+```json linenums="1"
+{
+    "id_": "item01",
+    "name": "Foo",
+    "price": 10.2,
+
+    "_links": {
+        "self": {"href": "/items/item01"},
+        "update": {"href": "/items/item01"},
+    },
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>
+
+Level 2 Hypermedia (Siren)
+
+</td>
+<td>
+
+```json linenums="1"
+{
+    "properties": {
+        "id_": "item01",
+        "name": "Foo",
+        "price": 10.2
+    },
+    "links": [
+        {
+            "rel": ["self"],
+            "href": "/items/item01"
+        }
+    ],
+    "actions": [
+        {
+            "name": "update",
+            "method": "PUT",
+            "href": "/items/item01",
+            "type": "application/x-www-form-urlencoded",
+            "fields": [
+                {
+                    "name": "name",
+                    "type": "text",
+                    "value": "Foo"
+                },
+                {
+                    "name": "description",
+                    "type": "text",
+                    "value": "None"
+                },
+                {
+                    "name": "price",
+                    "type": "number",
+                    "value": "10.2"
+                }
+            ]
+        }
+    ]
+}
+```
 </td>
 </tr>
 </tbody>
@@ -102,4 +169,3 @@ This is an upstream issue, being tracked [here](https://github.com/encode/starle
 
 Huge thanks to [@christoe](https://github.com/christoe) for building support for Pydantic 2.
 
-Some functionality is based on [Flask-Marshmallow](https://github.com/marshmallow-code/flask-marshmallow/blob/dev/src/flask_marshmallow/fields.py) `URLFor` class.

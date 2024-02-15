@@ -54,6 +54,10 @@ def siren_app(app: FastAPI, sample_endpoint_uri: str) -> FastAPI:
     ) -> Any:  # pragma: no cover
         return mock.model_dump()
 
+    @app.post("siren_with_post", response_class=SirenResponse)
+    def mock_read_with_path_siren_with_post() -> Any:  # pragma: no cover
+        return {}
+
     SirenHyperModel.init_app(app)
 
     return app
@@ -278,6 +282,22 @@ def test_siren_action_for(siren_app: FastAPI) -> None:
     assert isinstance(siren_action_for_type, SirenActionType)
     assert siren_action_for_type.href == "/mock_read_with_path_siren/test"
     assert siren_action_for_type.name == "test"
+    assert not siren_action_for_type.fields
+
+
+def test_siren_action_for_with_non_get(siren_app: FastAPI) -> None:
+    mock = MockClass(id_="test")
+
+    siren_action_for = SirenActionFor(
+        "mock_read_with_path_siren_with_post", name="test"
+    )
+    assert mock.properties
+    siren_action_for_type = siren_action_for(siren_app, mock.properties)
+
+    assert isinstance(siren_action_for_type, SirenActionType)
+    assert siren_action_for_type.href == "siren_with_post"
+    assert siren_action_for_type.name == "test"
+    assert siren_action_for_type.method == "POST"
     assert not siren_action_for_type.fields
 
 

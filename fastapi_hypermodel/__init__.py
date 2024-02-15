@@ -1,10 +1,23 @@
-from .hal import HALFor, HALForType, HalHyperModel, HALResponse
-from .hypermodel import (
+from .base import (
+    URL_TYPE_SCHEMA,
     AbstractHyperField,
     HasName,
     HyperModel,
+    InvalidAttribute,
+    UrlType,
+    extract_value_by_name,
+    get_route_from_app,
+    resolve_param_values,
 )
-from .linkset import LinkSet, LinkSetType
+from .hal import (
+    FrozenDict,
+    HALFor,
+    HALForType,
+    HALHyperModel,
+    HALLinks,
+    HALResponse,
+    get_hal_link,
+)
 from .siren import (
     SirenActionFor,
     SirenActionType,
@@ -18,27 +31,19 @@ from .siren import (
     get_siren_link,
 )
 from .url_for import UrlFor
-from .url_type import URL_TYPE_SCHEMA, UrlType
-from .utils import (
-    InvalidAttribute,
-    extract_value_by_name,
-    get_hal_link_href,
-    get_route_from_app,
-    resolve_param_values,
-)
 
 __all__ = [
     "URL_TYPE_SCHEMA",
     "AbstractHyperField",
+    "FrozenDict",
     "HALFor",
     "HALForType",
+    "HALHyperModel",
+    "HALLinks",
     "HALResponse",
-    "HalHyperModel",
     "HasName",
     "HyperModel",
     "InvalidAttribute",
-    "LinkSet",
-    "LinkSetType",
     "SirenActionFor",
     "SirenActionType",
     "SirenEmbeddedType",
@@ -50,7 +55,7 @@ __all__ = [
     "UrlFor",
     "UrlType",
     "extract_value_by_name",
-    "get_hal_link_href",
+    "get_hal_link",
     "get_route_from_app",
     "get_siren_action",
     "get_siren_link",

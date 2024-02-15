@@ -8,24 +8,22 @@ from examples.hal.data import Item as ItemData
 from examples.hal.data import Person as PersonData
 from examples.hal.data import curies, items, people
 from fastapi_hypermodel import (
+    FrozenDict,
     HALFor,
-    HalHyperModel,
+    HALHyperModel,
+    HALLinks,
     HALResponse,
-    LinkSet,
 )
 
 
-class ItemSummary(HalHyperModel):
-    name: str
+class ItemSummary(HALHyperModel):
     id_: str
+    name: str
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("read_item", {"id_": "<id_>"}),
-            "update": HALFor("update_item", {"id_": "<id_>"}),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("read_item", {"id_": "<id_>"}),
+        "update": HALFor("update_item", {"id_": "<id_>"}),
+    })
 
 
 class Item(ItemSummary):
@@ -43,58 +41,45 @@ class ItemCreate(ItemUpdate):
     id_: str
 
 
-class ItemCollection(HalHyperModel):
+class ItemCollection(HALHyperModel):
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("read_items"),
-            "find": HALFor("read_item", templated=True),
-            "update": HALFor("update_item", templated=True),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("read_items"),
+        "find": HALFor("read_item", templated=True),
+        "update": HALFor("update_item", templated=True),
+    })
 
 
-class Person(HalHyperModel):
-    name: str
+class Person(HALHyperModel):
     id_: str
+    name: str
     is_locked: bool
 
     items: Sequence[Item] = Field(alias="sc:items")
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("read_person", {"id_": "<id_>"}),
-            "update": HALFor("update_person", {"id_": "<id_>"}),
-            "add_item": HALFor(
-                "put_person_items",
-                {"id_": "<id_>"},
-                description="Add an item to this person and the items list",
-                condition=lambda values: not values["is_locked"],
-            ),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("read_person", {"id_": "<id_>"}),
+        "update": HALFor("update_person", {"id_": "<id_>"}),
+        "add_item": HALFor(
+            "put_person_items",
+            {"id_": "<id_>"},
+            condition=lambda values: not values["is_locked"],
+        ),
+    })
 
 
-class PersonCollection(HalHyperModel):
+class PersonCollection(HALHyperModel):
     people: Sequence[Person]
 
-    links: LinkSet = Field(
-        default=LinkSet({
-            "self": HALFor("read_people"),
-            "find": HALFor(
-                "read_person", description="Get a particular person", templated=True
-            ),
-            "update": HALFor(
-                "update_person",
-                description="Update a particular person",
-                templated=True,
-            ),
-        }),
-        alias="_links",
-    )
+    links: HALLinks = FrozenDict({
+        "self": HALFor("read_people"),
+        "find": HALFor("read_person", templated=True),
+        "update": HALFor(
+            "update_person",
+            templated=True,
+        ),
+    })
 
 
 class PersonUpdate(BaseModel):
@@ -103,21 +88,36 @@ class PersonUpdate(BaseModel):
 
 
 app = FastAPI()
-HalHyperModel.init_app(app)
-HalHyperModel.register_curies(curies)
+HALHyperModel.init_app(app)
+HALHyperModel.register_curies(curies)
 
 
-@app.get("/items", response_model=ItemCollection, response_class=HALResponse)
+@app.get(
+    "/items",
+    response_model=ItemCollection,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_items() -> Any:
     return items
 
 
-@app.get("/items/{id_}", response_model=Item, response_class=HALResponse)
+@app.get(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_item(id_: str) -> Any:
     return next(item for item in items["sc:items"] if item["id_"] == id_)
 
 
-@app.put("/items/{id_}", response_model=Item, response_class=HALResponse)
+@app.put(
+    "/items/{id_}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def update_item(id_: str, item: ItemUpdate) -> Any:
     base_item = next(item for item in items["sc:items"] if item["id_"] == id_)
     update_item = cast(ItemData, item.model_dump(exclude_none=True))
@@ -125,17 +125,32 @@ def update_item(id_: str, item: ItemUpdate) -> Any:
     return base_item
 
 
-@app.get("/people", response_model=PersonCollection, response_class=HALResponse)
+@app.get(
+    "/people",
+    response_model=PersonCollection,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_people() -> Any:
     return people
 
 
-@app.get("/people/{id_}", response_model=Person, response_class=HALResponse)
+@app.get(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def read_person(id_: str) -> Any:
     return next(person for person in people["people"] if person["id_"] == id_)
 
 
-@app.put("/people/{id_}", response_model=Person, response_class=HALResponse)
+@app.put(
+    "/people/{id_}",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def update_person(id_: str, person: PersonUpdate) -> Any:
     base_person = next(person for person in people["people"] if person["id_"] == id_)
     update_person = cast(PersonData, person.model_dump(exclude_none=True))
@@ -143,7 +158,12 @@ def update_person(id_: str, person: PersonUpdate) -> Any:
     return base_person
 
 
-@app.put("/people/{id_}/items", response_model=Person, response_class=HALResponse)
+@app.put(
+    "/people/{id_}/items",
+    response_model=Person,
+    response_model_exclude_unset=True,
+    response_class=HALResponse,
+)
 def put_person_items(id_: str, item: ItemCreate) -> Any:
     complete_item = next(
         (item_ for item_ in items["sc:items"] if item_["id_"] == item.id_),

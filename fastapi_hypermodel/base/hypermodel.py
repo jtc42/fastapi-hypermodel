@@ -1,8 +1,8 @@
-import json
 from abc import ABC, abstractmethod
 from string import Formatter
 from typing import (
     Any,
+    Callable,
     ClassVar,
     Dict,
     Generic,
@@ -10,22 +10,24 @@ from typing import (
     Mapping,
     Optional,
     Protocol,
+    Sequence,
     Type,
     TypeVar,
+    Union,
     cast,
     runtime_checkable,
 )
 
-import jsonref
-import pydantic_core
 from pydantic import (
     BaseModel,
     model_validator,
 )
 from starlette.applications import Starlette
+from starlette.routing import Route
 from typing_extensions import Self
 
-from fastapi_hypermodel.utils import extract_value_by_name
+from fastapi_hypermodel.base.url_type import UrlType
+from fastapi_hypermodel.base.utils import extract_value_by_name, resolve_param_values
 
 
 @runtime_checkable
@@ -37,37 +39,30 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class AbstractHyperField(ABC, Generic[T]):
-    @classmethod
-    def __get_pydantic_core_schema__(
-        cls: Type[Self], *_: Any
-    ) -> pydantic_core.CoreSchema:
-        return pydantic_core.core_schema.any_schema()
-
-    @classmethod
-    def __schema_subclasses__(
-        cls: Type[Self], caller_class: Optional[Type[Self]] = None
-    ) -> List[Dict[str, Any]]:
-        subclasses_schemas: List[Dict[str, Any]] = []
-        for subclass in cls.__subclasses__():
-            if caller_class and issubclass(subclass, caller_class):
-                continue
-
-            if not issubclass(subclass, BaseModel):
-                continue
-
-            schema = subclass.model_json_schema()
-            schema_dict = json.dumps(schema)
-            deref_schema: Dict[str, Any] = jsonref.loads(schema_dict)
-
-            subclasses_schemas.append(deref_schema)
-
-        return subclasses_schemas
-
     @abstractmethod
     def __call__(
         self: Self, app: Optional[Starlette], values: Mapping[str, Any]
     ) -> Optional[T]:
         raise NotImplementedError
+
+    @staticmethod
+    def _get_uri_path(
+        *,
+        templated: Optional[bool],
+        app: Starlette,
+        values: Mapping[str, Any],
+        route: Union[Route, str],
+        params: Mapping[str, str],
+        endpoint: str,
+    ) -> UrlType:
+        if templated and isinstance(route, Route):
+            return UrlType(route.path)
+
+        params = resolve_param_values(params, values)
+        return UrlType(app.url_path_for(endpoint, **params))
+
+
+R = TypeVar("R", bound=Callable[..., Any])
 
 
 class HyperModel(BaseModel):
@@ -119,3 +114,20 @@ class HyperModel(BaseModel):
 
     def parse_uri(self: Self, uri_template: str) -> str:
         return self._parse_uri(self, uri_template)
+
+    def _validate_factory(
+        self: Self, elements: Union[R, Sequence[R]], properties: Mapping[str, str]
+    ) -> List[R]:
+        if not isinstance(elements, Sequence):
+            elements = [elements]
+
+        validated_elements: List[R] = []
+        for element_factory in elements:
+            if not callable(element_factory):
+                validated_elements.append(element_factory)
+                continue
+            element = element_factory(self._app, properties)
+            if not element:
+                continue
+            validated_elements.append(element)
+        return validated_elements
