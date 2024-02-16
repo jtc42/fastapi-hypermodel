@@ -1,7 +1,7 @@
 [tool.poetry]
 authors = [
     "Joel Collins <joel@jtcollins.net>",
-    "Ezequiel Leonardo Castaño <>"
+    "Ezequiel Leonardo Castaño <elcg@gmx.com>"
 ]
 description = "A FastAPI + Pydantic extension for simplifying hypermedia-driven API development."
 license = "MIT"
