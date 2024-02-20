@@ -16,7 +16,7 @@ to consider:
   `URLFor` has no Hypermodel type and leverages the base one, whereas HAL
   implements `HALHyperModel` and uses it to handle the cURIes logic. Siren uses
   the `SirenHyperModel` to move the different fields into `properties` and
-  `entitites`. This is usually required for Level 1+ Hypermdia formats
+  `entitites`. This is usually required for Level 1+ Hypermedia formats
 - Response Type: This is an optional class to define custom response behaviour.
   It could be lightweight like `SirenResponse` where only a jsonchema is
   checked, or it could be more complex like `HALReponse`. If no custom

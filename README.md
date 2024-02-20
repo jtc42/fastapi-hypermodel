@@ -43,7 +43,7 @@ check the docs.
 <tr>
 <td>
 
-No Hypermdia
+No Hypermedia
 
 </td>
 <td>
