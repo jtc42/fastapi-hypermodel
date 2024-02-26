@@ -1,5 +1,8 @@
 [tool.poetry]
-authors = ["Joel Collins <joel.collins@renalregistry.nhs.uk>"]
+authors = [
+    "Joel Collins <joel@jtcollins.net>",
+    "Ezequiel Leonardo Castaño <elcg@gmx.com>"
+]
 description = "A FastAPI + Pydantic extension for simplifying hypermedia-driven API development."
 license = "MIT"
 name = "fastapi-hypermodel"
@@ -19,14 +22,14 @@ frozendict = ">=2.0.2,<3"
 starlette = ">=0.27.0,<1"
 
 [tool.poetry.group.dev.dependencies]
-httpx = ">=0.26.0,<1"
-mkdocs-material = ">=9.5.9,<10.0.0"
-pytest = ">=8.0.1,<9"
-pytest-cov = ">=4.1.0,<5"
-pytest-lazy-fixtures = ">=1.0.5,<2"
-ruff = ">=0.2.1,<0.3"
+httpx = ">=0.23.1,<0.28.0"
+mkdocs-material = ">=8.3.9,<10.0.0"
+pytest = ">=7,<9"
+pytest-cov = ">=3,<5"
+pytest-lazy-fixtures = ">=1.0.1"
+ruff = ">=0.1.8,<0.3.0"
 tox = ">=4.12.1,<5"
-uvicorn = ">=0.27.1,<1"
+uvicorn = ">=0.17.6,<0.28.0"
 coverage = ">=7.4.1,<8"
 
 [build-system]
