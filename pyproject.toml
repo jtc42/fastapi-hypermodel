@@ -21,7 +21,7 @@ frozendict = "^2.4.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.0"
-httpx = ">=0.23.1,<0.27.0"
+httpx = ">=0.23.1,<0.28.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 pylint = ">=2.6.2,<4.0.0"
 pylint_pydantic = "^0.3.2"
