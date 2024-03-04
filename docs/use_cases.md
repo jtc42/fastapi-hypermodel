@@ -1,10 +1,15 @@
-# Use Cases
+# Resources
 
-To demonstrate the value of Hypermedia, this page collects uses among the
-industry.
+This page summarizes different resources around Hypermedia and some of its
+formats. The sections are public APIs currently using Hypermedia and text and
+video material about the topic for those interested.
 
 
 ## Public APIs using Hypermedia
+
+The following services use Hypermedia for the public APIs. On top of these,
+there may be many more using it internal or for private (or paid) APIs which are
+not publicly documented.
 
 - [Github](https://docs.github.com/en/rest/meta/meta?apiVersion=2022-11-28#:~:text=hypermedia) - It uses basic level 0 hyperlinks.
 - [Amazon API Gateway](https://docs.aws.amazon.com/apigateway/latest/api/API_CreateApiKey.html#:~:text=_links) - It uses HAL.
@@ -15,6 +20,8 @@ industry.
 - [Platform of Trust](https://design.oftrust.net/general-guidelines/use-hateoas) - It does not specify any concrete format.
 - [Elastic Path](https://elasticpath.dev/docs) - It uses custom Level 1 format.
 - [Family Search](https://www.familysearch.org/developers/docs/api/resources) - It uses its own format [GEDCOM X](http://gedcomx.org/).
+
+If you want to add another item to the list, submit a PR.
 
 
 ## Useful resouces
@@ -84,6 +91,12 @@ later are included.
 
 If you want to add another item to the list, submit a PR.
 
+### Blogs and Articles
+
+Here there are blog posts and articles from different sources, some
+organizations and some individuals. The length varies but each has its own
+value.
+
 - [2024-01-30 - Pradeep Loganathan - HATEOAS](https://pradeepl.com/blog/rest/hateoas/)
 - [2023-11-09 - Antonio W. Lagnada - ReST HATEOAS Best Practices](https://www.kapresoft.com/software/2023/11/09/rest-hateoas-best-practices.html)
 - [2023-11-04 - Lokesh Gupta - HATEOAS Driven REST APIs](https://restfulapi.net/hateoas/)
@@ -98,3 +111,21 @@ If you want to add another item to the list, submit a PR.
 - [2016-01-19 - Kristopher Sandoval - How to Improve API Experience Using Hypermedia](https://nordicapis.com/improve-api-experience-using-hypermedia/)
 - [2014-03-11 - Kevin Sookocheff - On choosing a hypermedia type for your API - HAL, JSON-LD, Collection+JSON, SIREN, Oh My!](https://sookocheff.com/post/api/on-choosing-a-hypermedia-format/)
 - [2008-10-20 - Roy T. Fielding - REST APIs must be hypertext-driven](https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven)
+
+If you want to add another item to the list, submit a PR.
+
+### Books
+
+There are not too many books which a strong focus on hypermedia or HATEOAS,
+however the following are complementary and in-line with designing discoverable
+and evolvable REST APIs.
+
+- [2021 - Building Microservices - Sam Newman - O'Reilly](https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/)
+- [2017 - RESTful Web Clients - Mike Amundsen - O'Reilly](https://www.oreilly.com/library/view/restful-web-clients/9781491921890/)
+- [2016 - RESTful API Design: Best Practices in API Design with REST - Matthias Biehl - API-University Press](https://www.amazon.com/RESTful-API-Design-Practices-API-University-ebook/dp/B01L6STMVW)
+- [2013 - RESTful Web APIs - Leonard Richardson, Mike Amundsen, Sam Ruby - O'Reilly](https://www.oreilly.com/library/view/restful-web-apis/9781449359713/)
+- [2012 - Designing Hypermedia APIs - Steve Klabnik - Self Published](http://www.designinghypermediaapis.com/index.html)
+- [2011 - Building Hypermedia APIs With HTML5 and Node - Mike Amundsen - O'Reilly](https://www.oreilly.com/library/view/building-hypermedia-apis/9781449309497/)
+- [2010 - REST in Practice: Hypermedia and Systems Architecture - Jim Webber, Savas Parastatidis, Ian Robinson - O'Reilly](https://www.oreilly.com/library/view/rest-in-practice/9781449383312/)
+
+If you want to add another item to the list, submit a PR.
