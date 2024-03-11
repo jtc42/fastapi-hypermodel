@@ -29,3 +29,4 @@ nav:
   - Advanced Usage: 'advanced.md'
   - Extending FastAPI-HyperModel: 'extending.md'
   - Additional Resources: 'resources.md'
+  - Other tools: 'comparison.md'
