@@ -4,7 +4,7 @@
     <em>Simple hypermedia for FastAPI</em>
 </p>
 <p align="center">
-<a href="https://pypi.org/project/fastapi-utils" target="_blank">
+<a href="https://pypi.org/project/fastapi-hypermodel" target="_blank">
     <img src="https://badge.fury.io/py/fastapi-hypermodel.svg" alt="Package version">
 </a>
     <img src="https://img.shields.io/pypi/pyversions/fastapi-hypermodel.svg">
