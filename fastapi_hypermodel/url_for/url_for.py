@@ -58,7 +58,7 @@ class UrlFor(UrlForType, AbstractHyperField[UrlForType]):
         self._templated = templated
 
     @classmethod
-    def __get_pydantic_json_schema__(
+    def __get_pydantic_json_schema__(  # pylint: disable=arguments-differ
         cls: Type[Self], __core_schema: CoreSchema, handler: GetJsonSchemaHandler
     ) -> JsonSchemaValue:
         json_schema = handler(__core_schema)
