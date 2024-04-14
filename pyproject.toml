@@ -29,7 +29,7 @@ pytest-cov = ">=3,<5"
 pytest-lazy-fixtures = ">=1.0.1"
 ruff = ">=0.1.8,<0.4.0"
 tox = ">=4.12.1,<5"
-uvicorn = ">=0.17.6,<0.28.0"
+uvicorn = ">=0.17.6,<0.30.0"
 coverage = ">=7.4.1,<8"
 
 [build-system]
