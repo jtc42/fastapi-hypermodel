@@ -16,7 +16,7 @@ URL_TYPE_SCHEMA = {
 }
 
 
-class UrlType(str):
+class UrlType(str):  # noqa: FURB189, RUF100
     @classmethod
     def __get_pydantic_core_schema__(
         cls: Type[Self], *_: Any
