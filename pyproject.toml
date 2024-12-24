@@ -12,14 +12,14 @@ version = "2.1.0"
 
 [tool.poetry.dependencies]
 # Make sure to update the pytest-min env in tox when changing dependencies
-fastapi = ">=0.100.0,<1"
+fastapi = ">=0.115.2,<1"
 pydantic = ">=2.4.0,<3.0"
-typing_extensions = ">=4.6.1,<5"
+typing_extensions = ">=4.8.0,<5"
 python = ">=3.8,<4"
 jsonref = ">=0.1,<2"
 jsonschema = ">=2.0.0,<5"
 frozendict = ">=2.0.2,<3"
-starlette = ">=0.27.0,<1"
+starlette = ">=0.37.2,<1"
 
 [tool.poetry.group.dev.dependencies]
 httpx = ">=0.23.1,<0.28.0"
