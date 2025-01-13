@@ -22,7 +22,7 @@ frozendict = ">=2.0.2,<3"
 starlette = ">=0.37.2,<1"
 
 [tool.poetry.group.dev.dependencies]
-httpx = ">=0.23.1,<0.28.0"
+httpx = ">=0.23.1,<0.29.0"
 mkdocs-material = ">=8.3.9,<10.0.0"
 pytest = ">=7,<9"
 pytest-cov = ">=3,<6"
