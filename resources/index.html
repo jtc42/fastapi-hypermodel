@@ -1,0 +1,667 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../extending/">
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.50">
+    
+    
+      
+        <title>Additional Resources - FastAPI HyperModel</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#resources" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="FastAPI HyperModel" class="md-header__button md-logo" aria-label="FastAPI HyperModel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            FastAPI HyperModel
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Additional Resources
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jtc42/fastapi-hypermodel" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jtc42/fastapi-hypermodel
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="FastAPI HyperModel" class="md-nav__button md-logo" aria-label="FastAPI HyperModel" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    FastAPI HyperModel
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jtc42/fastapi-hypermodel" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jtc42/fastapi-hypermodel
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basics/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Basic Usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Advanced Usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extending/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extending FastAPI-HyperModel
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Additional Resources
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Additional Resources
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#public-apis-using-hypermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Public APIs using Hypermedia
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-resouces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful resouces
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Useful resouces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blogs-and-articles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Blogs and Articles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#books" class="md-nav__link">
+    <span class="md-ellipsis">
+      Books
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#public-apis-using-hypermedia" class="md-nav__link">
+    <span class="md-ellipsis">
+      Public APIs using Hypermedia
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-resouces" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful resouces
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Useful resouces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blogs-and-articles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Blogs and Articles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#books" class="md-nav__link">
+    <span class="md-ellipsis">
+      Books
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="resources">Resources</h1>
+<p>This page summarizes different resources around Hypermedia and some of its
+formats. The sections are public APIs currently using Hypermedia and text and
+video material about the topic for those interested.</p>
+<h2 id="public-apis-using-hypermedia">Public APIs using Hypermedia</h2>
+<p>The following services use Hypermedia for the public APIs. On top of these,
+there may be many more using it internal or for private (or paid) APIs which are
+not publicly documented.</p>
+<ul>
+<li><a href="https://docs.github.com/en/rest/meta/meta?apiVersion=2022-11-28#:~:text=hypermedia">Github</a> - It uses basic level 0 hyperlinks.</li>
+<li><a href="https://docs.aws.amazon.com/apigateway/latest/api/API_CreateApiKey.html#:~:text=_links">Amazon API Gateway</a> - It uses HAL.</li>
+<li><a href="https://netflix.github.io/genie/docs/4.3.6/rest/#_hateoas">Netflix's Genie</a> - It uses HAL.</li>
+<li><a href="https://web.archive.org/web/20240110000547/https://developer.paypal.com/api/rest/responses">Paypal</a> - It uses a custom Hypermedia format.</li>
+<li><a href="https://developer.spotify.com/documentation/web-api">Spotify</a> - It uses basic level 0 hyperlinks.</li>
+<li><a href="https://openbanking.atlassian.net/wiki/spaces/DZ/pages/1077805207/Read+Write+Data+API+Specification+-+v3.1.2">Open Banking</a> - It uses JSON:API.</li>
+<li><a href="https://design.oftrust.net/general-guidelines/use-hateoas">Platform of Trust</a> - It does not specify any concrete format.</li>
+<li><a href="https://elasticpath.dev/docs">Elastic Path</a> - It uses custom Level 1 format.</li>
+<li><a href="https://www.familysearch.org/developers/docs/api/resources">Family Search</a> - It uses its own format <a href="http://gedcomx.org/">GEDCOM X</a>.</li>
+</ul>
+<p>If you want to add another item to the list, submit a PR.</p>
+<h2 id="useful-resouces">Useful resouces</h2>
+<p>These are Python or Hypermedia-specific resources to get into the topic and
+delve deeper. Not all of the resources include Python code, that being said, the
+reader may benefit even if examples are in other languages.</p>
+<h3 id="video">Video</h3>
+<p>Only english-speaking videos from "reviewed sources" are added, that is, videos
+published at conferences or by official organizations. This is to ensure a
+minimum quality for the content. There are more videos availables online as
+well.</p>
+<p>To keep the list clean from too outdated resources, only resources from 2012 or
+later are included.</p>
+<ul>
+<li><a href="https://www.youtube.com/watch?v=zM5t6DaYrqM">2023 - The Secrets to Smart, Flexible, Self Describing API - Michael Carducci - Great International Developer Summit</a></li>
+<li><a href="https://www.youtube.com/watch?v=lOmhnU51sQM">2023 - Ditch heavy JS and KISS your frontend again with HTML over-the-wire - Alex Finnarn - Stir Trek</a></li>
+<li><a href="https://www.youtube.com/watch?v=MopeCQVSIUk">2023 - Back to the Future of Hypermedia in Python - Mario Munoz - North Bay Python</a></li>
+<li><a href="https://www.youtube.com/watch?v=LwH4ifjt3Y4">2023 - Back to the Future of Hypermedia in Django with - Mario Munoz - DjangoCon US</a></li>
+<li><a href="https://www.youtube.com/watch?v=LRrrxQXWdhI">2022 - Return To Hypermedia: Solving Javascript Fatigue Using Fundamental Web Architecture - Carson Gross - ChariotSolutions</a></li>
+<li><a href="https://www.youtube.com/watch?v=C01dvypo4O4">2022 - How to JSON:API Quickly and Easily in Laravel - Matt Stauffer - Laracon</a></li>
+<li><a href="https://www.youtube.com/watch?v=cZ0e-HoPPJ8">2021 - Introduction to HATEOAS with Ketting - Evert Pot - APIdays NewYork</a></li>
+<li><a href="https://www.youtube.com/watch?v=jf1kVomeZ-U">2021 - RESTful API the HATEOAS Way - Ron Garlit - SWFL Coders</a></li>
+<li><a href="https://www.youtube.com/watch?v=PkBFSl_rESY">2021 - Evolving Hypermedia - Tomasz Pluskiewicz - Nordic APIs</a></li>
+<li><a href="https://www.youtube.com/watch?v=L_UWY-zHlOA">2021 - REST, HATEOAS &amp; Django - It's OK to not use JSON... or Javascript - Carson Gross - DjangoCon US</a></li>
+<li><a href="https://www.youtube.com/watch?v=Ldi1hYQCfFY">2021 - Elementary Full stack Development with Hypermedia and Java 21 - Patrik Duditš - Devoxx</a></li>
+<li><a href="https://www.youtube.com/watch?v=b-so5HK8-9Y">2021 - Hypermedia without the hype - Tim Lytle - Comference</a></li>
+<li><a href="https://www.youtube.com/watch?v=U9wZpWlzdyI">2021 - JSON, JSON Schema, JSON-LD - Jakub Klímek - NPRG036 Data Formats</a></li>
+<li><a href="https://www.youtube.com/watch?v=vsmrPW0eMyY">2021 - Building Futureproof APIs with Spring HATEOAS - Greg Turnquist - JCon</a></li>
+<li><a href="https://www.youtube.com/watch?v=zuPYqOsT-aw">2021 - Why JSON-LD and what is it? - Samuel Rozé - API Platform Con</a></li>
+<li><a href="https://www.youtube.com/watch?v=Q3hAPZVu3HI">2020 - Evolving architecture with DDD and hypermedia - Einar Høst - Domain-Driven Design Europe</a></li>
+<li><a href="https://www.youtube.com/watch?v=0V_F9Ko_Ic8">2020 - Discoverable Hypermedia-Driven RESTful Web Services in Clojure - Daniel Zurawski - London Clojurians</a></li>
+<li><a href="https://www.youtube.com/watch?v=0V_F9Ko_Ic8">2020 - Building Flexible APIs with Spring HATEOAS - Greg Turnquist - Spring One</a></li>
+<li><a href="https://www.youtube.com/watch?v=FqCrltmDX0g">2019 - Building RESTful Graph APIs that lasts - Sebastian Lambla - APIdays Barcelona</a></li>
+<li><a href="https://www.youtube.com/watch?v=SNGGqW0hs20">2019 - Testing APIs the Hypermedia way - Tomasz Pluskiewicz - APIdays Barcelona</a></li>
+<li><a href="https://www.youtube.com/watch?v=kDlQG6HTuYM">2019 - Hail Hydra: The Future of Web APIs is Here - Devdutt Shenoi - FOSSMeet</a></li>
+<li><a href="https://www.youtube.com/watch?v=nMHJT2yn4pc">2019 - How to get along with HATEOAS without letting the bad guys steal your lunch? - Steve Poole, Graham Charters - Voxxed Days Luxembourg</a></li>
+<li><a href="https://www.youtube.com/watch?v=F3Z6qye3LrE">2019 - Bringing Hypermedia to the Masses - Tomasz Pluskiewicz - Nordic APIs Platform Summit</a></li>
+<li><a href="https://www.youtube.com/watch?v=IL2PlsbvUDs">2019 - How to get along with HATEOAS without letting the bad guys steal your lunch? - Steve Poole &amp; Graham Charters - Devoxx</a></li>
+<li><a href="https://www.youtube.com/watch?v=o4cc6KzNrpI">2019 - Spring HATEOAS - Hypermedia APIs with Spring - Oliver Drotbohm, Greg Turnquist - SpringOne Platform</a></li>
+<li><a href="https://www.youtube.com/watch?v=-rPpGE_jvFw">2018 - Love to HATEOAS: Hypermedia for Fun and Profit - Gabriel Sullice - Decoupled Drupal Days</a></li>
+<li><a href="https://www.youtube.com/watch?v=CMTQ-jdv2S8">2018 - Creating 3rd generation Web APIs using Hydra and Hydrus - Akshay Dahiya - PyCon India</a></li>
+<li><a href="https://www.youtube.com/watch?v=_i1Qv-8WC8w">2018 - Documenting Hypermedia APIs - Nick Bradley - API the Docs London</a></li>
+<li><a href="https://www.youtube.com/watch?v=RSv-Yv3cgPg">2018 - The JSON API Spec - Marco Otte-Witte - API Conference</a></li>
+<li><a href="https://www.youtube.com/watch?v=ybwo_70jpGc">2017 - Hypermedia APIs and HATEOAS - Volodymyr Tsukur - Wix Engineering Meetup</a></li>
+<li><a href="https://www.youtube.com/watch?v=C6TXsI2hZMU">2017 - RESTful Hypermedia APIs - Kai Tödter - Jax London</a></li>
+<li><a href="https://www.youtube.com/watch?v=RM7SXmu1QzE">2018 - Real World REST and Hands-On Hypermedia - Dylan Beattie - DevTernity Conference</a></li>
+<li><a href="https://www.youtube.com/watch?v=kPrTMj-BK14">2017 - Real World REST and Hands-On Hypermedia - Dylan Beattie - DotNext</a></li>
+<li><a href="https://www.youtube.com/watch?v=RqD0OjCcp9k">2017 - Full Stack REST - Jimmy Bogard - DevReach Conference</a></li>
+<li><a href="https://www.youtube.com/watch?v=aThIuSsb_OA">2016 - Get HATEOAS and Hypermedia right with Spring - Eugene Paraschiv - Sping I/O</a></li>
+<li><a href="https://www.youtube.com/watch?v=oGH0eIko_NE">2016 - Developing a developer-friendly hypermedia API with django-rest-framework and behave - Joost Cassee - PyCon Sette</a></li>
+<li><a href="https://www.youtube.com/watch?v=0fPuerB3AL0">2015 - Making Sense of Hypermedia APIs - Hype or Reality - Laura Heritage - Akana Webinar</a></li>
+<li><a href="https://www.youtube.com/watch?v=EaVqkfsPmvQ">2015 - Using Hypermedia APIs to Drive Interactive Mobile Applications - Benjamin Greenberg - Full Stack Toronto Conf</a></li>
+<li><a href="https://www.youtube.com/watch?v=g8E1B7rTZBI">2016 - The Rest of ReST - Dylan Beattie - NDC Conference</a></li>
+<li><a href="https://www.youtube.com/watch?v=y7nG05MTRus">2015 - Hypermedia APIs - The Rest of REST - Chris Marinos - SEM JS</a></li>
+<li><a href="https://www.youtube.com/watch?v=NYIBeDDGfEk">2015 - SmartData Webinar JSON LD - Brian Sletten - DataVeristy</a></li>
+<li><a href="https://www.youtube.com/watch?v=8HC7BsWU0hE">2015 - Hypermedia The Good, the Bad and the Ugly - Mike Stowe - Devnexus</a></li>
+<li><a href="https://www.youtube.com/watch?v=7rSLyLMaWXQ">2014 - Cutting-edge APIs using hypermedia at BSkyB - Adriana Vasiu - EuroPython</a></li>
+<li><a href="https://www.youtube.com/watch?v=39_qe6jE2PM">2014 - Hypermedia - The rest of REST - Steven Cummings - Cerner DevCon</a></li>
+<li><a href="https://www.youtube.com/watch?v=39_qe6jE2PM">2014 - On the Edge of Hypermedia - Keith Casey - Midwest.io</a></li>
+<li><a href="https://www.youtube.com/watch?v=c7Zyv1AL3dQ">2014 - Hypermedia: Taking your API to the next level - Unknown - NERD Summit</a></li>
+<li><a href="https://www.youtube.com/watch?v=g4sqydY3hHU">2012 - Designing Hypermedia APIs - Steve Klabnik - Rails Conf</a></li>
+<li><a href="https://www.youtube.com/watch?v=LvtUsJKfeXg">2012 - Designing Hypermedia APIs - Steve Klabnik - TwilioCon</a></li>
+</ul>
+<p>If you want to add another item to the list, submit a PR.</p>
+<h3 id="blogs-and-articles">Blogs and Articles</h3>
+<p>Here there are blog posts and articles from different sources, some
+organizations and some individuals. The length varies but each has its own
+value.</p>
+<ul>
+<li><a href="https://pradeepl.com/blog/rest/hateoas/">2024-01-30 - Pradeep Loganathan - HATEOAS</a></li>
+<li><a href="https://www.kapresoft.com/software/2023/11/09/rest-hateoas-best-practices.html">2023-11-09 - Antonio W. Lagnada - ReST HATEOAS Best Practices</a></li>
+<li><a href="https://restfulapi.net/hateoas/">2023-11-04 - Lokesh Gupta - HATEOAS Driven REST APIs</a></li>
+<li><a href="https://codedamn.com/news/backend/rest-api-design-advanced-hateoas-implementation">2023-03-26 - Mahul Mohan - REST API Design: Advanced HATEOAS Implementation and Use Cases</a></li>
+<li><a href="https://www.geeksforgeeks.org/hateoas-and-why-its-needed-in-restful-api/">2022-10-02 - GeeksforGeeks - HATEOAS and Why It’s Needed in RESTful API?</a></li>
+<li><a href="https://engineering.3ap.ch/post/using-hateoas-with-rest/">2021-04-20 - Luca Christen - Using HATEOAS with REST APIs</a></li>
+<li><a href="https://t-code.pl/blog/2019/06/testing-hypermedia-api/">2019-06-01 - Tomasz Pluskiewicz - Testing APIs Hypermedia-style</a></li>
+<li><a href="https://8thlight.com/insights/the-hypermedia-maturity-model">2018-05-30 - Jason Desrosiers - The Hypermedia Maturity Model</a></li>
+<li><a href="https://8thlight.com/insights/decoupling-the-client-and-server-with-hypermedia">2018-04-11 - Jason Desrosiers - Decoupling the Client and Server with Hypermedia</a></li>
+<li><a href="https://8thlight.com/insights/turning-up-the-good-on-rest-apis">2018-03-21 - Jason Desrosiers - Turning Up The Good On REST APIs</a></li>
+<li><a href="https://nordicapis.com/designing-a-true-rest-state-machine/">2017-01-31 - Bill Doerrfeld - Designing a True REST State Machine</a></li>
+<li><a href="https://nordicapis.com/improve-api-experience-using-hypermedia/">2016-01-19 - Kristopher Sandoval - How to Improve API Experience Using Hypermedia</a></li>
+<li><a href="https://sookocheff.com/post/api/on-choosing-a-hypermedia-format/">2014-03-11 - Kevin Sookocheff - On choosing a hypermedia type for your API - HAL, JSON-LD, Collection+JSON, SIREN, Oh My!</a></li>
+<li><a href="https://roy.gbiv.com/untangled/2008/rest-apis-must-be-hypertext-driven">2008-10-20 - Roy T. Fielding - REST APIs must be hypertext-driven</a></li>
+</ul>
+<p>If you want to add another item to the list, submit a PR.</p>
+<h3 id="books">Books</h3>
+<p>There are not too many books which a strong focus on hypermedia or HATEOAS,
+however the following are complementary and in-line with designing discoverable
+and evolvable REST APIs.</p>
+<ul>
+<li><a href="https://www.oreilly.com/library/view/building-microservices-2nd/9781492034018/">2021 - Building Microservices - Sam Newman - O'Reilly</a></li>
+<li><a href="https://www.oreilly.com/library/view/restful-web-clients/9781491921890/">2017 - RESTful Web Clients - Mike Amundsen - O'Reilly</a></li>
+<li><a href="https://www.amazon.com/RESTful-API-Design-Practices-API-University-ebook/dp/B01L6STMVW">2016 - RESTful API Design: Best Practices in API Design with REST - Matthias Biehl - API-University Press</a></li>
+<li><a href="https://www.oreilly.com/library/view/restful-web-apis/9781449359713/">2013 - RESTful Web APIs - Leonard Richardson, Mike Amundsen, Sam Ruby - O'Reilly</a></li>
+<li><a href="http://www.designinghypermediaapis.com/index.html">2012 - Designing Hypermedia APIs - Steve Klabnik - Self Published</a></li>
+<li><a href="https://www.oreilly.com/library/view/building-hypermedia-apis/9781449309497/">2011 - Building Hypermedia APIs With HTML5 and Node - Mike Amundsen - O'Reilly</a></li>
+<li><a href="https://www.oreilly.com/library/view/rest-in-practice/9781449383312/">2010 - REST in Practice: Hypermedia and Systems Architecture - Jim Webber, Savas Parastatidis, Ian Robinson - O'Reilly</a></li>
+</ul>
+<p>If you want to add another item to the list, submit a PR.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy"], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.60a45f97.min.js"></script>
+      
+        <script src="../js/linked_tabs.js"></script>
+      
+    
+  </body>
+</html>
