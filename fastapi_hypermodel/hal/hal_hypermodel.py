@@ -220,7 +220,7 @@ class HALHyperModel(HyperModel):
         embedded: Dict[str, Union[Self, Sequence[Self]]] = {}
         for name, field in self:
             value: Sequence[Union[Any, Self]] = (
-                field if isinstance(field, Sequence) else [field]
+                field if isinstance(field, Sequence) and len(field) else [field]
             )
 
             if not all(isinstance(element, HALHyperModel) for element in value):
