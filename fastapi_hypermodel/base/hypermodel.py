@@ -58,7 +58,8 @@ class AbstractHyperField(ABC, Generic[T]):
         if templated and isinstance(route, Route):
             return UrlType(route.path)
 
-        params = resolve_param_values(params, values)
+        internal_params = resolve_param_values(params, values)
+        params |= internal_params
         return UrlType(app.url_path_for(endpoint, **params))
 
 
